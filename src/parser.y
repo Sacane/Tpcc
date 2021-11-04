@@ -8,6 +8,10 @@ extern int line_count;
 extern int linecharno;
 
 %}
+%code requires {
+#include "tree.h"
+struct Node* root;
+}
 
 %token DIVSTAR ADDSUB IDENT ORDER TYPE EQ OR AND NUM CHARACTER RETURN WHILE IF ELSE FOR VOID
 

@@ -2,8 +2,8 @@
 #ifndef __TREE
 #define __TREE
 typedef enum {
-  E,
-  T,
+  Prog,
+  DeclVars,
   divstar,
   id
   /* list all other node labels, if any */
