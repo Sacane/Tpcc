@@ -4,6 +4,8 @@
 void yyerror(char *s);
 int yylex(void);
 extern int lineno;
+extern int line_count;
+extern int linecharno;
 
 %}
 
@@ -95,8 +97,9 @@ ListExp:
     ;
 %%
 void yyerror(char *s){
-    fprintf (stderr, "%s error\n", s);
+    fprintf (stderr, "%s near line %d at char : %d\n", s, line_count, linecharno);
 }
+
 int main(void){
     return yyparse();
 }
