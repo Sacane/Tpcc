@@ -30,7 +30,7 @@ return      {linecharno = linecharno + yyleng; return RETURN;}
 "||"        {linecharno = linecharno + yyleng; return OR;}
 "&&"        {linecharno = linecharno + yyleng; return AND;}
 \'.\' 	    {linecharno = linecharno + yyleng; return CHARACTER;}
-" "|\t     {linecharno = linecharno + yyleng; linecharno = linecharno + yyleng;}
+" "|\t     {linecharno = linecharno + yyleng;}
 int|char   {linecharno = linecharno + yyleng; return TYPE;}
 [a-zA-Z_][a-zA-Z0-9_]*            {linecharno = linecharno + yyleng; return IDENT;}
 . 	{linecharno = linecharno + yyleng; return yytext[0];}

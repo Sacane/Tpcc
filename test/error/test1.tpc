@@ -7,7 +7,7 @@
 int ppcm(int a, int b){
     int c, d;
     c=a;
-    d=b;
+    d=b
     while (a!=b){   
         if(a>b)
           b=d+b;
