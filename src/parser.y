@@ -19,7 +19,7 @@ Node* root;
 
 %token DIVSTAR ADDSUB IDENT ORDER TYPE EQ OR AND NUM CHARACTER RETURN WHILE IF ELSE FOR VOID
 
-%type <node> DeclVars Prog DeclFoncts TYPE Declarateurs id DeclFonct EnTeteFonct Corps
+%type <node> DeclVars Prog DeclFoncts TYPE Declarateurs DeclFonct EnTeteFonct Corps Parametres
 
 
 
@@ -27,23 +27,23 @@ Node* root;
 Prog:  DeclVars DeclFoncts              {$$ = makeNode(Prog); addChild($$, $1); addChild($$, $2); printTree($$); deleteTree($$);}
     ;
 DeclVars:
-       DeclVars TYPE Declarateurs ';'   {addChild($$, $2); addChild($$, $3); }
+       DeclVars TYPE Declarateurs ';'   {$$ = $1; addChild($$, $2); addChild($$, $3); }
     |  %empty                           {$$ = makeNode(DeclVars);}
     ;
 Declarateurs:  
-       Declarateurs ',' IDENT           {addChild($$, makeNode(id));}
+       Declarateurs ',' IDENT           {$$ = $1; addChild($$, makeNode(id));}
     |  IDENT                            {$$ = makeNode(types); addChild($$, makeNode(id));}
     ;
 DeclFoncts:
-       DeclFoncts DeclFonct             {addChild($$, $2);}
-    |  DeclFonct                        {$$ = makeNode(DeclFoncts);}
+       DeclFoncts DeclFonct             {$$ = $1; addChild($$, $2);}
+    |  DeclFonct                        {$$ = makeNode(DeclFoncts); addChild($$, $1);}
     ;
 DeclFonct:
-       EnTeteFonct Corps                {$$ = makeNode(DeclFonct); addChild($$, makeNode(EnTeteFonct)); addChild($$, makeNode(Corps));}                        
+       EnTeteFonct Corps                {$$ = makeNode(DeclFonct); addChild($$, $1); addChild($$, makeNode(Corps));}                        
     ;
 EnTeteFonct:
-       TYPE IDENT '(' Parametres ')' 
-    |  VOID IDENT '(' Parametres ')' 
+       TYPE IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); addChild($$, makeNode(types)); addChild($$, makeNode(id)); addChild($$, makeNode(Parametres));}
+    |  VOID IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); addChild($$, makeNode(Void)); addChild($$, makeNode(id)); addChild($$, makeNode(Parametres));}
     ;
 Parametres:
        VOID 
