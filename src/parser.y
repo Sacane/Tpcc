@@ -12,7 +12,7 @@ extern int linecharno;
 #include "tree.h"
 Node* root;
 }
-
+%expect 1
 %union{
   Node *node;
 }
@@ -57,7 +57,7 @@ Corps: '{' DeclVars SuiteInstr '}'
     ;
 SuiteInstr:
        SuiteInstr Instr 
-    |
+    |  %empty
     ;
 Instr:
        LValue '=' Exp ';'
@@ -101,7 +101,7 @@ LValue:
     ;
 Arguments:
        ListExp 
-    |
+    |  %empty
     ;
 ListExp:
        ListExp ',' Exp 

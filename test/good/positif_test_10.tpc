@@ -1,0 +1,21 @@
+/* Initialize the structure of a Person used to the former tests */
+ 
+struct Person{int age; char* name;};
+
+
+/*two different way to init a person : */
+
+struct Person init_person(int age, char* name){
+    struct Person tmp;
+    /*tmp.age = age, tmp.name = name;*/ 
+
+    return tmp;
+}
+
+/* ------- or ------- */
+
+void init_person(struct Person p, int age, char* name){
+    /*p.age = age;
+    p.name = name;*/
+}
+

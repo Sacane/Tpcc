@@ -1,0 +1,12 @@
+
+void init_person(int age, char* name){ /* Oh.. Pointers are not allowed in this analyzer so it's semanticely invalids but it still works */
+    /*p.age = age;
+    p.name = name;*/
+    struct test_inside{
+        int field;
+        char other_field;
+    };
+}
+
+
+

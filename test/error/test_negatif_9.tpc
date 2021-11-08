@@ -1,0 +1,21 @@
+
+int global;
+
+void display_person(struct Person p){
+    struct Person otherPerson;
+    if(p != NULL){
+        print(None);
+    }
+    else{
+        return;
+    
+}
+
+
+
+int main(void){
+    struct Person somebody;
+    /*char name[10] = "Sarah";*/
+    printf(name);
+    return 0;
+}

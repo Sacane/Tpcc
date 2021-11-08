@@ -1,0 +1,21 @@
+
+int a;
+char b;
+int global;
+
+int function(void){
+    struct test n, p, q;
+    n = 'v';
+}
+
+int main(void) {
+
+    struct time t;
+    int b;
+    a = 1; un = 'a';
+    t = machin(t, a, un);
+
+    print(a); print(un);
+
+    return 0;
+}
