@@ -3,7 +3,6 @@
 
 //test
 
-
 int ppcm(int a, int b){
     int c, d;
 	c=a;

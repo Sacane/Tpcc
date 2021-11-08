@@ -10,28 +10,36 @@ extern int linecharno;
 %}
 %code requires {
 #include "tree.h"
-struct Node* root;
+Node* root;
+}
+
+%union{
+  Node *node;
 }
 
 %token DIVSTAR ADDSUB IDENT ORDER TYPE EQ OR AND NUM CHARACTER RETURN WHILE IF ELSE FOR VOID
 
+%type <node> DeclVars Prog DeclFoncts TYPE Declarateurs id DeclFonct EnTeteFonct Corps
+
+
+
 %%
-Prog:  DeclVars DeclFoncts 
+Prog:  DeclVars DeclFoncts              {$$ = makeNode(Prog); addChild($$, $1); addChild($$, $2); printTree($$); deleteTree($$);}
     ;
 DeclVars:
-       DeclVars TYPE Declarateurs ';' 
-    |
+       DeclVars TYPE Declarateurs ';'   {addChild($$, $2); addChild($$, $3); }
+    |  %empty                           {$$ = makeNode(DeclVars);}
     ;
-Declarateurs:
-       Declarateurs ',' IDENT 
-    |  IDENT 
+Declarateurs:  
+       Declarateurs ',' IDENT           {addChild($$, makeNode(id));}
+    |  IDENT                            {$$ = makeNode(types); addChild($$, makeNode(id));}
     ;
 DeclFoncts:
-       DeclFoncts DeclFonct 
-    |  DeclFonct 
+       DeclFoncts DeclFonct             {addChild($$, $2);}
+    |  DeclFonct                        {$$ = makeNode(DeclFoncts);}
     ;
 DeclFonct:
-       EnTeteFonct Corps 
+       EnTeteFonct Corps                {$$ = makeNode(DeclFonct); addChild($$, makeNode(EnTeteFonct)); addChild($$, makeNode(Corps));}                        
     ;
 EnTeteFonct:
        TYPE IDENT '(' Parametres ')' 

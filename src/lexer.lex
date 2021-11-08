@@ -8,15 +8,17 @@ int linecharno = 0;
 int line_count = 1;
 char* current_line = NULL;
 %}
-%x LONG_COM SHORT_COM
+%x LONG_COMMENT SHORT_COMMENT
 %option nounput
 %option noinput
 %option noyywrap
 %%
-"//"                {BEGIN SHORT_COM;}
-<SHORT_COM>\n       {BEGIN INITIAL; linecharno = 0;} 
-"/*"                {BEGIN LONG_COM;}
-<LONG_COM>"*/"      {linecharno = linecharno + yyleng; BEGIN INITIAL;}
+"/*" {BEGIN LONG_COMMENT;}
+"//"                {BEGIN SHORT_COMMENT;}
+<LONG_COMMENT>"*/"        { BEGIN INITIAL; linecharno += yyleng; }
+<LONG_COMMENT,SHORT_COMMENT>.        {linecharno += yyleng;}
+<LONG_COMMENT>\n        {lineno++;linecharno=0;}
+<SHORT_COMMENT>\n        {BEGIN INITIAL; lineno++;linecharno=0;}
 '='|"=="|"!="	   {linecharno = linecharno + yyleng; return EQ;}
 "<"|">"|"<="|">="	{linecharno = linecharno + yyleng; return ORDER;}
 "+"|"-" 	        {linecharno = linecharno + yyleng; return ADDSUB;}
