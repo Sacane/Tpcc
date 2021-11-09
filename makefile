@@ -30,4 +30,4 @@ obj/tree.o: src/tree.c src/tree.h
 	$(CC) -c src/tree.c -o obj/tree.o $(CFLAGS)
 
 clean:
-	rm -f src/lex.yy.* src/$(PARSER).tab.* obj/*
+	rm -f src/lex.yy.* src/$(PARSER).tab.* obj/* bin/*
