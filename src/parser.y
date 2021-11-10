@@ -19,7 +19,7 @@ Node* root;
 
 %token DIVSTAR ADDSUB IDENT ORDER TYPE EQ OR AND NUM CHARACTER RETURN WHILE IF ELSE FOR VOID
 
-%type <node> DeclVars Prog DeclFoncts TYPE Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar
+%type <node> DeclVars Prog DeclFoncts TYPE Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar SuiteInstr Instr LValue Exp Body
 
 
 
@@ -27,7 +27,7 @@ Node* root;
 Prog:  DeclVars DeclFoncts              {$$ = makeNode(Prog); addChild($$, $1); addChild($$, $2); printTree($$); deleteTree($$);}
     ;
 DeclVars:
-       DeclVars TYPE Declarateurs ';'   {if($1) {$$ = $1; addChild($$, $2); addChild($$, $3); }}
+       DeclVars TYPE Declarateurs ';'   {$$ = $1; addChild($$, $3);}
     |  %empty                           {$$ = makeNode(DeclVars);}
     ;
 Declarateurs:  
@@ -50,17 +50,17 @@ Parametres:
     |  ListTypVar                       {$$ = makeNode(Parametres); addChild($$, $1);}
     ;
 ListTypVar:
-       ListTypVar ',' TYPE IDENT        {$$ = $1;Node *type = makeNode(types); addSibling($$, type); addChild(type, makeNode(id));}
+       ListTypVar ',' TYPE IDENT        {$$ = $1; Node *type = makeNode(types); addSibling($$, type); addChild(type, makeNode(id));}
     |  TYPE IDENT                       {$$ = makeNode(types); addChild($$, makeNode(id));}
     ;
-Corps: '{' DeclVars SuiteInstr '}'      {$$ = $2; addSibling($$, makeNode(SuiteInstr));}
-    ;
-SuiteInstr:
-       SuiteInstr Instr 
-    |  %empty
+Corps: '{' DeclVars SuiteInstr '}'      {$$ = $2; addSibling($$, $3);}
+    ;           
+SuiteInstr:                             
+       SuiteInstr Instr                 {$$ = $1; addChild($$, makeNode(Instr));}
+    |  %empty                           {$$ = makeNode(Body);}
     ;
 Instr:
-       LValue '=' Exp ';'
+       LValue '=' Exp ';'               
     |  IF '(' Exp ')' Instr 
     |  IF '(' Exp ')' Instr ELSE Instr
     |  WHILE '(' Exp ')' Instr
