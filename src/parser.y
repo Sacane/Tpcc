@@ -19,7 +19,7 @@ Node* root;
 
 %token DIVSTAR ADDSUB IDENT ORDER TYPE EQ OR AND NUM CHARACTER RETURN WHILE IF ELSE FOR VOID
 
-%type <node> DeclVars Prog DeclFoncts TYPE Declarateurs DeclFonct EnTeteFonct Corps Parametres
+%type <node> DeclVars Prog DeclFoncts TYPE Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar
 
 
 
@@ -27,7 +27,7 @@ Node* root;
 Prog:  DeclVars DeclFoncts              {$$ = makeNode(Prog); addChild($$, $1); addChild($$, $2); printTree($$); deleteTree($$);}
     ;
 DeclVars:
-       DeclVars TYPE Declarateurs ';'   {$$ = $1; addChild($$, $2); addChild($$, $3); }
+       DeclVars TYPE Declarateurs ';'   {if($1) {$$ = $1; addChild($$, $2); addChild($$, $3); }}
     |  %empty                           {$$ = makeNode(DeclVars);}
     ;
 Declarateurs:  
@@ -39,21 +39,21 @@ DeclFoncts:
     |  DeclFonct                        {$$ = makeNode(DeclFoncts); addChild($$, $1);}
     ;
 DeclFonct:
-       EnTeteFonct Corps                {$$ = makeNode(DeclFonct); addChild($$, $1); addChild($$, makeNode(Corps));}                        
+       EnTeteFonct Corps                {$$ = makeNode(DeclFonct); addChild($$, $1); addChild($$, $2);}                        
     ;
 EnTeteFonct:
-       TYPE IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); addChild($$, makeNode(types)); addChild($$, makeNode(id)); addChild($$, makeNode(Parametres));}
-    |  VOID IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); addChild($$, makeNode(Void)); addChild($$, makeNode(id)); addChild($$, makeNode(Parametres));}
+       TYPE IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); Node * type = makeNode(types); addChild($$, type); addChild(type, makeNode(id)); addChild($$, $4);}
+    |  VOID IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); Node * type = makeNode(types); addChild($$, makeNode(Void)); addChild(type, makeNode(id)); addChild($$, $4);}
     ;
 Parametres:
-       VOID 
-    |  ListTypVar 
+       VOID                             {$$ = makeNode(Parametres); addChild($$, makeNode(Void));}
+    |  ListTypVar                       {$$ = makeNode(Parametres); addChild($$, $1);}
     ;
 ListTypVar:
-       ListTypVar ',' TYPE IDENT 
-    |  TYPE IDENT 
+       ListTypVar ',' TYPE IDENT        {$$ = $1;Node *type = makeNode(types); addSibling($$, type); addChild(type, makeNode(id));}
+    |  TYPE IDENT                       {$$ = makeNode(types); addChild($$, makeNode(id));}
     ;
-Corps: '{' DeclVars SuiteInstr '}' 
+Corps: '{' DeclVars SuiteInstr '}'      {$$ = $2; addSibling($$, makeNode(SuiteInstr));}
     ;
 SuiteInstr:
        SuiteInstr Instr 

@@ -1,4 +1,10 @@
-int main(void){
+int a, b, c;
+
+void f1(void){
+  return 1;
+}
+
+int main(int id, int id2, char c){
 	int a, b, c;
 	a = 9;
 	b=16;
