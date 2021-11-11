@@ -23,7 +23,25 @@ static const char *StringFromLabel[] = {
   "LValue",
   "Assign",
   "Body",
-  "Instr"
+  "Instr",
+  "If",
+  "Else",
+  "While",
+  "Or",
+  "And",
+  "Eq",
+  "Plus",
+  "Minus",
+  "Order",
+  "AddSub",
+  "FunctionCall",
+  "Neg",
+  "Int",
+  "Character",
+  "Arguments",
+  "ListExp",
+  "Return",
+  "EmptyInstr"
   /* list all other node labels, if any */
   /* The list must coincide with the label_t enum in tree.h */
   /* To avoid listing them twice, see https://stackoverflow.com/a/10966395 */

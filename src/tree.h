@@ -19,7 +19,25 @@ typedef enum {
   LValue,
   Assign,
   Body,
-  Instr
+  Instr,
+  If,
+  Else,
+  While,
+  Or,
+  And,
+  Eq,
+  Plus,
+  Minus,
+  Order,
+  Addsub,
+  FunctionCall,
+  Neg,
+  Int,
+  Character,
+  Arguments,
+  ListExp,
+  Return,
+  EmptyInstr
   /* list all other node labels, if any */
   /* The list must coincide with the string array in tree.c */
   /* To avoid listing them twice, see https://stackoverflow.com/a/10966395 */

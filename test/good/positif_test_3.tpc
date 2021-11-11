@@ -10,20 +10,16 @@ int max;
 
 
 int main(void) {
-   struct Personne p1, p2, p3;
    int b, c ;
    b=-1;
    while (b<=1) {
        c=-1;
        while (c<=1) {
-           print(b);
            if (trinome(1,b,c)) {
-               print(r1);print (r2);
-               print(valeur(1,b,c,r1));print (valeur(1,b,c,r2));
                if (0<=r1 && r1<=max && 0>=r2 && r2>=-max)
                    return 0;
            }
-           c=+c;
+           c=c+1;
        }
        b=b+1;
    }

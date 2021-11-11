@@ -19,7 +19,7 @@ Node* root;
 
 %token DIVSTAR ADDSUB IDENT ORDER TYPE EQ OR AND NUM CHARACTER RETURN WHILE IF ELSE FOR VOID
 
-%type <node> DeclVars Prog DeclFoncts TYPE Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar SuiteInstr Instr LValue Exp Body
+%type <node> DeclVars Prog DeclFoncts TYPE Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar SuiteInstr Instr LValue Exp TB FB M E T F Arguments ListExp
 
 
 
@@ -53,60 +53,60 @@ ListTypVar:
        ListTypVar ',' TYPE IDENT        {$$ = $1; Node *type = makeNode(types); addSibling($$, type); addChild(type, makeNode(id));}
     |  TYPE IDENT                       {$$ = makeNode(types); addChild($$, makeNode(id));}
     ;
-Corps: '{' DeclVars SuiteInstr '}'      {$$ = $2; addSibling($$, $3);}
+Corps: '{' DeclVars SuiteInstr '}'      {$$ = makeNode(Body); addChild($$, $2); addSibling($2, $3);}
     ;           
 SuiteInstr:                             
-       SuiteInstr Instr                 {$$ = $1; addChild($$, makeNode(Instr));}
-    |  %empty                           {$$ = makeNode(Body);}
+       SuiteInstr Instr                 {$$ = $1; addChild($$, $2);}
+    |  %empty                           {$$ = makeNode(SuiteInstr);}
     ;
 Instr:
-       LValue '=' Exp ';'               
-    |  IF '(' Exp ')' Instr 
-    |  IF '(' Exp ')' Instr ELSE Instr
-    |  WHILE '(' Exp ')' Instr
-    |  IDENT '(' Arguments  ')' ';'
-    |  RETURN Exp ';' 
-    |  RETURN ';' 
-    |  '{' SuiteInstr '}' 
-    |  ';' 
+       LValue '=' Exp ';'                   {$$ = makeNode(Assign); addChild($$, $1); addChild($$, $3);}
+    |  IF '(' Exp ')' Instr                 {$$ = makeNode(If); addChild($$, $3); addChild($$, $5);}
+    |  IF '(' Exp ')' Instr ELSE Instr      {$$ = makeNode(If); addChild($$, $3); addChild($$, $5);}
+    |  WHILE '(' Exp ')' Instr              {$$ = makeNode(While); addChild($$, $3); addChild($$, $5);}
+    |  IDENT '(' Arguments  ')' ';'         {$$ = makeNode(types); addChild($$, $3);}
+    |  RETURN Exp ';'                       {$$ = makeNode(Return); addChild($$, $2);}
+    |  RETURN ';'                           {$$ = makeNode(Return);}
+    |  '{' SuiteInstr '}'                   {$$ = makeNode(SuiteInstr); addChild($$, $2);}
+    |  ';'                                  {$$ = makeNode(EmptyInstr);}
     ;
-Exp :  Exp OR TB 
-    |  TB 
+Exp :  Exp OR TB                            {$$ = makeNode(Or); addChild($$, $1); addChild($$, $3);}
+    |  TB                                   {$$ = $1;}
     ;
-TB  :  TB AND FB 
-    |  FB 
+TB  :  TB AND FB                            {$$ = makeNode(And); addChild($$, $1); addChild($$, $3);}
+    |  FB                                   {$$ = $1;}
     ;
-FB  :  FB EQ M
-    |  M
+FB  :  FB EQ M                              {$$ = makeNode(Eq); addChild($$, $1); addChild($$, $3);}
+    |  M                                    {$$ = $1;}
     ;
-M   :  M ORDER E 
-    |  E 
+M   :  M ORDER E                            {$$ = makeNode(Order); addChild($$, $1); addChild($$, $3);}
+    |  E                                    {$$ = $1;}
     ;
-E   :  E ADDSUB T 
-    |  T 
+E   :  E ADDSUB T                           {$$ = makeNode(Addsub); addChild($$, $1); addChild($$, $3);}
+    |  T                                    {$$ = $1;}
     ;    
-T   :  T DIVSTAR F 
-    |  F 
+T   :  T DIVSTAR F                          {$$ = makeNode(divstar); addChild($$, $1); addChild($$, $3);}
+    |  F                                    {$$ = $1;}
     ;
-F   :  ADDSUB F 
-    |  '!' F 
-    |  '(' Exp ')' 
-    |  NUM 
-    |  CHARACTER
-    |  LValue
-    |  IDENT '(' Arguments  ')' 
+F   :  ADDSUB F                             {$$ = makeNode(Addsub); addChild($$, $2);}
+    |  '!' F                                {$$ = makeNode(Neg);}
+    |  '(' Exp ')'                          {$$ = $2;}
+    |  NUM                                  {$$ = makeNode(Int);}
+    |  CHARACTER                            {$$ = makeNode(Character);}
+    |  LValue                               {$$ = $1;}
+    |  IDENT '(' Arguments  ')'             {$$ = makeNode(FunctionCall); addChild($$, $3);}
     ;
 LValue:  
-       IDENT 
+       IDENT                {$$ = makeNode(LValue);}
     ;
 Arguments:
-       ListExp 
-    |  %empty
+       ListExp              {$$ = makeNode(Arguments); addChild($$, $1);}
+    |  %empty               {$$ = makeNode(Void);}
     ;
 ListExp:
-       ListExp ',' Exp 
-    |  Exp 
-    ;
+       ListExp ',' Exp      {$$ = makeNode(ListExp); addSibling($$, $3);}      
+    |  Exp                  {$$ = $1;}
+    ;   
 %%
 void yyerror(char *s){
     fprintf (stderr, "%s near line %d at char : %d\n", s, line_count, linecharno);
