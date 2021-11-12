@@ -1,7 +1,7 @@
 CC=gcc
 DEPS= lex.yy
 OBJ=$(DEPS:%=obj/%.o)
-CFLAGS=-Wall -ly -lfl -pedantic -g
+CFLAGS=-Wall -ly -lfl -pedantic -g 
 EXEC=tpcas
 PARSER=parser
 LEXER=lexer
