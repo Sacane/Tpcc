@@ -1,0 +1,16 @@
+int a, b, c;
+
+
+
+char called(int c){
+    return c;
+}
+
+void caller(int flag){
+    if(flag == 2){
+        return called('c');
+    }
+    else{
+        return called('q');
+    }
+}

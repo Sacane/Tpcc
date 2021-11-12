@@ -3,14 +3,13 @@ int a;
 char b;
 int global;
 
-int function(void){
-    struct test n, p, q;
+int machin(void){
     n = 'v';
+    string = "hello"; 
 }
 
 int main(void) {
 
-    struct time t;
     int b;
     a = 1; un = 'a';
     t = machin(t, a, un);

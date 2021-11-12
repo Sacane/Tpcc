@@ -1,8 +1,7 @@
 
 int global;
 
-void display_person(struct Person p){
-    struct Person otherPerson;
+void display_person(char *string){ //OOPS string are not available yet
     if(p != NULL){
         print(None);
     }
@@ -14,7 +13,6 @@ void display_person(struct Person p){
 
 
 int main(void){
-    struct Person somebody;
     /*char name[10] = "Sarah";*/
     printf(name);
     return 0;

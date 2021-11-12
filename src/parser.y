@@ -1,11 +1,13 @@
 %{
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 void yyerror(char *s);
 int yylex(void);
 extern int lineno;
 extern int line_count;
 extern int linecharno;
+struct Node* rootProg;
 
 %}
 %code requires {
@@ -24,7 +26,7 @@ Node* root;
 
 
 %%
-Prog:  DeclVars DeclFoncts              {$$ = makeNode(Prog); addChild($$, $1); addChild($$, $2); printTree($$); deleteTree($$);}
+Prog:  DeclVars DeclFoncts              {$$ = makeNode(Prog); addChild($$, $1); addChild($$, $2); /*printTree($$); deleteTree($$);*/ rootProg = $$;}
     ;
 DeclVars:
        DeclVars TYPE Declarateurs ';'   {$$ = $1; addChild($$, $3);}
@@ -112,6 +114,30 @@ void yyerror(char *s){
     fprintf (stderr, "%s near line %d at char : %d\n", s, line_count, linecharno);
 }
 
-int main(int argc, const char *argv[]){
-    return yyparse();
+int main(int argc, char **argv){
+    int option;
+    int showTree = 0;
+    int result;
+    while((option = getopt(argc, argv, ":t")) != - 1){
+        switch(option){
+            case 't':
+                showTree = 1;
+                break;
+            case 'h':
+                printf("usages :\n");
+            case '?':
+                printf("unknown option\n");
+        }
+    }
+    result = yyparse();
+    if(result){
+        return result;
+    }
+    if(showTree){
+        printTree(rootProg);
+        
+    }
+    deleteTree(rootProg);
+    fprintf(stderr, "syntax : working fine\n");
+    return result;
 }
