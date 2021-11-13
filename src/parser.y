@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <getopt.h>
+
 void yyerror(char *s);
 int yylex(void);
 extern int lineno;
@@ -69,7 +71,7 @@ Instr:
     |  IDENT '(' Arguments  ')' ';'         {$$ = makeNode(types); addChild($$, $3);}
     |  RETURN Exp ';'                       {$$ = makeNode(Return); addChild($$, $2);}
     |  RETURN ';'                           {$$ = makeNode(Return);}
-    |  '{' SuiteInstr '}'                   {$$ = makeNode(SuiteInstr); addChild($$, $2);}
+    |  '{' SuiteInstr '}'                   {$$ = $2;}
     |  ';'                                  {$$ = makeNode(EmptyInstr);}
     ;
 Exp :  Exp OR TB                            {$$ = makeNode(Or); addChild($$, $1); addChild($$, $3);}
@@ -110,32 +112,58 @@ ListExp:
     |  Exp                  {$$ = $1;}
     ;   
 %%
+
 void yyerror(char *s){
     fprintf (stderr, "%s near line %d at char : %d\n", s, line_count, linecharno);
 }
 
+
+void print_help(){
+
+    printf("=================================\n");
+    printf("===========HELP GUIDE============\n");
+    printf("=================================\n");
+    printf("Command Line: ./tpcas [OPTION]\nWith OPTION equal to -h/--help or -t/--tree\n");
+    printf("OPTION 1 : -h/--help , Print usage of the program.\n");
+    printf("OPTION 2 : -t/--tree , Print the abstract tree on the standard output\n");
+    printf("(You can use both options)\n");
+}
+
+
 int main(int argc, char **argv){
-    int option;
     int showTree = 0;
     int result;
-    while((option = getopt(argc, argv, ":t")) != - 1){
-        switch(option){
-            case 't':
-                showTree = 1;
-                break;
-            case 'h':
-                printf("usages :\n");
-            case '?':
-                printf("unknown option\n");
+    int opt = 0;
+    int option_index = 0;
+    
+    static struct option long_option[] = {
+
+        {"help", no_argument,0,'h'},
+        {"tree", no_argument,0,'t'},
+        {0,0,0,0}
+    };
+
+    while((opt = getopt_long(argc,argv,"t h",long_option,&option_index))!=-1){
+
+        switch(opt){
+
+            case 'h' : print_help();
+                       break;
+
+            case 't' : showTree = 1;
+                       break;
+
+            default : break;
         }
     }
+
+
     result = yyparse();
     if(result){
         return result;
     }
     if(showTree){
-        printTree(rootProg);
-        
+        printTree(rootProg);    
     }
     deleteTree(rootProg);
     fprintf(stderr, "syntax : working fine\n");
