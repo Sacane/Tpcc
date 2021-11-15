@@ -1,20 +1,21 @@
-int a, b, c;
 
 void f1(void){
   return 1;
 }
 
+
 int main(int id, int id2, char c){
 	int a, b, c;
+  char c;
 
 	a = 9;
 	b=16;
 	c=5;
 	while(a!=b){   
-    if(a>b)
+    if(a>b && b > c)
       b=b+1;
-    if(a<b)
-        a=a+a;
+    if(a<6)
+      a=a+a;
     c=c-1;
   }
 

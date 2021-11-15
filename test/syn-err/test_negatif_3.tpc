@@ -1,10 +1,3 @@
-// #include <stdio.h>
-// #include <math.h> 
-/* int trinome(float a, float b, float c) ;
-double valeur(double a, double b, double c, double x) ; */
-/* Résolution d'une équation du deuxième degré */
-
-
 int r1, r2
 int max;
 
