@@ -70,7 +70,7 @@ Instr:
        LValue '=' Exp ';'                   {$$ = makeNode(Assign); addChild($$, $1); addChild($$, $3);}
     |  IF '(' Exp ')' Instr                 {$$ = makeNode(If); addChild($$, $3); addChild($$, $5);}
     |  IF '(' Exp ')' Instr ELSE Instr      {$$ = makeNode(If); addChild($$, $3); Node *else_n = makeNode(Else); addSibling($$, else_n); addChild(else_n, $5);}
-    |  SWITCH '(' IDENT ')' '{' SwitchExpr '}'
+    |  SWITCH '(' IDENT ')' '{' BeginSwitchExpr '}'
     |  WHILE '(' Exp ')' Instr              {$$ = makeNode(While); addChild($$, $3); addChild($$, $5);}
     |  IDENT '(' Arguments  ')' ';'         {$$ = makeNode(types); addChild($$, $3);}
     |  RETURN Exp ';'                       {$$ = makeNode(Return); addChild($$, $2);}
@@ -107,9 +107,16 @@ F   :  ADDSUB F                             {$$ = makeNode(Addsub); addChild($$,
 LValue:
        IDENT                {$$ = makeNode(LValue);}
     ;
+
+DeclarSwitch:
+    Instr
+    |%empty
+    ;
+
 BeginSwitchExpr:
-    Instr 
-    | %empty
+    Instr SwitchExpr
+    | SwitchExpr
+    |BeginSwitchExpr Instr
     ;
 SwitchExpr: 
         CASE IDENT ':' Instr BREAK ';'
