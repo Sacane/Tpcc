@@ -1,0 +1,21 @@
+int main(void){
+  
+int a = 45;
+switch(a){
+
+a = 3;
+
+case 1 : printf("1");
+         break;
+default: printf("aucune idée2)");
+        break;
+case 2 : printf("2");
+         break;
+case 3 : printf("3"); 
+         break;
+default: printf("aucune idée)");
+        break;
+}  
+
+
+  
