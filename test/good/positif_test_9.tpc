@@ -1,21 +1,23 @@
 int main(void){
-  
-int a = 45;
-switch(a){
+    char df;
+    int a;
+    a = 45;
 
-a = 3;
+    switch(a){
 
-case 1 : printf("1");
-         break;
-default: printf("aucune idée2)");
-        break;
-case 2 : printf("2");
-         break;
-case 3 : printf("3"); 
-         break;
-default: printf("aucune idée)");
-        break;
-}  
+    a = 3;
+    a = 5;
+    df = 'P';
 
-
-  
+    case 1 : printf('1');
+            break;
+    case 'l' : printf('2');
+            break;
+    default: printf(df);
+            break;
+    case 3 : printf(df); 
+            break;
+    default : printf(df);
+            break;
+    }  
+}

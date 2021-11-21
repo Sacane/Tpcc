@@ -108,6 +108,7 @@ LValue:
        IDENT                {$$ = makeNode(LValue);}
     ;
 
+<<<<<<< HEAD
 DeclarSwitch:
     Instr
     |%empty
@@ -117,15 +118,20 @@ BeginSwitchExpr:
     Instr SwitchExpr
     | SwitchExpr
     |BeginSwitchExpr Instr
+=======
+BeginSwitchExpr:
+    BeginSwitchExpr Instr SwitchExpr
+    | SwitchExpr
+>>>>>>> master
     ;
 SwitchExpr: 
-        CASE IDENT ':' Instr BREAK ';'
-    |   DEFAULT ':' Instr EndSwitchExpr
+        CASE CHARACTER ':' EndSwitchExpr
+    |   CASE NUM ':' EndSwitchExpr
+    |   DEFAULT ':' EndSwitchExpr
     |   %empty
     ;
 EndSwitchExpr:
-        BREAK ';' SwitchExpr
-    |   %empty
+        SuiteInstr BREAK ';' SwitchExpr
     ;
 Arguments:
        ListExp              {$$ = makeNode(Arguments); addChild($$, $1);}
