@@ -12,7 +12,7 @@ int main(void){
         reade(a);
         reade(b);
         c=c-1;
-    }
+  }
 
 
     retur 0;

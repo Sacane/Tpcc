@@ -3,7 +3,10 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <getopt.h>
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 void yyerror(char *s);
 int yylex(void);
 extern int lineno;
@@ -117,7 +120,10 @@ void yyerror(char *s){
     fprintf (stderr, "%s near line %d at char : %d\n", s, line_count, linecharno);
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 void print_help(){
 
     printf("=================================\n");
@@ -129,21 +135,31 @@ void print_help(){
     printf("(You can use both options)\n");
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 int main(int argc, char **argv){
     int showTree = 0;
     int result;
     int opt = 0;
     int option_index = 0;
+<<<<<<< HEAD
     
+=======
+>>>>>>> master
     static struct option long_option[] = {
 
         {"help", no_argument,0,'h'},
         {"tree", no_argument,0,'t'},
         {0,0,0,0}
     };
+<<<<<<< HEAD
 
     while((opt = getopt_long(argc,argv,"t h",long_option,&option_index))!=-1){
+=======
+    while((opt = getopt_long(argc, argv,"t h", long_option, &option_index)) !=-1 ){
+>>>>>>> master
 
         switch(opt){
 
@@ -154,6 +170,23 @@ int main(int argc, char **argv){
                        break;
 
             default : break;
+<<<<<<< HEAD
+=======
+        }
+    }
+    printf("%d\n", opt);
+    while((option = getopt(argc, argv, ":th")) != - 1){
+        switch(option){
+            case 't':
+                showTree = 1;
+                break;
+            case 'h':
+                print_help();
+                break;
+            case '?':
+                printf("unknown option\n");
+                break;
+>>>>>>> master
         }
     }
 
@@ -163,9 +196,12 @@ int main(int argc, char **argv){
         return result;
     }
     if(showTree){
+<<<<<<< HEAD
         printTree(rootProg);    
+=======
+        printTree(rootProg);
+>>>>>>> master
     }
     deleteTree(rootProg);
-    fprintf(stderr, "syntax : working fine\n");
     return result;
 }

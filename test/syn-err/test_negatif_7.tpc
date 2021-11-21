@@ -2,9 +2,8 @@
 #include <stdlib.h>*/
 
 int main(void){
-    struct Carre c1, c2, c3;
     if(c1 == NULL){
-        /*do something*/
+        /*do something
         return 1;
     }
     return 0;
