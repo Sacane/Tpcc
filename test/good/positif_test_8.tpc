@@ -1,0 +1,18 @@
+int main(void){
+  
+int a;
+switch(a){
+  
+case p : print(1);
+         break;
+case 2 : printf("2");
+         break;
+case 3 : printf("3"); 
+         break;
+default: printf("aucune idée)");
+        break;
+}  
+
+
+  return 0;
+}
