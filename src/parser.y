@@ -18,9 +18,13 @@ Node* root;
 %expect 1
 %union{
   Node *node;
+  char ident[64];
+  int num;
 }
 
-%token DIVSTAR ADDSUB IDENT ORDER TYPE EQ OR AND NUM CHARACTER RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK
+%token DIVSTAR ADDSUB ORDER TYPE EQ OR AND CHARACTER RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK
+%token <num> NUM
+%token <ident> IDENT
 
 %type <node> DeclVars Prog DeclFoncts TYPE Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar SuiteInstr Instr LValue Exp TB FB M E T F Arguments ListExp
 
