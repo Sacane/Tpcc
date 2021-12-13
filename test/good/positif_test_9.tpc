@@ -4,20 +4,16 @@ int main(void){
     a = 45;
 
     switch(a){
+        print('b');
+        print('m');
+        default:
+            print('j');
+        case 10:
+            print('a');
+            print('b');
+            break;
+        default:
+            print('p');
+    }
 
-    a = 3;
-    a = 5;
-    df = 'P';
-
-    case 1 : printf('1');
-            break;
-    case 'l' : printf('2');
-            break;
-    default: printf(df);
-            break;
-    case 3 : printf(df); 
-            break;
-    default : printf(df);
-            break;
-    }  
 }

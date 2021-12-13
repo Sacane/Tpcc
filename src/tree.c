@@ -20,7 +20,7 @@ static const char *StringFromLabel[] = {
   "ListTypVar",
   "SuiteInstr",
   "Exp",
-  "LValue",
+  "Variable",
   "Assign",
   "Body",
   "Instr",
