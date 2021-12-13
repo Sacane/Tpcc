@@ -38,6 +38,10 @@ typedef enum {
   ListExp,
   Return,
   EmptyInstr,
+  Switch,
+  Case,
+  Default,
+  Break,
   
   /* list all other node labels, if any */
   /* The list must coincide with the string array in tree.c */

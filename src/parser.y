@@ -26,8 +26,7 @@ Node* root;
 %token <num> NUM
 %token <ident> IDENT
 
-%type <node> DeclVars Prog DeclFoncts TYPE Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar SuiteInstr Instr LValue Exp TB FB M E T F Arguments ListExp
-
+%type <node> DeclVars Prog DeclFoncts TYPE Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar SuiteInstr Instr LValue Exp TB FB M E T F Arguments ListExp BeginSwitchExpr SwitchExpr EndSwitchExpr
 
 
 %%
@@ -63,8 +62,8 @@ ListTypVar:
 Corps: '{' DeclVars SuiteInstr '}'      {$$ = makeNode(Body); addChild($$, $2); addSibling($2, $3);}
     ;
 SuiteInstr:                             
-       SuiteInstr Instr                 {$$ = $1; addChild($$, $2);}
-    |  %empty                           {$$ = makeNode(SuiteInstr);}
+       SuiteInstr Instr                 {if($1){$$ = $1; addChild($$, $2);}else{$$=$2;}}
+    |  %empty                           {$$ = NULL;}
     ;
 Instr:
        LValue '=' Exp ';'                   {$$ = makeNode(Assign); addChild($$, $1); addChild($$, $3);}
@@ -72,7 +71,7 @@ Instr:
     |  IF '(' Exp ')' Instr ELSE Instr      {$$ = makeNode(If); addChild($$, $3); Node *else_n = makeNode(Else); addSibling($$, else_n); addChild(else_n, $5);}
     |  WHILE '(' Exp ')' Instr              {$$ = makeNode(While); addChild($$, $3); addChild($$, $5);}
     |  IDENT '(' Arguments  ')' ';'         {$$ = makeNode(types); addChild($$, $3);}
-    |  SWITCH '(' Exp ')' '{' SuiteInstr BeginSwitchExpr '}' 
+    |  SWITCH '(' Exp ')' '{' SuiteInstr BeginSwitchExpr '}' {$$ = makeNode(Switch); addChild($$,$3); addChild($$,$6); addChild($$,$7);}
     |  RETURN Exp ';'                       {$$ = makeNode(Return); addChild($$, $2);}
     |  RETURN ';'                           {$$ = makeNode(Return);}
     |  '{' SuiteInstr '}'                   {$$ = $2;}
@@ -108,16 +107,16 @@ LValue:
        IDENT                { $$ = makeNode(Variable);}
     ;
 BeginSwitchExpr:
-        BeginSwitchExpr SwitchExpr
-    |   %empty
+        BeginSwitchExpr SwitchExpr {if($1){$$ = $1; addSibling($$,$2);}else{$$=$2;}}
+    |   %empty                     {$$ = NULL;}
     ;
 SwitchExpr: 
-        CASE Exp':' EndSwitchExpr
-    |   DEFAULT ':' EndSwitchExpr
+        CASE Exp ':' EndSwitchExpr {$$ = makeNode(Case); addChild($$, $4);}
+    |   DEFAULT ':' EndSwitchExpr {$$ = makeNode(Default); addChild($$, $3);}
     ;
 EndSwitchExpr:
-        SuiteInstr BREAK ';'
-    |   SuiteInstr
+        SuiteInstr BREAK ';' {$$ = makeNode(SuiteInstr); addSibling($$, makeNode(Break));}
+    |   SuiteInstr           {$$ = $1;}
     ;
 Arguments:
        ListExp              {$$ = $1;}
