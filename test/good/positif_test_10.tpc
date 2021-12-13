@@ -1,5 +1,43 @@
-int amhdfaiojdhzesuhd1928jdopizaj;
+int a;
 
+
+void action1(void){
+    
+    do1(a);
+}
+
+void action2(void){
+    do2(a);
+}
+
+
+void action3(void){
+    do3(a);
+}
+
+
+void apply(int c){
+    switch(c){
+        case 1:
+            a = 1;
+            action1();
+            break;
+        case 2:
+            a = 2;
+            action2();
+            break;
+        case 3:
+            a = 3;
+            action3();
+            break;
+        default:
+            print('E');
+            print('R');
+            print('R');
+            print('O');
+            print('R');
+    }
+}
 
 int main(int argc){
     return 1;
