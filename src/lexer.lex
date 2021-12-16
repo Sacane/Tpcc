@@ -35,10 +35,11 @@ break       {linecharno = linecharno + yyleng; return BREAK;}
 [0-9]+  	{linecharno = linecharno + yyleng; return NUM;}
 "||"        {linecharno = linecharno + yyleng; return OR;}
 "&&"        {linecharno = linecharno + yyleng; return AND;}
-\'.\' 	    {linecharno = linecharno + yyleng; return CHARACTER;}
+\'.\'|\'[ ]*\'|\'\\t\'	    {linecharno = linecharno + yyleng; return CHARACTER;}
 " "|\t     {linecharno = linecharno + yyleng;}
 int|char   {strncpy(yylval.ident, yytext, 64); linecharno = linecharno + yyleng; return TYPE;}
 [a-zA-Z_][a-zA-Z0-9_]*            {strncpy(yylval.ident, yytext, 64); linecharno = linecharno + yyleng; return IDENT;}
+^.*[\n] {current_line = (char*)malloc(sizeof(char)*1024); strcpy(current_line, yytext); REJECT;}
 . 	{linecharno = linecharno + yyleng; return yytext[0];}
 \n {line_count++; linecharno = 0;}
 %%

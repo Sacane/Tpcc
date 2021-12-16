@@ -8,6 +8,7 @@ int yylex(void);
 extern int lineno;
 extern int line_count;
 extern int linecharno;
+extern char *current_line;
 struct Node* rootProg;
 
 %}
@@ -128,7 +129,15 @@ ListExp:
     ;   
 %%
 void yyerror(char *s){
-    fprintf (stderr, "%s near line %d at char : %d\n", s, line_count, linecharno);
+    int i;
+    fprintf (stderr, "%s near line %d at char : %d\n", s, line_count + 1, linecharno);
+    fprintf(stderr, "%s", current_line);
+    for(i = 0; i < linecharno; i++){
+        fprintf(stderr, " ");
+    }
+    fprintf(stderr, "^");
+    fprintf(stderr, "\n");
+    free(current_line);
 }
 
 void print_help(){
@@ -187,8 +196,7 @@ int main(int argc, char **argv){
     }
     if(showTree){
         printTree(rootProg);
-        deleteTree(rootProg);
     }
-    
+    deleteTree(rootProg);
     return result;
 }
