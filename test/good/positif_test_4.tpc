@@ -1,16 +1,17 @@
 
-void f1(void){
+void function_that_returns_1(void){
   return 1;
 }
 
 
-int main(int id, int id2, char c){
+int main(int argc){
 	int a, b, c;
   char c;
 
 	a = 9;
 	b=16;
 	c=5;
+  function_that_returns_1();
 	while(a!=b){   
     if(a>b && b > c)
       b=b+1;

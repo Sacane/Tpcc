@@ -50,8 +50,15 @@ typedef enum {
 
 typedef struct Node {
   label_t label;
+
   struct Node *firstChild, *nextSibling;
   int lineno;
+  union{
+    char ident[64];
+    int num;
+    char byte;
+    char comp[3];
+  }u;
 } Node;
 
 Node *makeNode(label_t label);

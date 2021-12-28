@@ -100,6 +100,29 @@ void printTree(Node *node) {
     printf(rightmost[depth] ? "\u2514\u2500\u2500 " : "\u251c\u2500\u2500 ");
   }
   printf("%s", StringFromLabel[node->label]);
+
+  switch(node->label){
+    case id:
+    case types:
+    case Variable:
+    case FunctionCall:
+      printf(": %s", node->u.ident);
+      break;
+    case Int:
+      printf(": %d", node->u.num);
+      break;
+    case Addsub:
+    case divstar:
+      printf(": %c", node->u.byte);
+      break;
+    case Order:
+    case Eq:
+      printf(": %s", node->u.comp);
+      break;
+    
+    default:
+      break;
+  }
   printf("\n");
   depth++;
   for (Node *child = node->firstChild; child != NULL; child = child->nextSibling) {

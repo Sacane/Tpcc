@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <string.h>
 void yyerror(char *s);
 int yylex(void);
 extern int lineno;
@@ -25,11 +26,12 @@ Node* root;
   char comp[3];
 }
 
-%token ORDER TYPE EQ OR AND CHARACTER RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK
+%token OR AND CHARACTER RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK
 %token <num> NUM
-%token <ident> IDENT
-%token <comp>  DIVSTAR ADDSUB
-%type <node> DeclVars Prog DeclFoncts TYPE Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar SuiteInstr Instr LValue Exp TB FB M E T F Arguments ListExp BeginSwitchExpr SwitchExpr EndSwitchExpr
+%token <ident> IDENT TYPE
+%token <byte>  DIVSTAR ADDSUB
+%token <comp> EQ ORDER
+%type <node> DeclVars Prog DeclFoncts Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar SuiteInstr Instr LValue Exp TB FB M E T F Arguments ListExp BeginSwitchExpr SwitchExpr EndSwitchExpr
 
 
 %%
@@ -40,8 +42,8 @@ DeclVars:
     |  %empty                           {$$ = makeNode(DeclVars);}
     ;
 Declarateurs:  
-       Declarateurs ',' IDENT           {$$ = $1; addChild($$, makeNode(id));}
-    |  IDENT                            {$$ = makeNode(types); addChild($$, makeNode(id));}
+       Declarateurs ',' IDENT           {$$ = $1; Node *n = makeNode(id); strcpy(n->u.ident, $3); addChild($$, n);}
+    |  IDENT                            {$$ = makeNode(types); Node *n = makeNode(id); strcpy(n->u.ident, $1); strcpy(n->u.ident, $1); addChild($$, n);}
     ;
 DeclFoncts:
        DeclFoncts DeclFonct             {$$ = $1; addChild($$, $2);}
@@ -51,16 +53,16 @@ DeclFonct:
        EnTeteFonct Corps                {$$ = makeNode(DeclFonct); addChild($$, $1); addChild($$, $2);}                        
     ;
 EnTeteFonct:
-       TYPE IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); Node * type = makeNode(types); addChild($$, type); addChild(type, makeNode(id)); addChild($$, $4);}
-    |  VOID IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); Node * type = makeNode(types); addChild($$, makeNode(Void)); addChild(type, makeNode(id)); addChild($$, $4);}
+       TYPE IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); Node * type = makeNode(types); strcpy(type->u.ident, $1); addChild($$, type); Node *n = makeNode(id); strcpy(n->u.ident, $2); addChild(type, n); addChild($$, $4);}
+    |  VOID IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); Node * type = makeNode(types); addChild($$, makeNode(Void)); Node *n = makeNode(id); strcpy(n->u.ident, $2); addChild(type, n); addChild($$, $4);}
     ;
 Parametres:
        VOID                             {$$ = makeNode(Parametres); addChild($$, makeNode(Void));}
     |  ListTypVar                       {$$ = makeNode(Parametres); addChild($$, $1);}
     ;
 ListTypVar:
-       ListTypVar ',' TYPE IDENT        {$$ = $1; Node *type = makeNode(types); addSibling($$, type); addChild(type, makeNode(id));}
-    |  TYPE IDENT                       {$$ = makeNode(types); addChild($$, makeNode(id));}
+       ListTypVar ',' TYPE IDENT        {$$ = $1; Node *type = makeNode(types); addSibling($$, type); strcpy(type->u.ident, $3); Node *n = makeNode(id); strcpy(n->u.ident, $4); addChild(type, n);}
+    |  TYPE IDENT                       {$$ = makeNode(types); strcpy($$->u.ident, $1); Node *n = makeNode(id); strcpy(n->u.ident, $2); addChild($$, n);}
     ;
 Corps: '{' DeclVars SuiteInstr '}'      {$$ = makeNode(Body); addChild($$, $2); addSibling($2, $3);}
     ;
@@ -73,7 +75,7 @@ Instr:
     |  IF '(' Exp ')' Instr                 {$$ = makeNode(If); addChild($$, $3); addChild($$, $5);}
     |  IF '(' Exp ')' Instr ELSE Instr      {$$ = makeNode(If); addChild($$, $3); Node *else_n = makeNode(Else); addSibling($$, else_n); addChild(else_n, $5);}
     |  WHILE '(' Exp ')' Instr              {$$ = makeNode(While); addChild($$, $3); addChild($$, $5);}
-    |  IDENT '(' Arguments  ')' ';'         {$$ = makeNode(types); addChild($$, $3);}
+    |  IDENT '(' Arguments  ')' ';'         {$$ = makeNode(FunctionCall); strcpy($$->u.ident, $1); addChild($$, $3);}
     |  SWITCH '(' Exp ')' '{' SuiteInstr BeginSwitchExpr '}' {$$ = makeNode(Switch); addChild($$,$3); addChild($$,$6); addChild($$,$7);}
     |  RETURN Exp ';'                       {$$ = makeNode(Return); addChild($$, $2);}
     |  RETURN ';'                           {$$ = makeNode(Return);}
@@ -89,25 +91,25 @@ TB  :  TB AND FB                            {$$ = makeNode(And); addChild($$, $1
 FB  :  FB EQ M                              {$$ = makeNode(Eq); addChild($$, $1); addChild($$, $3);}
     |  M                                    {$$ = $1;}
     ;
-M   :  M ORDER E                            {$$ = makeNode(Order); addChild($$, $1); addChild($$, $3);}
+M   :  M ORDER E                            {$$ = makeNode(Order); strcpy($$->u.comp, $2); addChild($$, $1); addChild($$, $3);}
     |  E                                    {$$ = $1;}
     ;
-E   :  E ADDSUB T                           {$$ = makeNode(Addsub); addChild($$, $1); addChild($$, $3);}
+E   :  E ADDSUB T                           {$$ = makeNode(Addsub); $$->u.byte = $2; addChild($$, $1); addChild($$, $3);}
     |  T                                    {$$ = $1;}
     ;    
-T   :  T DIVSTAR F                          {$$ = makeNode(divstar); addChild($$, $1); addChild($$, $3);}
+T   :  T DIVSTAR F                          {$$ = makeNode(divstar); $$->u.byte = $2; addChild($$, $1); addChild($$, $3);}
     |  F                                    {$$ = $1;}
     ;
-F   :  ADDSUB F                             {$$ = makeNode(Addsub); addChild($$, $2);}
+F   :  ADDSUB F                             {$$ = makeNode(Addsub); $$->u.byte = $1; addChild($$, $2);}
     |  '!' F                                {$$ = makeNode(Neg);}
     |  '(' Exp ')'                          {$$ = $2;}
-    |  NUM                                  {$$ = makeNode(Int);}
+    |  NUM                                  {$$ = makeNode(Int); $$->u.num = $1;}
     |  CHARACTER                            {$$ = makeNode(Character);}
     |  LValue                               {$$ = $1;}
-    |  IDENT '(' Arguments  ')'             {$$ = makeNode(FunctionCall); addChild($$, $3);}
+    |  IDENT '(' Arguments  ')'             {$$ = makeNode(FunctionCall); strcpy($$->u.ident, $1); addChild($$, $3);}
     ;
 LValue:
-       IDENT                { $$ = makeNode(Variable);}
+       IDENT                { $$ = makeNode(Variable); strcpy($$->u.ident, $1);}
     ;
 BeginSwitchExpr:
         BeginSwitchExpr SwitchExpr {if($1){$$ = $1; addSibling($$,$2);}else{$$=$2;}}
