@@ -25,10 +25,10 @@ Node* root;
   char comp[3];
 }
 
-%token DIVSTAR ADDSUB ORDER TYPE EQ OR AND CHARACTER RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK
+%token ORDER TYPE EQ OR AND CHARACTER RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK
 %token <num> NUM
 %token <ident> IDENT
-
+%token <comp>  DIVSTAR ADDSUB
 %type <node> DeclVars Prog DeclFoncts TYPE Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar SuiteInstr Instr LValue Exp TB FB M E T F Arguments ListExp BeginSwitchExpr SwitchExpr EndSwitchExpr
 
 
