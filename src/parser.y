@@ -21,6 +21,8 @@ Node* root;
   Node *node;
   char ident[64];
   int num;
+  char byte;
+  char comp[3];
 }
 
 %token DIVSTAR ADDSUB ORDER TYPE EQ OR AND CHARACTER RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK
@@ -132,7 +134,7 @@ void yyerror(char *s){
     int i;
     fprintf (stderr, "%s near line %d at char : %d\n", s, line_count + 1, linecharno);
     fprintf(stderr, "%s", current_line);
-    for(i = 0; i < linecharno; i++){
+    for(i = 0; i < linecharno - 1; i++){
         fprintf(stderr, " ");
     }
     fprintf(stderr, "^");
