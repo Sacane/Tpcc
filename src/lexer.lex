@@ -35,7 +35,7 @@ break       {linecharno = linecharno + yyleng; return BREAK;}
 [0-9]+  	{yylval.num = atoi(yytext); linecharno = linecharno + yyleng; return NUM;}
 "||"        {linecharno = linecharno + yyleng; return OR;}
 "&&"        {linecharno = linecharno + yyleng; return AND;}
-\'.\'|\'[ ]*\'|\'\\t\'	    {linecharno = linecharno + yyleng; return CHARACTER;}
+\'.\'|\'[ ]*\'|\'\\t\'|\'\\n\'|\'\\r\'|\'\\b\'|\'\\0\'|\'\\\'	    {yylval.byte = yytext[1]; linecharno = linecharno + yyleng; return CHARACTER;}
 " "|\t     {linecharno = linecharno + yyleng;}
 int|char   {strncpy(yylval.ident, yytext, 64); linecharno = linecharno + yyleng; return TYPE;}
 [a-zA-Z_][a-zA-Z0-9_]*            {strncpy(yylval.ident, yytext, 64); linecharno = linecharno + yyleng; return IDENT;}

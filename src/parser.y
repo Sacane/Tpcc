@@ -26,10 +26,10 @@ Node* root;
   char comp[3];
 }
 
-%token OR AND CHARACTER RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK
+%token OR AND RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK
 %token <num> NUM
 %token <ident> IDENT TYPE
-%token <byte>  DIVSTAR ADDSUB
+%token <byte>  DIVSTAR ADDSUB CHARACTER
 %token <comp> EQ ORDER
 %type <node> DeclVars Prog DeclFoncts Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar SuiteInstr Instr LValue Exp TB FB M E T F Arguments ListExp BeginSwitchExpr SwitchExpr EndSwitchExpr
 
@@ -38,12 +38,12 @@ Node* root;
 Prog:  DeclVars DeclFoncts              {$$ = makeNode(Prog); addChild($$, $1); addChild($$, $2); /*printTree($$); deleteTree($$);*/ rootProg = $$;}
     ;
 DeclVars:
-       DeclVars TYPE Declarateurs ';'   {$$ = $1; addChild($$, $3);}
+       DeclVars TYPE Declarateurs ';'   {$$ = $1; Node *t = makeNode(types); strcpy(t->u.ident, $2); addChild($$, t); addChild($$, $3);}
     |  %empty                           {$$ = makeNode(DeclVars);}
     ;
 Declarateurs:  
-       Declarateurs ',' IDENT           {$$ = $1; Node *n = makeNode(id); strcpy(n->u.ident, $3); addChild($$, n);}
-    |  IDENT                            {$$ = makeNode(types); Node *n = makeNode(id); strcpy(n->u.ident, $1); strcpy(n->u.ident, $1); addChild($$, n);}
+       Declarateurs ',' IDENT           {$$ = $1; Node *n = makeNode(id); strcpy(n->u.ident, $3); addSibling($$, n);}
+    |  IDENT                            {$$ = makeNode(id); strcpy($$->u.ident, $1);}
     ;
 DeclFoncts:
        DeclFoncts DeclFonct             {$$ = $1; addChild($$, $2);}
@@ -67,7 +67,7 @@ ListTypVar:
 Corps: '{' DeclVars SuiteInstr '}'      {$$ = makeNode(Body); addChild($$, $2); addSibling($2, $3);}
     ;
 SuiteInstr:                             
-       SuiteInstr Instr                 {if($1){$$ = $1; addChild($$, $2);}else{$$=$2;}}
+       SuiteInstr Instr                 {if($1){$$ = $1; addSibling($$, $2);}else{$$=$2;}}
     |  %empty                           {$$ = NULL;}
     ;
 Instr:
@@ -104,7 +104,7 @@ F   :  ADDSUB F                             {$$ = makeNode(Addsub); $$->u.byte =
     |  '!' F                                {$$ = makeNode(Neg);}
     |  '(' Exp ')'                          {$$ = $2;}
     |  NUM                                  {$$ = makeNode(Int); $$->u.num = $1;}
-    |  CHARACTER                            {$$ = makeNode(Character);}
+    |  CHARACTER                            {$$ = makeNode(Character); $$->u.byte = $1;}
     |  LValue                               {$$ = $1;}
     |  IDENT '(' Arguments  ')'             {$$ = makeNode(FunctionCall); strcpy($$->u.ident, $1); addChild($$, $3);}
     ;

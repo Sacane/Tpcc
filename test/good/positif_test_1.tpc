@@ -4,6 +4,8 @@
 
 int ppcm(int a, int b){
     int c, d;
+    char p;
+    p = '\n';
 	c=a;
 	d=b;
     while (a!=b){   

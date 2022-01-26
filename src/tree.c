@@ -113,6 +113,7 @@ void printTree(Node *node) {
       break;
     case Addsub:
     case divstar:
+    case Character:
       printf(": %c", node->u.byte);
       break;
     case Order:
