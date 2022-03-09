@@ -6,8 +6,11 @@ int main(void){
             a = 3;
             return 1;
         case 12:
+        case 10:
+        case 0:
             a = 12;
             break;
+            
     }
     
 

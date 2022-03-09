@@ -30,6 +30,40 @@ int is_symbol_null(Symbol symbol){
     return (symbol.symbol_name) ? 1 : 0;
 }
 
+void print_symbol(Symbol s){
+    printf("name : %s  |", s.symbol_name);
+
+    printf("Kind : ");
+    switch(s.kind){
+        case FUNCTION:
+            fprintf(stderr, "function ");
+            break;
+        case VARIABLE:
+            fprintf(stderr, "variable ");
+            break;
+        default:
+            fprintf(stderr, "Unknown ");
+            break;
+    }
+
+    printf("Type : ");
+    switch(s.type){
+        case CHAR_TYPE: 
+            fprintf(stderr, "char ");
+            break;
+        case INT_TYPE:
+            fprintf(stderr, "integer ");
+            break;
+        case VOID_TYPE:
+            fprintf(stderr, "void ");
+            break;
+        default:
+            fprintf(stderr, "unknown type");
+    }
+
+    fprintf(stderr, "\n");
+}
+
 void free_symbol(Symbol *s){
     free(s->symbol_name);
 }

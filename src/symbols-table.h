@@ -18,7 +18,7 @@ typedef struct table{
 }Symbol_table;
 
 
-Symbol_table *create_symbol_table();
+Symbol_table *create_symbol_table(char *name_table);
 
 void get_symbol_by_name(Symbol_table *table, char *name_table);
 

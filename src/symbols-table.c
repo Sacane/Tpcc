@@ -29,6 +29,7 @@ Symbol_table *create_symbol_table(char *name_table){
     table->firstSibling = NULL;
 
     return table;
+    
 }
 
 static int is_identifier_key_in_table(Symbol_table *table, int symbol_key){

@@ -6,14 +6,17 @@ EXEC=tpcas
 PARSER=parser
 LEXER=lexer
 
-all : makedirs bin/$(EXEC)
+all : makedirs bin/$(EXEC)  
 
 makedirs:
 	@mkdir -p bin
 	@mkdir -p obj
 
+
 bin/$(EXEC): obj/lex.yy.o  src/$(PARSER).tab.c 
-	$(CC) -o $@ $^ src/tree.c $(LDFLAGS)
+	$(CC) -o $@ $^ src/tree.c 
+
+
 
 src/lex.yy.c: src/$(LEXER).lex src/tree.h src/$(PARSER).tab.h
 	flex -o $@ src/$(LEXER).lex
@@ -28,6 +31,17 @@ obj/lex.yy.o: src/lex.yy.c
 
 obj/tree.o: src/tree.c src/tree.h
 	$(CC) -c src/tree.c -o obj/tree.o $(CFLAGS)
+
+obj/symbol.o: src/symbol.c src/symbol.h
+	$(CC) -c src/symbol.c -o obj/symbol.o $(CFLAGS) 
+
+obj/symbols-table.o: src/symbols-table.c src/symbols-table.h
+	$(CC) -c src/symbols-table.c -o obj/symbols-table.o $(CFLAGS)
+
+obj/%.o: src/%.c src/%.h
+	$(CC) -c $< -o $@ $(CFLAGS) 
+
+
 
 clean:
 	rm -f src/lex.yy.* src/$(PARSER).tab.* obj/* bin/*

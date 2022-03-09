@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef enum{
 
@@ -34,6 +35,8 @@ Symbol calloc_symbol();
 int is_symbol_null(Symbol symbol);
 
 Symbol create_symbol(char *name, Kind kind, Type type);
+
+void print_symbol(Symbol s);
 
 void free_symbol(Symbol *s);
 
