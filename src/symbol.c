@@ -31,34 +31,34 @@ int is_symbol_null(Symbol symbol){
 }
 
 void print_symbol(Symbol s){
-    printf("name : %s  |", s.symbol_name);
+    fprintf(stderr, "name : %s |\n", s.symbol_name);
 
-    printf("Kind : ");
+    fprintf(stderr, "Kind : ");
     switch(s.kind){
         case FUNCTION:
-            fprintf(stderr, "function ");
+            fprintf(stderr, "function\n");
             break;
         case VARIABLE:
-            fprintf(stderr, "variable ");
+            fprintf(stderr, "variable\n");
             break;
         default:
-            fprintf(stderr, "Unknown ");
+            fprintf(stderr, "Unknown\n");
             break;
     }
 
-    printf("Type : ");
+    fprintf(stderr, "Type : ");
     switch(s.type){
         case CHAR_TYPE: 
-            fprintf(stderr, "char ");
+            fprintf(stderr, "char \n");
             break;
         case INT_TYPE:
-            fprintf(stderr, "integer ");
+            fprintf(stderr, "integer \n");
             break;
         case VOID_TYPE:
-            fprintf(stderr, "void ");
+            fprintf(stderr, "void \n");
             break;
         default:
-            fprintf(stderr, "unknown type");
+            fprintf(stderr, "unknown type\n");
     }
 
     fprintf(stderr, "\n");

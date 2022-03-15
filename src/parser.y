@@ -15,6 +15,7 @@ struct Node* rootProg;
 %}
 %code requires {
 #include "tree.h"
+#include "symbols-table.h"
 Node* root;
 }
 %expect 1
@@ -38,7 +39,7 @@ Node* root;
 Prog:  DeclVars DeclFoncts              {$$ = makeNode(Prog); addChild($$, $1); addChild($$, $2); /*printTree($$); deleteTree($$);*/ rootProg = $$;}
     ;
 DeclVars:
-       DeclVars TYPE Declarateurs ';'   {$$ = $1; Node *t = makeNode(types); strcpy(t->u.ident, $2); addChild($$, t); addChild($$, $3);}
+       DeclVars TYPE Declarateurs ';'   {$$ = $1; Node *t = makeNode(types); strcpy(t->u.ident, $2); addChild($$, t); addChild(t, $3);}
     |  %empty                           {$$ = makeNode(DeclVars);}
     ;
 Declarateurs:  
@@ -161,6 +162,8 @@ int main(int argc, char **argv){
     int result;
     int opt = 0;
     int option_index = 0;
+    
+    
     static struct option long_option[] = {
 
         {"help", no_argument,0,'h'},
@@ -200,7 +203,11 @@ int main(int argc, char **argv){
     }
     if(showTree){
         printTree(rootProg);
+        Symbol_table *table = create_global_variable_table(rootProg);
+        print_symbol_table(table);
     }
+
+
     deleteTree(rootProg);
     return result;
 }

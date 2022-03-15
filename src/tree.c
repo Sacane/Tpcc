@@ -106,15 +106,15 @@ void printTree(Node *node) {
     case types:
     case Variable:
     case FunctionCall:
-      printf(": %s", node->u.ident);
+      printf(" : %s", node->u.ident);
       break;
     case Int:
-      printf(": %d", node->u.num);
+      printf(" : %d", node->u.num);
       break;
     case Addsub:
     case divstar:
     case Character:
-      printf(": %c", node->u.byte);
+      printf(" : %c", node->u.byte);
       break;
     case Order:
     case Eq:
@@ -134,3 +134,6 @@ void printTree(Node *node) {
 }
 
 
+char *stringFromLabel(int label){
+  return StringFromLabel[label];
+}

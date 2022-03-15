@@ -47,9 +47,10 @@ extern int yydebug;
 #line 16 "src/parser.y"
 
 #include "tree.h"
+#include "symbols-table.h"
 Node* root;
 
-#line 53 "parser.tab.h"
+#line 54 "parser.tab.h"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -83,7 +84,7 @@ Node* root;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 21 "src/parser.y"
+#line 22 "src/parser.y"
 
   Node *node;
   char ident[64];
@@ -91,7 +92,7 @@ union YYSTYPE
   char byte;
   char comp[3];
 
-#line 95 "parser.tab.h"
+#line 96 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

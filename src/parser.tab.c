@@ -128,9 +128,10 @@ extern int yydebug;
 #line 16 "src/parser.y"
 
 #include "tree.h"
+#include "symbols-table.h"
 Node* root;
 
-#line 134 "parser.tab.c"
+#line 135 "parser.tab.c"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -164,7 +165,7 @@ Node* root;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 21 "src/parser.y"
+#line 22 "src/parser.y"
 
   Node *node;
   char ident[64];
@@ -172,7 +173,7 @@ union YYSTYPE
   char byte;
   char comp[3];
 
-#line 176 "parser.tab.c"
+#line 177 "parser.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -549,12 +550,12 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    38,    38,    41,    42,    45,    46,    49,    50,    53,
-      56,    57,    60,    61,    64,    65,    67,    70,    71,    74,
-      75,    76,    77,    78,    79,    80,    81,    82,    83,    85,
-      86,    88,    89,    91,    92,    94,    95,    97,    98,   100,
-     101,   103,   104,   105,   106,   107,   108,   109,   112,   115,
-     116,   119,   120,   123,   124,   127,   128,   131,   132
+       0,    39,    39,    42,    43,    46,    47,    50,    51,    54,
+      57,    58,    61,    62,    65,    66,    68,    71,    72,    75,
+      76,    77,    78,    79,    80,    81,    82,    83,    84,    86,
+      87,    89,    90,    92,    93,    95,    96,    98,    99,   101,
+     102,   104,   105,   106,   107,   108,   109,   110,   113,   116,
+     117,   120,   121,   124,   125,   128,   129,   132,   133
 };
 #endif
 
@@ -1424,349 +1425,349 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 38 "src/parser.y"
+#line 39 "src/parser.y"
                                         {(yyval.node) = makeNode(Prog); addChild((yyval.node), (yyvsp[-1].node)); addChild((yyval.node), (yyvsp[0].node)); /*printTree($$); deleteTree($$);*/ rootProg = (yyval.node);}
-#line 1430 "parser.tab.c"
+#line 1431 "parser.tab.c"
     break;
 
   case 3:
-#line 41 "src/parser.y"
-                                        {(yyval.node) = (yyvsp[-3].node); Node *t = makeNode(types); strcpy(t->u.ident, (yyvsp[-2].ident)); addChild((yyval.node), t); addChild((yyval.node), (yyvsp[-1].node));}
-#line 1436 "parser.tab.c"
+#line 42 "src/parser.y"
+                                        {(yyval.node) = (yyvsp[-3].node); Node *t = makeNode(types); strcpy(t->u.ident, (yyvsp[-2].ident)); addChild((yyval.node), t); addChild(t, (yyvsp[-1].node));}
+#line 1437 "parser.tab.c"
     break;
 
   case 4:
-#line 42 "src/parser.y"
+#line 43 "src/parser.y"
                                         {(yyval.node) = makeNode(DeclVars);}
-#line 1442 "parser.tab.c"
+#line 1443 "parser.tab.c"
     break;
 
   case 5:
-#line 45 "src/parser.y"
+#line 46 "src/parser.y"
                                         {(yyval.node) = (yyvsp[-2].node); Node *n = makeNode(id); strcpy(n->u.ident, (yyvsp[0].ident)); addSibling((yyval.node), n);}
-#line 1448 "parser.tab.c"
+#line 1449 "parser.tab.c"
     break;
 
   case 6:
-#line 46 "src/parser.y"
+#line 47 "src/parser.y"
                                         {(yyval.node) = makeNode(id); strcpy((yyval.node)->u.ident, (yyvsp[0].ident));}
-#line 1454 "parser.tab.c"
+#line 1455 "parser.tab.c"
     break;
 
   case 7:
-#line 49 "src/parser.y"
+#line 50 "src/parser.y"
                                         {(yyval.node) = (yyvsp[-1].node); addChild((yyval.node), (yyvsp[0].node));}
-#line 1460 "parser.tab.c"
+#line 1461 "parser.tab.c"
     break;
 
   case 8:
-#line 50 "src/parser.y"
+#line 51 "src/parser.y"
                                         {(yyval.node) = makeNode(DeclFoncts); addChild((yyval.node), (yyvsp[0].node));}
-#line 1466 "parser.tab.c"
+#line 1467 "parser.tab.c"
     break;
 
   case 9:
-#line 53 "src/parser.y"
+#line 54 "src/parser.y"
                                         {(yyval.node) = makeNode(DeclFonct); addChild((yyval.node), (yyvsp[-1].node)); addChild((yyval.node), (yyvsp[0].node));}
-#line 1472 "parser.tab.c"
+#line 1473 "parser.tab.c"
     break;
 
   case 10:
-#line 56 "src/parser.y"
+#line 57 "src/parser.y"
                                         {(yyval.node) = makeNode(EnTeteFonct); Node * type = makeNode(types); strcpy(type->u.ident, (yyvsp[-4].ident)); addChild((yyval.node), type); Node *n = makeNode(id); strcpy(n->u.ident, (yyvsp[-3].ident)); addChild(type, n); addChild((yyval.node), (yyvsp[-1].node));}
-#line 1478 "parser.tab.c"
+#line 1479 "parser.tab.c"
     break;
 
   case 11:
-#line 57 "src/parser.y"
+#line 58 "src/parser.y"
                                         {(yyval.node) = makeNode(EnTeteFonct); Node * type = makeNode(types); addChild((yyval.node), makeNode(Void)); Node *n = makeNode(id); strcpy(n->u.ident, (yyvsp[-3].ident)); addChild(type, n); addChild((yyval.node), (yyvsp[-1].node));}
-#line 1484 "parser.tab.c"
+#line 1485 "parser.tab.c"
     break;
 
   case 12:
-#line 60 "src/parser.y"
+#line 61 "src/parser.y"
                                         {(yyval.node) = makeNode(Parametres); addChild((yyval.node), makeNode(Void));}
-#line 1490 "parser.tab.c"
+#line 1491 "parser.tab.c"
     break;
 
   case 13:
-#line 61 "src/parser.y"
+#line 62 "src/parser.y"
                                         {(yyval.node) = makeNode(Parametres); addChild((yyval.node), (yyvsp[0].node));}
-#line 1496 "parser.tab.c"
+#line 1497 "parser.tab.c"
     break;
 
   case 14:
-#line 64 "src/parser.y"
+#line 65 "src/parser.y"
                                         {(yyval.node) = (yyvsp[-3].node); Node *type = makeNode(types); addSibling((yyval.node), type); strcpy(type->u.ident, (yyvsp[-1].ident)); Node *n = makeNode(id); strcpy(n->u.ident, (yyvsp[0].ident)); addChild(type, n);}
-#line 1502 "parser.tab.c"
+#line 1503 "parser.tab.c"
     break;
 
   case 15:
-#line 65 "src/parser.y"
+#line 66 "src/parser.y"
                                         {(yyval.node) = makeNode(types); strcpy((yyval.node)->u.ident, (yyvsp[-1].ident)); Node *n = makeNode(id); strcpy(n->u.ident, (yyvsp[0].ident)); addChild((yyval.node), n);}
-#line 1508 "parser.tab.c"
+#line 1509 "parser.tab.c"
     break;
 
   case 16:
-#line 67 "src/parser.y"
+#line 68 "src/parser.y"
                                         {(yyval.node) = makeNode(Body); addChild((yyval.node), (yyvsp[-2].node)); addSibling((yyvsp[-2].node), (yyvsp[-1].node));}
-#line 1514 "parser.tab.c"
+#line 1515 "parser.tab.c"
     break;
 
   case 17:
-#line 70 "src/parser.y"
+#line 71 "src/parser.y"
                                         {if((yyvsp[-1].node)){(yyval.node) = (yyvsp[-1].node); addSibling((yyval.node), (yyvsp[0].node));}else{(yyval.node)=(yyvsp[0].node);}}
-#line 1520 "parser.tab.c"
+#line 1521 "parser.tab.c"
     break;
 
   case 18:
-#line 71 "src/parser.y"
+#line 72 "src/parser.y"
                                         {(yyval.node) = NULL;}
-#line 1526 "parser.tab.c"
+#line 1527 "parser.tab.c"
     break;
 
   case 19:
-#line 74 "src/parser.y"
+#line 75 "src/parser.y"
                                             {(yyval.node) = makeNode(Assign); addChild((yyval.node), (yyvsp[-3].node)); addChild((yyval.node), (yyvsp[-1].node));}
-#line 1532 "parser.tab.c"
+#line 1533 "parser.tab.c"
     break;
 
   case 20:
-#line 75 "src/parser.y"
+#line 76 "src/parser.y"
                                             {(yyval.node) = makeNode(If); addChild((yyval.node), (yyvsp[-2].node)); addChild((yyval.node), (yyvsp[0].node));}
-#line 1538 "parser.tab.c"
+#line 1539 "parser.tab.c"
     break;
 
   case 21:
-#line 76 "src/parser.y"
+#line 77 "src/parser.y"
                                             {(yyval.node) = makeNode(If); addChild((yyval.node), (yyvsp[-4].node)); Node *else_n = makeNode(Else); addSibling((yyval.node), else_n); addChild(else_n, (yyvsp[-2].node));}
-#line 1544 "parser.tab.c"
+#line 1545 "parser.tab.c"
     break;
 
   case 22:
-#line 77 "src/parser.y"
+#line 78 "src/parser.y"
                                             {(yyval.node) = makeNode(While); addChild((yyval.node), (yyvsp[-2].node)); addChild((yyval.node), (yyvsp[0].node));}
-#line 1550 "parser.tab.c"
+#line 1551 "parser.tab.c"
     break;
 
   case 23:
-#line 78 "src/parser.y"
+#line 79 "src/parser.y"
                                             {(yyval.node) = makeNode(FunctionCall); strcpy((yyval.node)->u.ident, (yyvsp[-4].ident)); addChild((yyval.node), (yyvsp[-2].node));}
-#line 1556 "parser.tab.c"
+#line 1557 "parser.tab.c"
     break;
 
   case 24:
-#line 79 "src/parser.y"
+#line 80 "src/parser.y"
                                                              {(yyval.node) = makeNode(Switch); addChild((yyval.node),(yyvsp[-5].node)); addChild((yyval.node),(yyvsp[-2].node)); addChild((yyval.node),(yyvsp[-1].node));}
-#line 1562 "parser.tab.c"
+#line 1563 "parser.tab.c"
     break;
 
   case 25:
-#line 80 "src/parser.y"
+#line 81 "src/parser.y"
                                             {(yyval.node) = makeNode(Return); addChild((yyval.node), (yyvsp[-1].node));}
-#line 1568 "parser.tab.c"
+#line 1569 "parser.tab.c"
     break;
 
   case 26:
-#line 81 "src/parser.y"
+#line 82 "src/parser.y"
                                             {(yyval.node) = makeNode(Return);}
-#line 1574 "parser.tab.c"
+#line 1575 "parser.tab.c"
     break;
 
   case 27:
-#line 82 "src/parser.y"
+#line 83 "src/parser.y"
                                             {(yyval.node) = (yyvsp[-1].node);}
-#line 1580 "parser.tab.c"
+#line 1581 "parser.tab.c"
     break;
 
   case 28:
-#line 83 "src/parser.y"
+#line 84 "src/parser.y"
                                             {(yyval.node) = makeNode(EmptyInstr);}
-#line 1586 "parser.tab.c"
+#line 1587 "parser.tab.c"
     break;
 
   case 29:
-#line 85 "src/parser.y"
+#line 86 "src/parser.y"
                                             {(yyval.node) = makeNode(Or); addChild((yyval.node), (yyvsp[-2].node)); addChild((yyval.node), (yyvsp[0].node));}
-#line 1592 "parser.tab.c"
+#line 1593 "parser.tab.c"
     break;
 
   case 30:
-#line 86 "src/parser.y"
+#line 87 "src/parser.y"
                                             {(yyval.node) = (yyvsp[0].node);}
-#line 1598 "parser.tab.c"
+#line 1599 "parser.tab.c"
     break;
 
   case 31:
-#line 88 "src/parser.y"
+#line 89 "src/parser.y"
                                             {(yyval.node) = makeNode(And); addChild((yyval.node), (yyvsp[-2].node)); addChild((yyval.node), (yyvsp[0].node));}
-#line 1604 "parser.tab.c"
+#line 1605 "parser.tab.c"
     break;
 
   case 32:
-#line 89 "src/parser.y"
+#line 90 "src/parser.y"
                                             {(yyval.node) = (yyvsp[0].node);}
-#line 1610 "parser.tab.c"
+#line 1611 "parser.tab.c"
     break;
 
   case 33:
-#line 91 "src/parser.y"
+#line 92 "src/parser.y"
                                             {(yyval.node) = makeNode(Eq); addChild((yyval.node), (yyvsp[-2].node)); addChild((yyval.node), (yyvsp[0].node));}
-#line 1616 "parser.tab.c"
+#line 1617 "parser.tab.c"
     break;
 
   case 34:
-#line 92 "src/parser.y"
+#line 93 "src/parser.y"
                                             {(yyval.node) = (yyvsp[0].node);}
-#line 1622 "parser.tab.c"
+#line 1623 "parser.tab.c"
     break;
 
   case 35:
-#line 94 "src/parser.y"
+#line 95 "src/parser.y"
                                             {(yyval.node) = makeNode(Order); strcpy((yyval.node)->u.comp, (yyvsp[-1].comp)); addChild((yyval.node), (yyvsp[-2].node)); addChild((yyval.node), (yyvsp[0].node));}
-#line 1628 "parser.tab.c"
+#line 1629 "parser.tab.c"
     break;
 
   case 36:
-#line 95 "src/parser.y"
+#line 96 "src/parser.y"
                                             {(yyval.node) = (yyvsp[0].node);}
-#line 1634 "parser.tab.c"
+#line 1635 "parser.tab.c"
     break;
 
   case 37:
-#line 97 "src/parser.y"
+#line 98 "src/parser.y"
                                             {(yyval.node) = makeNode(Addsub); (yyval.node)->u.byte = (yyvsp[-1].byte); addChild((yyval.node), (yyvsp[-2].node)); addChild((yyval.node), (yyvsp[0].node));}
-#line 1640 "parser.tab.c"
+#line 1641 "parser.tab.c"
     break;
 
   case 38:
-#line 98 "src/parser.y"
+#line 99 "src/parser.y"
                                             {(yyval.node) = (yyvsp[0].node);}
-#line 1646 "parser.tab.c"
+#line 1647 "parser.tab.c"
     break;
 
   case 39:
-#line 100 "src/parser.y"
+#line 101 "src/parser.y"
                                             {(yyval.node) = makeNode(divstar); (yyval.node)->u.byte = (yyvsp[-1].byte); addChild((yyval.node), (yyvsp[-2].node)); addChild((yyval.node), (yyvsp[0].node));}
-#line 1652 "parser.tab.c"
+#line 1653 "parser.tab.c"
     break;
 
   case 40:
-#line 101 "src/parser.y"
+#line 102 "src/parser.y"
                                             {(yyval.node) = (yyvsp[0].node);}
-#line 1658 "parser.tab.c"
+#line 1659 "parser.tab.c"
     break;
 
   case 41:
-#line 103 "src/parser.y"
+#line 104 "src/parser.y"
                                             {(yyval.node) = makeNode(Addsub); (yyval.node)->u.byte = (yyvsp[-1].byte); addChild((yyval.node), (yyvsp[0].node));}
-#line 1664 "parser.tab.c"
+#line 1665 "parser.tab.c"
     break;
 
   case 42:
-#line 104 "src/parser.y"
+#line 105 "src/parser.y"
                                             {(yyval.node) = makeNode(Neg);}
-#line 1670 "parser.tab.c"
+#line 1671 "parser.tab.c"
     break;
 
   case 43:
-#line 105 "src/parser.y"
+#line 106 "src/parser.y"
                                             {(yyval.node) = (yyvsp[-1].node);}
-#line 1676 "parser.tab.c"
+#line 1677 "parser.tab.c"
     break;
 
   case 44:
-#line 106 "src/parser.y"
+#line 107 "src/parser.y"
                                             {(yyval.node) = makeNode(Int); (yyval.node)->u.num = (yyvsp[0].num);}
-#line 1682 "parser.tab.c"
+#line 1683 "parser.tab.c"
     break;
 
   case 45:
-#line 107 "src/parser.y"
+#line 108 "src/parser.y"
                                             {(yyval.node) = makeNode(Character); (yyval.node)->u.byte = (yyvsp[0].byte);}
-#line 1688 "parser.tab.c"
+#line 1689 "parser.tab.c"
     break;
 
   case 46:
-#line 108 "src/parser.y"
+#line 109 "src/parser.y"
                                             {(yyval.node) = (yyvsp[0].node);}
-#line 1694 "parser.tab.c"
+#line 1695 "parser.tab.c"
     break;
 
   case 47:
-#line 109 "src/parser.y"
+#line 110 "src/parser.y"
                                             {(yyval.node) = makeNode(FunctionCall); strcpy((yyval.node)->u.ident, (yyvsp[-3].ident)); addChild((yyval.node), (yyvsp[-1].node));}
-#line 1700 "parser.tab.c"
+#line 1701 "parser.tab.c"
     break;
 
   case 48:
-#line 112 "src/parser.y"
+#line 113 "src/parser.y"
                             { (yyval.node) = makeNode(Variable); strcpy((yyval.node)->u.ident, (yyvsp[0].ident));}
-#line 1706 "parser.tab.c"
+#line 1707 "parser.tab.c"
     break;
 
   case 49:
-#line 115 "src/parser.y"
+#line 116 "src/parser.y"
                                    {if((yyvsp[-1].node)){(yyval.node) = (yyvsp[-1].node); addSibling((yyval.node),(yyvsp[0].node));}else{(yyval.node)=(yyvsp[0].node);}}
-#line 1712 "parser.tab.c"
+#line 1713 "parser.tab.c"
     break;
 
   case 50:
-#line 116 "src/parser.y"
+#line 117 "src/parser.y"
                                    {(yyval.node) = NULL;}
-#line 1718 "parser.tab.c"
+#line 1719 "parser.tab.c"
     break;
 
   case 51:
-#line 119 "src/parser.y"
+#line 120 "src/parser.y"
                                    {(yyval.node) = makeNode(Case); addChild((yyval.node), (yyvsp[0].node));}
-#line 1724 "parser.tab.c"
+#line 1725 "parser.tab.c"
     break;
 
   case 52:
-#line 120 "src/parser.y"
+#line 121 "src/parser.y"
                                   {(yyval.node) = makeNode(Default); addChild((yyval.node), (yyvsp[0].node));}
-#line 1730 "parser.tab.c"
+#line 1731 "parser.tab.c"
     break;
 
   case 53:
-#line 123 "src/parser.y"
+#line 124 "src/parser.y"
                              {(yyval.node) = makeNode(SuiteInstr); addSibling((yyval.node), makeNode(Break));}
-#line 1736 "parser.tab.c"
+#line 1737 "parser.tab.c"
     break;
 
   case 54:
-#line 124 "src/parser.y"
+#line 125 "src/parser.y"
                              {(yyval.node) = (yyvsp[0].node);}
-#line 1742 "parser.tab.c"
+#line 1743 "parser.tab.c"
     break;
 
   case 55:
-#line 127 "src/parser.y"
+#line 128 "src/parser.y"
                             {(yyval.node) = (yyvsp[0].node);}
-#line 1748 "parser.tab.c"
+#line 1749 "parser.tab.c"
     break;
 
   case 56:
-#line 128 "src/parser.y"
+#line 129 "src/parser.y"
                             {(yyval.node) = makeNode(Void);}
-#line 1754 "parser.tab.c"
+#line 1755 "parser.tab.c"
     break;
 
   case 57:
-#line 131 "src/parser.y"
+#line 132 "src/parser.y"
                             {(yyval.node) = (yyvsp[-2].node); addSibling((yyval.node), (yyvsp[0].node));}
-#line 1760 "parser.tab.c"
+#line 1761 "parser.tab.c"
     break;
 
   case 58:
-#line 132 "src/parser.y"
+#line 133 "src/parser.y"
                             {(yyval.node) = (yyvsp[0].node);}
-#line 1766 "parser.tab.c"
+#line 1767 "parser.tab.c"
     break;
 
 
-#line 1770 "parser.tab.c"
+#line 1771 "parser.tab.c"
 
       default: break;
     }
@@ -1998,7 +1999,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 134 "src/parser.y"
+#line 135 "src/parser.y"
 
 void yyerror(char *s){
     int i;
@@ -2029,6 +2030,8 @@ int main(int argc, char **argv){
     int result;
     int opt = 0;
     int option_index = 0;
+    
+    
     static struct option long_option[] = {
 
         {"help", no_argument,0,'h'},
@@ -2068,7 +2071,11 @@ int main(int argc, char **argv){
     }
     if(showTree){
         printTree(rootProg);
+        Symbol_table *table = create_global_variable_table(rootProg);
+        print_symbol_table(table);
     }
+
+
     deleteTree(rootProg);
     return result;
 }

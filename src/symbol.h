@@ -24,7 +24,7 @@ typedef struct symbol{
 
     char *symbol_name; /* name of the symbol  */
     Kind kind;         /* Kind of the symbol [function or variable] */
-    Type type;        /* char, int and void (only for functions) */
+    Type type;        /* char, int and 'void (only for functions)' */
 
 
 

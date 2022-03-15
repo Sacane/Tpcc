@@ -2,6 +2,7 @@
 #define __SYMBOLS_TABLE
 
 #include "symbol.h"
+#include "tree.h"
 #define MAX_SIZE_TABLE 255
 #define INIT_NAME_TABLE_SIZE 20
 
@@ -24,5 +25,8 @@ void get_symbol_by_name(Symbol_table *table, char *name_table);
 
 int insert_symbol_in_table(Symbol symbol, Symbol_table *table);
 
+Symbol_table *create_global_variable_table(Node *tree);
+
+void print_symbol_table(Symbol_table *tab);
 
 #endif
