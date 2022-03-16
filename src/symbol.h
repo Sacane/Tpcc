@@ -5,9 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+
 typedef enum{
 
-    FUNCTION, VARIABLE, NONE_KIND
+    FUNCTION, VARIABLE, VOID_KIND, PARAM, NONE_KIND
 
 }Kind;
 
@@ -35,6 +37,8 @@ Symbol calloc_symbol();
 int is_symbol_null(Symbol symbol);
 
 Symbol create_symbol(char *name, Kind kind, Type type);
+
+Type str_to_tpcType(char* type);
 
 void print_symbol(Symbol s);
 

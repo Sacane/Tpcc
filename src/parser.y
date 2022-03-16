@@ -15,7 +15,7 @@ struct Node* rootProg;
 %}
 %code requires {
 #include "tree.h"
-#include "symbols-table.h"
+#include "table-parser.h"
 Node* root;
 }
 %expect 1
@@ -203,8 +203,9 @@ int main(int argc, char **argv){
     }
     if(showTree){
         printTree(rootProg);
-        Symbol_table *table = create_global_variable_table(rootProg);
-        print_symbol_table(table);
+        List list;
+        list = build_function_tables(rootProg);
+        print_chained_list(list);
     }
 
 

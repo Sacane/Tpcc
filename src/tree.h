@@ -1,6 +1,7 @@
 /* tree.h */
 #ifndef __TREE
 #define __TREE
+#include "utils.h"
 typedef enum {
   Prog,
   DeclVars,

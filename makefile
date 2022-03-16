@@ -15,7 +15,7 @@ makedirs:
 
 
 bin/$(EXEC): obj/lex.yy.o src/$(PARSER).tab.c 
-	$(CC) -o $@ $^ src/tree.c src/symbols-table.c src/symbol.c
+	$(CC) -o $@ $^ src/tree.c src/table-parser.c src/symbols-table.c src/symbol.c
 
 src/lex.yy.c: src/$(LEXER).lex src/tree.h src/$(PARSER).tab.h
 	flex -o $@ src/$(LEXER).lex
@@ -36,6 +36,9 @@ obj/symbol.o: src/symbol.c src/symbol.h
 
 obj/symbols-table.o: src/symbols-table.c src/symbols-table.h 
 	$(CC) -c src/symbols-table.c -o obj/symbols-table.o $(CFLAGS)
+
+obj/table-parser.o: src/table-parser.c src/table-parser.h
+	$(CC) -c src/table-parser.c -o obj/table-parser.o $(CFLAGS)
 
 obj/%.o: src/%.c src/%.h
 	$(CC) -c $< -o $@ $(CFLAGS) 

@@ -12,16 +12,6 @@ unsigned long hash(unsigned char *str)
     return hash;
 }
 
-static unsigned int hash_key(char name[]){
-    int i;
-    unsigned int res = 0;
-    
-    for(i = 0; i < strlen(name) -1; i++){
-        res+=(i+1)*name[i];
-        
-    } 
-    return res % MAX_SIZE_TABLE;
-}
 
 
 Symbol_table *create_symbol_table(char *name_table){
@@ -30,19 +20,16 @@ Symbol_table *create_symbol_table(char *name_table){
 
     table = malloc(sizeof(Symbol_table));
     table->name_table = malloc(sizeof(char) * strlen(name_table));
-    table->size_table = 0;
-
+    strcpy(table->name_table, name_table);
+    table->nb_symbol = 0;
     table->s = malloc(sizeof(Symbol) * 10000);
     table->size = 10000;
 
 
-    for(i = 0; i < MAX_SIZE_TABLE; i++){
-        table->symbols[i] = calloc_symbol();
+    for(i = 0; i < 10000; i++){
         table->s[i] = calloc_symbol();
     }
 
-    table->next = NULL;
-    table->firstSibling = NULL;
 
     return table;
     
@@ -56,12 +43,11 @@ static int is_identifier_key_in_table(Symbol_table *table, int symbol_key){
 
 
 int insert_symbol_in_table(Symbol symbol, Symbol_table *table){
-    int key = hash_key(symbol.symbol_name);
     unsigned long hashKey = hash(symbol.symbol_name);
     int i;
     if(table->size <= hashKey){
 
-        table->s = realloc(table->s, sizeof(Symbol) * (hashKey + table->size_table));
+        table->s = realloc(table->s, sizeof(Symbol) * (hashKey + table->size + 1000));
 
         for(i = table->size; i < hashKey; i++){
             table->s[i] = calloc_symbol();
@@ -75,9 +61,10 @@ int insert_symbol_in_table(Symbol symbol, Symbol_table *table){
         return 0;
     }
     else{
-        
-        table->symbols[key] = symbol;
-        table->size_table += 1;
+        printf("AVANT SEGFAULT\n");
+        table->s[hashKey] = symbol;
+        printf("APRES\n");
+        table->nb_symbol += 1;
     }
     return 1;
 }
@@ -119,11 +106,12 @@ Symbol_table *create_global_variable_table(Node *tree){
 
 void print_symbol_table(Symbol_table *tab){
     int pos;
-    fprintf(stderr,"Tab Name : %s\n",tab->name_table);
-    fprintf(stderr,"Size : %d\n",tab->size_table);
-    for(pos = 0; pos < MAX_SIZE_TABLE;pos++){
-        if(tab->symbols[pos].symbol_name == NULL) continue;;
-        if(!(is_symbol_null(tab->symbols[pos]))) print_symbol(tab->symbols[pos]);
-            
+    fprintf(stderr,"Tab Name : %s!!\n",tab->name_table);
+    fprintf(stderr,"Size : %d\n",tab->nb_symbol);
+    for(pos = 0; pos < tab->size;pos++){
+        if(tab->s[pos].symbol_name == NULL) continue;;
+        printf("%s\n", tab->s[pos].symbol_name);
+        print_symbol(tab->s[pos]);
+        
     }
 }

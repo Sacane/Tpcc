@@ -67,3 +67,19 @@ void print_symbol(Symbol s){
 void free_symbol(Symbol *s){
     free(s->symbol_name);
 }
+
+Type str_to_tpcType(char* type){
+    Type t;
+    if(strcmp(type, "int") == 0){
+        return INT_TYPE;
+    }
+    else if(strcmp(type, "char") == 0){
+        return CHAR_TYPE;
+    }
+    else if(strcmp(type, "void") == 0){
+        return VOID_TYPE;
+    }
+    else {
+        return NONE_TYPE;
+    }
+}
