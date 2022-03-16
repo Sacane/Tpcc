@@ -1,5 +1,5 @@
 
-void function_that_returns_1(void){
+void function_that_returns_1(int c){
   return 1;
 }
 

@@ -9,14 +9,16 @@
 typedef struct table{
 
     char *name_table;
-
+    unsigned long size;
     int size_table; /* Size of the table */
     Symbol symbols[MAX_SIZE_TABLE]; /* hash table of the symbols */
-
+    Symbol *s;
     struct table *next;
     struct table *firstSibling;
 
 }Symbol_table;
+
+
 
 
 Symbol_table *create_symbol_table(char *name_table);
