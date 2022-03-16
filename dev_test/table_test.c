@@ -1,9 +1,6 @@
 #include "../src/symbols-table.h"
 
 
-    
-
-
 int main(int argc, char const *argv[]){
     Symbol_table *table = create_symbol_table("First table");
 

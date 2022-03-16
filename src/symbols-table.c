@@ -3,7 +3,7 @@
 
 unsigned long hash(unsigned char *str)
 {
-    unsigned long hash = 5381;
+    unsigned long hash = 0;
     int c;
 
     while (c = *str++)
@@ -15,6 +15,7 @@ unsigned long hash(unsigned char *str)
 static unsigned int hash_key(char name[]){
     int i;
     unsigned int res = 0;
+    
     for(i = 0; i < strlen(name) -1; i++){
         res+=(i+1)*name[i];
         
@@ -31,8 +32,13 @@ Symbol_table *create_symbol_table(char *name_table){
     table->name_table = malloc(sizeof(char) * strlen(name_table));
     table->size_table = 0;
 
+    table->s = malloc(sizeof(Symbol) * 10000);
+    table->size = 10000;
+
+
     for(i = 0; i < MAX_SIZE_TABLE; i++){
         table->symbols[i] = calloc_symbol();
+        table->s[i] = calloc_symbol();
     }
 
     table->next = NULL;
@@ -44,18 +50,32 @@ Symbol_table *create_symbol_table(char *name_table){
 
 static int is_identifier_key_in_table(Symbol_table *table, int symbol_key){
     
-    return (is_symbol_null(table->symbols[symbol_key]));
+    return (is_symbol_null(table->s[symbol_key]));
 }
 
 
 
 int insert_symbol_in_table(Symbol symbol, Symbol_table *table){
     int key = hash_key(symbol.symbol_name);
-    printf("Key : %d\n", key);
-    if(is_identifier_key_in_table(table, key)){
+    unsigned long hashKey = hash(symbol.symbol_name);
+    int i;
+    if(table->size <= hashKey){
+
+        table->s = realloc(table->s, sizeof(Symbol) * (hashKey + table->size_table));
+
+        for(i = table->size; i < hashKey; i++){
+            table->s[i] = calloc_symbol();
+        }
+
+        table->size = hashKey+1;
+    }
+
+    if(is_identifier_key_in_table(table, hashKey)){
+        
         return 0;
     }
     else{
+        
         table->symbols[key] = symbol;
         table->size_table += 1;
     }
@@ -94,6 +114,7 @@ Symbol_table *create_global_variable_table(Node *tree){
 
     return table;
 }
+
 
 
 void print_symbol_table(Symbol_table *tab){

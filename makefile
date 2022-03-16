@@ -9,6 +9,7 @@ LEXER=lexer
 all : makedirs bin/$(EXEC)  
 
 makedirs:
+	@touch ./test/feedback.txt
 	@mkdir -p bin
 	@mkdir -p obj
 
@@ -42,4 +43,4 @@ obj/%.o: src/%.c src/%.h
 
 
 clean:
-	rm -f src/lex.yy.* src/$(PARSER).tab.* obj/* bin/*
+	rm -f src/lex.yy.* src/$(PARSER).tab.* obj/* bin/* ./test/feedback.txt
