@@ -22,11 +22,18 @@ Symbol_table *create_symbol_table(char *name_table){
     table->name_table = malloc(sizeof(char) * strlen(name_table));
     strcpy(table->name_table, name_table);
     table->nb_symbol = 0;
-    table->s = malloc(sizeof(Symbol) * 10000);
-    table->size = 10000;
+    if(!(table->s = malloc(sizeof(Symbol) * INIT_TABLE_SIZ))){
+        fprintf(stderr, "Failed to allocated the symbol table : %s\n", name_table);
+        return NULL;
+    }
+    table->size = INIT_TABLE_SIZ;
+    if(!(table->parameters = malloc(sizeof(Type) * INIT_PARAMETERS_SIZ))){
+        fprintf(stderr, "Failed to allocate the parameters\n");
+        return NULL;
+    }
+    table->nb_parameter = 0;
 
-
-    for(i = 0; i < 10000; i++){
+    for(i = 0; i < INIT_TABLE_SIZ; i++){
         table->s[i] = calloc_symbol();
     }
 
@@ -61,9 +68,7 @@ int insert_symbol_in_table(Symbol symbol, Symbol_table *table){
         return 0;
     }
     else{
-        printf("AVANT SEGFAULT\n");
         table->s[hashKey] = symbol;
-        printf("APRES\n");
         table->nb_symbol += 1;
     }
     return 1;
@@ -89,7 +94,7 @@ Symbol_table *create_global_variable_table(Node *tree){
         
         type = (strcmp("int", child->u.ident) == 0) ? INT_TYPE : CHAR_TYPE;
 
-
+        
 
         for(Node *grandChild = child->firstChild; grandChild != NULL; grandChild = grandChild->nextSibling){
             Symbol s = create_symbol(grandChild->u.ident, kind, type);

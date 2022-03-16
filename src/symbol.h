@@ -5,13 +5,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-
+#define MAX_FUNC_NAME_SIZ 64
+#define MAX_ARGUMENT_FUNC 15
 
 typedef enum{
 
-    FUNCTION, VARIABLE, VOID_KIND, PARAM, NONE_KIND
+    FUNCTION, VARIABLE, VOID_KIND, NONE_KIND
 
 }Kind;
+
+typedef enum {
+
+    CHAR,
+    INT,
+
+}PrimType;
 
 typedef enum {
     CHAR_TYPE,
@@ -20,15 +28,27 @@ typedef enum {
     NONE_TYPE
 }Type;
 
+typedef struct {
+
+    char function_name[MAX_FUNC_NAME_SIZ];
+    int is_void;
+    PrimType args_types[MAX_ARGUMENT_FUNC];
+    PrimType return_type;
+
+}FunctionType;
+
 
 typedef struct symbol{
 
 
     char *symbol_name; /* name of the symbol  */
-    Kind kind;         /* Kind of the symbol [function or variable] */
+    Kind kind;         /* Kind of the symbol [function, variable or parameter] */
     Type type;        /* char, int and 'void (only for functions)' */
 
-
+    union {
+        FunctionType f_type; /* Function  symbol */
+        PrimType p_type;     /* Primitive symbol */
+    }u;
 
 }Symbol;
 

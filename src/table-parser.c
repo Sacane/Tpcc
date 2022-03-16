@@ -51,7 +51,7 @@ void print_chained_list(List lst){
 List build_function_tables(Node *root){
     List list;
     list = init_table_list(NULL);
-
+    int i = 0;
     Node* functions_root;
     functions_root = root->firstChild->nextSibling; //On DeclFoncts
 
@@ -68,8 +68,7 @@ List build_function_tables(Node *root){
         Node *params = function_type->nextSibling;
         Symbol s;
         if(params->firstChild->label == Void){
-            s = create_symbol("void", VOID_KIND, VOID_TYPE);
-            insert_symbol_in_table(s, table);
+            continue;
         }else{
             for (Node *paramType = params->firstChild; paramType; paramType = paramType->nextSibling){
                 Kind k = VARIABLE;
@@ -77,6 +76,8 @@ List build_function_tables(Node *root){
                 Node* id = paramType->firstChild;
                 s = create_symbol(id->u.ident, k, type);
                 insert_symbol_in_table(s, table);
+                table->parameters[i] = type;
+                table->nb_parameter += 1;
             }
         }
 
@@ -86,7 +87,7 @@ List build_function_tables(Node *root){
         Node* body = header->nextSibling;
 
 
-        //Function's Global variable :
+        //Function's local variable :
         Node* global = body->firstChild;
         for(Node* global_types = global->firstChild; global_types; global_types = global_types->nextSibling){
             Type type = str_to_tpcType(global_types->u.ident); // type's variable

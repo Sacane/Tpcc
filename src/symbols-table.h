@@ -5,14 +5,20 @@
 #include "tree.h"
 #define MAX_SIZE_TABLE 255
 #define INIT_NAME_TABLE_SIZE 20
+#define INIT_TABLE_SIZ 10000
+#define INIT_PARAMETERS_SIZ 10
 
 typedef struct table{
 
     char *name_table;
+    
+
     unsigned long size;
     Symbol *s;
     int nb_symbol;
 
+    Type *parameters;   //We use it if
+    int nb_parameter;   //Its a functions's symbol table
 
 }Symbol_table;
 
