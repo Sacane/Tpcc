@@ -7,7 +7,7 @@ unsigned long hash(unsigned char *str)
     int c;
 
     while (c = *str++)
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+        hash = hash*2 + c; /* hash * 33 + c */
 
     return hash;
 }
@@ -26,6 +26,7 @@ Symbol_table *create_symbol_table(char *name_table){
         fprintf(stderr, "Failed to allocated the symbol table : %s\n", name_table);
         return NULL;
     }
+
     table->size = INIT_TABLE_SIZ;
     if(!(table->parameters = malloc(sizeof(Type) * INIT_PARAMETERS_SIZ))){
         fprintf(stderr, "Failed to allocate the parameters\n");
@@ -42,9 +43,8 @@ Symbol_table *create_symbol_table(char *name_table){
     
 }
 
-static int is_identifier_key_in_table(Symbol_table *table, int symbol_key){
-    
-    return (is_symbol_null(table->s[symbol_key]));
+static int is_identifier_key_in_table(Symbol_table *table, unsigned long symbol_key){
+    return (table->s[symbol_key].symbol_name != NULL);
 }
 
 
@@ -54,20 +54,28 @@ int insert_symbol_in_table(Symbol symbol, Symbol_table *table){
     int i;
     if(table->size <= hashKey){
 
-        table->s = realloc(table->s, sizeof(Symbol) * (hashKey + table->size + 1000));
+        printf("%ld %ld\n", table->size, hashKey);
+        long int old_size = table->size;
+        table->size += hashKey;
 
-        for(i = table->size; i < hashKey; i++){
-            table->s[i] = calloc_symbol();
+        table->s = (Symbol*)realloc(table->s, sizeof(Symbol) * table->size);
+        if(!table->s){
+            DEBUG("Error while realloc table->symbol\n");
+            exit(EXIT_FAILURE);
         }
 
-        table->size = hashKey+1;
-    }
+        for(i = old_size; i < hashKey; i++){
 
+            table->s[i] = calloc_symbol();
+            
+        }
+
+    }
     if(is_identifier_key_in_table(table, hashKey)){
-        
         return 0;
     }
     else{
+
         table->s[hashKey] = symbol;
         table->nb_symbol += 1;
     }
@@ -94,8 +102,6 @@ Symbol_table *create_global_variable_table(Node *tree){
         
         type = (strcmp("int", child->u.ident) == 0) ? INT_TYPE : CHAR_TYPE;
 
-        
-
         for(Node *grandChild = child->firstChild; grandChild != NULL; grandChild = grandChild->nextSibling){
             Symbol s = create_symbol(grandChild->u.ident, kind, type);
             print_symbol(s);
@@ -111,8 +117,13 @@ Symbol_table *create_global_variable_table(Node *tree){
 
 void print_symbol_table(Symbol_table *tab){
     int pos;
-    fprintf(stderr,"Tab Name : %s!!\n",tab->name_table);
-    fprintf(stderr,"Size : %d\n",tab->nb_symbol);
+    if(tab == NULL){
+        printf("NULL\n");
+        return;
+    }
+
+    fprintf(stderr,"Tab Name : %s\n",tab->name_table);
+    fprintf(stderr,"nb symbol : %d\n",tab->nb_symbol);
     for(pos = 0; pos < tab->size;pos++){
         if(tab->s[pos].symbol_name == NULL) continue;;
         printf("%s\n", tab->s[pos].symbol_name);

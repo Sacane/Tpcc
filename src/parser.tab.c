@@ -1480,7 +1480,7 @@ yyreduce:
 
   case 11:
 #line 58 "src/parser.y"
-                                        {(yyval.node) = makeNode(EnTeteFonct); Node * type = makeNode(types); addChild((yyval.node), makeNode(Void)); Node *n = makeNode(id); strcpy(n->u.ident, (yyvsp[-3].ident)); addChild(type, n); addChild((yyval.node), (yyvsp[-1].node));}
+                                        {(yyval.node) = makeNode(EnTeteFonct); Node * type = makeNode(Void); addChild((yyval.node), type); Node *n = makeNode(id); strcpy(n->u.ident, (yyvsp[-3].ident)); addChild(type, n); addChild((yyval.node), (yyvsp[-1].node));}
 #line 1485 "parser.tab.c"
     break;
 
@@ -2073,6 +2073,7 @@ int main(int argc, char **argv){
         printTree(rootProg);
         List list;
         list = build_function_tables(rootProg);
+        
         print_chained_list(list);
     }
 

@@ -39,9 +39,11 @@ int insert_table(List list, Symbol_table *table){
 }
 
 void print_chained_list(List lst){
-    printf("PRINT\n");
-    List tmp = lst;
 
+    List tmp = lst;
+    if(!lst){
+        return;
+    }
     while(tmp != NULL){
         print_symbol_table(tmp->table);
         tmp = tmp->next;
@@ -49,48 +51,69 @@ void print_chained_list(List lst){
 }
 
 List build_function_tables(Node *root){
+
     List list;
     list = init_table_list(NULL);
     int i = 0;
+    int is_void, nb_args = 0;
     Node* functions_root;
+    PrimType function_t;
     functions_root = root->firstChild->nextSibling; //On DeclFoncts
 
+
+    //parse of the DeclFonct
     for(Node* function_root = functions_root->firstChild; function_root; function_root = function_root->nextSibling){
-        //parse of the DeclFonct
+        
 
 
         // =============== Management of the functions's header ==================
 
-        Node* header = function_root->firstChild;
-        Node *function_type = header->firstChild;
+        Node* header_function = function_root->firstChild;
+        PrimType param_types[MAX_ARGUMENT_FUNC];
+
+        Node *function_type = header_function->firstChild;
+        is_void = (!(strcmp(function_type->u.ident, "void"))) ? 1 : 0;  
+
+        function_t = str_to_tpcType(function_type->u.ident);
+
         Symbol_table *table = create_symbol_table(function_type->firstChild->u.ident);
-        
+
         Node *params = function_type->nextSibling;
+
         Symbol s;
-        if(params->firstChild->label == Void){
-            continue;
-        }else{
+
+        if(params->firstChild->label != Void){
+            
             for (Node *paramType = params->firstChild; paramType; paramType = paramType->nextSibling){
-                Kind k = VARIABLE;
-                Type type = str_to_tpcType(paramType->u.ident);
+                //parametres
+                Kind k = PARAM;
+                PrimType type = str_to_tpcType(paramType->u.ident);
                 Node* id = paramType->firstChild;
                 s = create_symbol(id->u.ident, k, type);
                 insert_symbol_in_table(s, table);
-                table->parameters[i] = type;
                 table->nb_parameter += 1;
+
+                //symbol de structure de fonction
+                param_types[nb_args] = type;
+                nb_args += 1;
             }
         }
 
+
+        Symbol params_sym = create_func_sym(function_type->firstChild->u.ident, function_t, param_types, nb_args);
+        insert_symbol_in_table(params_sym, table);
+
+   
         // ========================================================================
 
 
-        Node* body = header->nextSibling;
-
-
+        Node* body = header_function->nextSibling;
+        printf("%d\n", body->label);
+        
         //Function's local variable :
         Node* global = body->firstChild;
         for(Node* global_types = global->firstChild; global_types; global_types = global_types->nextSibling){
-            Type type = str_to_tpcType(global_types->u.ident); // type's variable
+            PrimType type = str_to_tpcType(global_types->u.ident); // type's variable
             Kind kind = VARIABLE;
             for(Node *id = global_types->firstChild; id; id = id->nextSibling){
                 s = create_symbol(id->u.ident, kind, type);
@@ -98,9 +121,69 @@ List build_function_tables(Node *root){
             }
         }
         insert_table(list, table);
-        
     }
     return list;
+}
+
+
+
+/**
+ * @brief Get the table by name object
+ * @warning may return null
+ * @param name_table 
+ * @param table_list 
+ * @return Symbol_table* 
+ */
+Symbol_table *get_table_by_name(char *name_table, List table_list){
+    List tmp = table_list;
+    if(!table_list){
+        return NULL;
+    }
+    while(strcmp(tmp->table->name_table, name_table) || tmp != NULL){
+        tmp = tmp->next;
+    }
+    return tmp;
+}
+
+int function_call_sem_parser(Node *fc_node, List table){
+
+
+
+
+    return 1;
+}
+
+int variable_call_sem_parser(Node *varcall_node, List table){
+    
+}
+
+/**
+ * @brief parse the tree and check if there is a sem error or not
+ * 
+ * @param n 
+ * @param table 
+ * @return int 1 if the parse returned no error, 0 if there is at least 1 sem error
+ */
+int parse_sem_error(Node *n, List table){
+    if (!n){
+        return 1;
+    }
+    switch(n->label){
+        case FunctionCall:
+            return parse_sem_error(n->nextSibling, table) && parse_sem_error(n->firstChild, table);
+            break;
+        case Variable:
+            return parse_sem_error(n->nextSibling, table) && parse_sem_error(n->firstChild, table);
+            break;
+        case Assign:
+            return parse_sem_error(n->nextSibling, table) && parse_sem_error(n->firstChild, table);
+            break;
+        case Eq:
+            return parse_sem_error(n->nextSibling, table) && parse_sem_error(n->firstChild, table);
+            break;
+        default:
+            return parse_sem_error(n->nextSibling, table) && parse_sem_error(n->firstChild, table);
+    }
 }
 
 

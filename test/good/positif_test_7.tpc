@@ -1,16 +1,33 @@
 int a, b, c;
 
+int main(void){
 
+    char p;
+    int t1, t2;
+    t1 = 0;
+    t2 = 3;
+
+    if(t1 != t2){
+        p = called(c);
+    }
+    else{
+        p = 'c';
+    }
+
+    return 0;
+}
 
 char called(int c){
+    int a;
     return c;
 }
 
 void caller(int flag){
+    int c;
     if(flag == 2){
-        return called('c');
+        c = 2;
     }
     else{
-        return called('q');
+        c = 3;
     }
 }

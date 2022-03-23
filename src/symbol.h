@@ -10,7 +10,7 @@
 
 typedef enum{
 
-    FUNCTION, VARIABLE, VOID_KIND, NONE_KIND
+    FUNCTION, VARIABLE, VOID_KIND, NONE_KIND, PARAM
 
 }Kind;
 
@@ -18,7 +18,8 @@ typedef enum {
 
     CHAR,
     INT,
-
+    NONE
+    
 }PrimType;
 
 typedef enum {
@@ -29,9 +30,8 @@ typedef enum {
 }Type;
 
 typedef struct {
-
-    char function_name[MAX_FUNC_NAME_SIZ];
-    int is_void;
+    
+    int is_void; 
     PrimType args_types[MAX_ARGUMENT_FUNC];
     PrimType return_type;
 
@@ -43,7 +43,7 @@ typedef struct symbol{
 
     char *symbol_name; /* name of the symbol  */
     Kind kind;         /* Kind of the symbol [function, variable or parameter] */
-    Type type;        /* char, int and 'void (only for functions)' */
+
 
     union {
         FunctionType f_type; /* Function  symbol */
@@ -56,12 +56,13 @@ Symbol calloc_symbol();
 
 int is_symbol_null(Symbol symbol);
 
-Symbol create_symbol(char *name, Kind kind, Type type);
+Symbol create_symbol(char *name, Kind kind, PrimType type);
 
-Type str_to_tpcType(char* type);
+PrimType str_to_tpcType(char* type);
 
 void print_symbol(Symbol s);
 
 void free_symbol(Symbol *s);
 
+Symbol create_func_sym(char *name_func, PrimType return_type, PrimType arg_types[], int n_args);
 #endif

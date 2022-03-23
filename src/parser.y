@@ -55,7 +55,7 @@ DeclFonct:
     ;
 EnTeteFonct:
        TYPE IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); Node * type = makeNode(types); strcpy(type->u.ident, $1); addChild($$, type); Node *n = makeNode(id); strcpy(n->u.ident, $2); addChild(type, n); addChild($$, $4);}
-    |  VOID IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); Node * type = makeNode(types); addChild($$, makeNode(Void)); Node *n = makeNode(id); strcpy(n->u.ident, $2); addChild(type, n); addChild($$, $4);}
+    |  VOID IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); Node * type = makeNode(Void); addChild($$, type); Node *n = makeNode(id); strcpy(n->u.ident, $2); addChild(type, n); addChild($$, $4);}
     ;
 Parametres:
        VOID                             {$$ = makeNode(Parametres); addChild($$, makeNode(Void));}
@@ -205,6 +205,7 @@ int main(int argc, char **argv){
         printTree(rootProg);
         List list;
         list = build_function_tables(rootProg);
+        
         print_chained_list(list);
     }
 

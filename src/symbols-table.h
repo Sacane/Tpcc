@@ -17,7 +17,7 @@ typedef struct table{
     Symbol *s;
     int nb_symbol;
 
-    Type *parameters;   //We use it if
+    Type *parameters;   
     int nb_parameter;   //Its a functions's symbol table
 
 }Symbol_table;
