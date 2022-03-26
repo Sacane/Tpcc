@@ -60,7 +60,6 @@ int insert_symbol_in_table(Symbol symbol, Symbol_table *table){
     unsigned long hashKey = hash(symbol.symbol_name);
     int i;
     if(table->size <= hashKey){
-        DEBUG("REALLOC TIME\n");
         long int old_size = table->size;
         table->size += hashKey;
         Symbol *s = (Symbol*)realloc(table->s, (sizeof(Symbol)) * table->size);
@@ -102,14 +101,13 @@ Symbol_table *create_global_variable_table(Node *tree){
     vars_as_node = tree->firstChild; /* Node of DeclVars according to our tree */
     
     for (Node *child = vars_as_node->firstChild; child != NULL; child = child->nextSibling) {
-        printf("%s\n", stringFromLabel(child->label));
+
         Kind kind = VARIABLE;
         
         type = (strcmp("int", child->u.ident) == 0) ? INT_TYPE : CHAR_TYPE;
 
         for(Node *grandChild = child->firstChild; grandChild != NULL; grandChild = grandChild->nextSibling){
             Symbol s = create_symbol(grandChild->u.ident, kind, type);
-            print_symbol(s);
             printf("%s\n", (insert_symbol_in_table(s, table) ? "Insert success\n" : "Insert failed\n"));
         }
     }

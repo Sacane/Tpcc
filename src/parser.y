@@ -206,11 +206,13 @@ int main(int argc, char **argv){
         printTree(rootProg);
         Symbol_table *globals_table = create_global_variable_table(rootProg);
         List list;
-        
+
         list = build_list_table(rootProg);
         insert_table(list, globals_table);
-        print_chained_list(list);
+
         sem_err_res = parse_sem_function_error(rootProg, list);
+
+
         if(sem_err_res){
             printf("No sementic errors detected ! \n");
         }

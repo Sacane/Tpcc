@@ -109,7 +109,7 @@ List build_list_table(Node *root){
 
 
         Node* body = header_function->nextSibling;
-        printf("%d\n", body->label);
+
         
         //Function's local variable :
         Node* global = body->firstChild;
@@ -154,6 +154,14 @@ Symbol_table *get_table_by_name(char *name_table, List table_list){
     return (tmp) ? tmp->table : NULL;
 }
 
+static int variable_call_sem_parser(Node *varcall_node, List table, char *name){
+    Symbol_table *globals = get_table_by_name("global_vars", table);
+    Symbol_table *func = get_table_by_name(name, table);
+    int ret_val = is_symbol_in_table(globals, varcall_node->u.ident) || is_symbol_in_table(func, varcall_node->u.ident);
+    if(!ret_val) DEBUG("E: Symbol %s not in table %s\n", varcall_node->u.ident, func->name_table);
+    return ret_val == 1;
+}
+
 static int check_param_function_call(Symbol_table *function_table, Node *fc_root){
 
     int i;
@@ -181,9 +189,9 @@ static int function_call_sem_parser(Node *fc_node, List table, char *name){
         for(Node *n = fc_node->firstChild; n; n = n->nextSibling){
             if(
                 n->label == Variable && 
-                (!is_symbol_in_table(global_table, n->u.ident) || !is_symbol_in_table(fun_table, n->u.ident)) &&
-                !(check_param_function_call(fun_table, fc_node))                
+                (!(variable_call_sem_parser(n, table, name)) || !check_param_function_call(fun_table, n))     
             ){
+                DEBUG("E: Symbol %s not in table : %s\n", n->u.ident, name);
                 return 0;
             }
         }
@@ -192,12 +200,7 @@ static int function_call_sem_parser(Node *fc_node, List table, char *name){
     return 1;
 }
 
-static int variable_call_sem_parser(Node *varcall_node, List table, char *name){
-    Symbol_table *globals = get_table_by_name("global_vars", table);
-    Symbol_table *func = get_table_by_name(name, table);
-    int ret_val = is_symbol_in_table(globals, varcall_node->u.ident) || is_symbol_in_table(func, varcall_node->u.ident);
-    return ret_val == 1;
-}
+
 
 static int equal_check(Node *eq, List tab, char *name_tab){
 
@@ -211,9 +214,10 @@ static int equal_check(Node *eq, List tab, char *name_tab){
     function_tab = get_table_by_name(name_tab, tab);
 
     if(var1->label == Variable){
-        char* id1 = var1->u.ident;
-        if(!(is_symbol_in_table(global_tab,id1)) || !(is_symbol_in_table(function_tab,id1))){
-            DEBUG("Error while equals check\n");
+        char id1[20];
+        strcpy(id1, var1->u.ident);
+        if(!(is_symbol_in_table(global_tab,id1)) && !(is_symbol_in_table(function_tab,id1))){
+            DEBUG("Error while equals check : symbol %s not in table %s or globals\n", id1, name_tab);
             return 0;
         }
             
@@ -222,7 +226,8 @@ static int equal_check(Node *eq, List tab, char *name_tab){
 
     if(var2->label == Variable){
         char* id2 = var2->u.ident;
-        if(!(is_symbol_in_table(global_tab,id2)) || !(is_symbol_in_table(function_tab,id2))){
+        if(!(is_symbol_in_table(global_tab,id2)) && !(is_symbol_in_table(function_tab,id2))){
+
             DEBUG("Error while equals check\n");
             return 0;
         }
@@ -254,7 +259,7 @@ int assign_check(Node *assign, List tab, char *name_tab){
             default:
                 break;
         }
-
+        if(!check) DEBUG("Error while assigning values\n");
         return check == 1;
     }
     DEBUG("Error while assigning values\n");
@@ -274,13 +279,15 @@ int parse_sem_error(Node *n, List table, char *name_table){
     if (!n){
         return 1;
     }
-
+    if(n->label == EnTeteFonct) return parse_sem_error(n->nextSibling, table, name_table);
+    if(n->label == DeclFonct) return parse_sem_error(n->firstChild->nextSibling, table, name_table);
+    DEBUG("Label : %s\n", stringFromLabel(n->label));
     switch(n->label){
         case FunctionCall:
-
             return function_call_sem_parser(n, table, name_table) && parse_sem_error(n->nextSibling, table, name_table) && parse_sem_error(n->firstChild, table, name_table);
         case Variable:
-            return variable_call_sem_parser(n, table, name_table) && parse_sem_error(n->nextSibling, table, name_table) && parse_sem_error(n->firstChild, table, name_table);
+            DEBUG("Variable : %s\n", n->u.ident);
+            return variable_call_sem_parser(n, table, name_table) && parse_sem_error(n->nextSibling, table, name_table);
         case Assign:
             return assign_check(n, table, name_table) && parse_sem_error(n->nextSibling, table, name_table) && parse_sem_error(n->firstChild, table, name_table);
         case Eq:
@@ -302,7 +309,7 @@ int parse_sem_function_error(Node *node, List table){
     else{
         //We suppose in declfoncts
         for(Node *n = node->firstChild; n; n = n->nextSibling){
-
+            DEBUG("function parsing now : %s\n", getFuncNameFromDecl(n));
             if(!parse_sem_error(n, table, getFuncNameFromDecl(n))){
                 return 0;
             }
