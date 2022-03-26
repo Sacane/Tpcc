@@ -7,7 +7,7 @@ unsigned long hash(unsigned char *str)
     int c;
 
     while (c = *str++)
-        hash = hash*2 + c; /* hash * 33 + c */
+        hash = hash + c; 
 
     return hash;
 }
@@ -17,7 +17,7 @@ unsigned long hash(unsigned char *str)
 Symbol_table *create_symbol_table(char *name_table){
     Symbol_table *table;
     int i;
-
+    
     table = malloc(sizeof(Symbol_table));
     table->name_table = malloc(sizeof(char) * strlen(name_table));
     strcpy(table->name_table, name_table);
@@ -28,10 +28,7 @@ Symbol_table *create_symbol_table(char *name_table){
     }
 
     table->size = INIT_TABLE_SIZ;
-    if(!(table->parameters = malloc(sizeof(Type) * INIT_PARAMETERS_SIZ))){
-        fprintf(stderr, "Failed to allocate the parameters\n");
-        return NULL;
-    }
+
     table->nb_parameter = 0;
 
     for(i = 0; i < INIT_TABLE_SIZ; i++){
@@ -42,10 +39,20 @@ Symbol_table *create_symbol_table(char *name_table){
     return table;
     
 }
+int is_identifier_key_in_table(Symbol_table *table, unsigned long symbol_key){
 
-static int is_identifier_key_in_table(Symbol_table *table, unsigned long symbol_key){
     return (table->s[symbol_key].symbol_name != NULL);
 }
+Symbol get_symbol_by_name(Symbol_table *table, char *name_table){
+    return table->s[hash(name_table)];
+}
+
+int is_symbol_in_table(Symbol_table *table, char *symbol_name){
+    
+    return table->size > hash(symbol_name) && table->s[hash(symbol_name)].symbol_name != NULL && !strcmp(table->s[hash(symbol_name)].symbol_name, symbol_name);
+}
+
+
 
 
 
@@ -53,29 +60,27 @@ int insert_symbol_in_table(Symbol symbol, Symbol_table *table){
     unsigned long hashKey = hash(symbol.symbol_name);
     int i;
     if(table->size <= hashKey){
-
-        printf("%ld %ld\n", table->size, hashKey);
+        DEBUG("REALLOC TIME\n");
         long int old_size = table->size;
         table->size += hashKey;
-
-        table->s = (Symbol*)realloc(table->s, sizeof(Symbol) * table->size);
-        if(!table->s){
-            DEBUG("Error while realloc table->symbol\n");
+        Symbol *s = (Symbol*)realloc(table->s, (sizeof(Symbol)) * table->size);
+        
+        if(!s){
+            fprintf(stderr, "Error while realloc table->symbol | size : %ld\n", table->size);
             exit(EXIT_FAILURE);
         }
-
+        table->s = s;
         for(i = old_size; i < hashKey; i++){
 
             table->s[i] = calloc_symbol();
             
         }
-
     }
-    if(is_identifier_key_in_table(table, hashKey)){
+    if(table->s[hash(symbol.symbol_name)].symbol_name && !strcmp(table->s[hash(symbol.symbol_name)].symbol_name, symbol.symbol_name)){
         return 0;
     }
     else{
-
+        fprintf(stderr, "insert symbol %s in %s\n", symbol.symbol_name, table->name_table);
         table->s[hashKey] = symbol;
         table->nb_symbol += 1;
     }
@@ -118,7 +123,7 @@ Symbol_table *create_global_variable_table(Node *tree){
 void print_symbol_table(Symbol_table *tab){
     int pos;
     if(tab == NULL){
-        printf("NULL\n");
+        printf("NULL \n");
         return;
     }
 

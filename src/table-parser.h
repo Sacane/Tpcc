@@ -27,9 +27,9 @@ List init_table_list();
 
 int insert_table(List list, Symbol_table *table);
 void print_chained_list(List lst);
-List build_function_tables(Node *root);
+List build_list_table(Node *root);
 int treat_simple_sub_in_main(Node *root);
-
+int parse_sem_function_error(Node *node, List table);
 void free_table();
 
 

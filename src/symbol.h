@@ -43,8 +43,6 @@ typedef struct symbol{
 
     char *symbol_name; /* name of the symbol  */
     Kind kind;         /* Kind of the symbol [function, variable or parameter] */
-
-
     union {
         FunctionType f_type; /* Function  symbol */
         PrimType p_type;     /* Primitive symbol */

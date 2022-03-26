@@ -137,3 +137,8 @@ void printTree(Node *node) {
 char *stringFromLabel(int label){
   return StringFromLabel[label];
 }
+
+char *getFuncNameFromDecl(Node *declFonctRoot){
+  Node *id = declFonctRoot->firstChild->firstChild->firstChild;
+  return id->u.ident;
+}

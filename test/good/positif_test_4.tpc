@@ -1,5 +1,5 @@
 
-void function_that_returns_1(int c){
+void function_1(int c){
   return 1;
 }
 
@@ -11,7 +11,7 @@ int main(int argc){
 	a = 9;
 	b=16;
 	c=5;
-  function_that_returns_1();
+  function_1();
 	while(a!=b){   
     if(a>b && b > c)
       b=b+1;

@@ -162,6 +162,7 @@ int main(int argc, char **argv){
     int result;
     int opt = 0;
     int option_index = 0;
+    int sem_err_res = 0;
     
     
     static struct option long_option[] = {
@@ -203,10 +204,20 @@ int main(int argc, char **argv){
     }
     if(showTree){
         printTree(rootProg);
+        Symbol_table *globals_table = create_global_variable_table(rootProg);
         List list;
-        list = build_function_tables(rootProg);
         
+        list = build_list_table(rootProg);
+        insert_table(list, globals_table);
         print_chained_list(list);
+        sem_err_res = parse_sem_function_error(rootProg, list);
+        if(sem_err_res){
+            printf("No sementic errors detected ! \n");
+        }
+        else {
+            printf("Semantic errors detected \n");
+        }
+        
     }
 
 
