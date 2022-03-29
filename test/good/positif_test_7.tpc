@@ -1,16 +1,35 @@
-int a, b, c;
-
-
+int a, b;
 
 char called(int c){
+    a = 0;
     return c;
 }
 
-void caller(int flag){
-    if(flag == 2){
-        return called('c');
+
+int main(void){
+
+    char p;
+    int t1, t2;
+    t1 = 0;
+    t2 = 3;
+
+    if(t1 != t2){
+        p = called(b);
     }
     else{
-        return called('q');
+        p = 'c';
+    }
+
+    return 0;
+}
+
+
+int caller(int flag){
+    int c;
+    if(flag == 2){
+        c = 2;
+    }
+    else{
+        c = 3;
     }
 }

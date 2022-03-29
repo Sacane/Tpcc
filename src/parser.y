@@ -15,7 +15,7 @@ struct Node* rootProg;
 %}
 %code requires {
 #include "tree.h"
-#include "symbols-table.h"
+#include "table-parser.h"
 Node* root;
 }
 %expect 1
@@ -55,7 +55,7 @@ DeclFonct:
     ;
 EnTeteFonct:
        TYPE IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); Node * type = makeNode(types); strcpy(type->u.ident, $1); addChild($$, type); Node *n = makeNode(id); strcpy(n->u.ident, $2); addChild(type, n); addChild($$, $4);}
-    |  VOID IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); Node * type = makeNode(types); addChild($$, makeNode(Void)); Node *n = makeNode(id); strcpy(n->u.ident, $2); addChild(type, n); addChild($$, $4);}
+    |  VOID IDENT '(' Parametres ')'    {$$ = makeNode(EnTeteFonct); Node * type = makeNode(Void); addChild($$, type); Node *n = makeNode(id); strcpy(n->u.ident, $2); addChild(type, n); addChild($$, $4);}
     ;
 Parametres:
        VOID                             {$$ = makeNode(Parametres); addChild($$, makeNode(Void));}
@@ -162,6 +162,7 @@ int main(int argc, char **argv){
     int result;
     int opt = 0;
     int option_index = 0;
+    int sem_err_res = 0;
     
     
     static struct option long_option[] = {
@@ -203,8 +204,22 @@ int main(int argc, char **argv){
     }
     if(showTree){
         printTree(rootProg);
-        Symbol_table *table = create_global_variable_table(rootProg);
-        print_symbol_table(table);
+        Symbol_table *globals_table = create_global_variable_table(rootProg);
+        List list;
+
+        list = build_list_table(rootProg);
+        insert_table(list, globals_table);
+
+        sem_err_res = parse_sem_function_error(rootProg, list);
+        
+
+        if(sem_err_res){
+            printf("No sementic errors detected ! \n");
+        }
+        else {
+            printf("Semantic errors detected \n");
+        }
+        
     }
 
 

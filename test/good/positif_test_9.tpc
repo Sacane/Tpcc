@@ -1,3 +1,8 @@
+void print(void){
+    return;
+}
+
+
 int main(void){
     char df;
     int a;

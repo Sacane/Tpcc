@@ -1,6 +1,7 @@
 /* tree.h */
 #ifndef __TREE
 #define __TREE
+#include "utils.h"
 typedef enum {
   Prog,
   DeclVars,
@@ -67,6 +68,7 @@ void addChild(Node *parent, Node *child);
 void deleteTree(Node*node);
 void printTree(Node *node);
 char *stringFromLabel(int label);
+char *getFuncNameFromDecl(Node *declFonctRoot);
 
 #define FIRSTCHILD(node) node->firstChild
 #define SECONDCHILD(node) node->firstChild->nextSibling
