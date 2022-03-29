@@ -280,18 +280,18 @@ int assign_check(Node *assign, List tab, char *name_tab){
         check += is_symbol_in_table(function_tab, var1->u.ident);
         switch(check){
             case 0:
-                fprintf(stderr, "%s unregistered in globals or local variables\n", var1->u.ident);
+                DEBUG("%s unregistered in globals or local variables\n", var1->u.ident);
                 break;
             case 2:
-                fprintf(stderr, "value in both local and global variable : %s\n", var1->u.ident);
+                DEBUG("value in both local and global variable : %s\n", var1->u.ident);
                 break;
             default:
                 break;
         }
-        if(!check) DEBUG("Error while assigning values\n");
+
         return check == 1;
     }
-    DEBUG("Error while assigning values\n");
+
     return 0;
 
 
