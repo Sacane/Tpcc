@@ -2079,7 +2079,7 @@ int main(int argc, char **argv){
         insert_table(list, globals_table);
 
         sem_err_res = parse_sem_function_error(rootProg, list);
-
+        
 
         if(sem_err_res){
             printf("No sementic errors detected ! \n");

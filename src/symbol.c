@@ -34,6 +34,7 @@ Symbol create_func_sym(char *name_func, PrimType return_type, PrimType arg_types
     func_sym.u.f_type.return_type = return_type;
     for(i = 0; i < n_args; i++){
         func_sym.u.f_type.args_types[i] = arg_types[i];
+        
     }
     
     
@@ -88,5 +89,19 @@ PrimType str_to_tpcType(char* type){
     }
     else {
         return NONE;
+    }
+}
+
+char * string_from_type(PrimType t){
+    switch (t){
+        case INT:
+            return "int";
+            break;
+        case CHAR:
+            return "char";
+            break;
+        default:
+            return "none";
+            break;
     }
 }

@@ -34,7 +34,7 @@ typedef struct {
     int is_void; 
     PrimType args_types[MAX_ARGUMENT_FUNC];
     PrimType return_type;
-
+    
 }FunctionType;
 
 
@@ -59,6 +59,8 @@ Symbol create_symbol(char *name, Kind kind, PrimType type);
 PrimType str_to_tpcType(char* type);
 
 void print_symbol(Symbol s);
+
+char * string_from_type(PrimType t);
 
 void free_symbol(Symbol *s);
 

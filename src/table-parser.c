@@ -52,7 +52,7 @@ void print_chained_list(List lst){
 }
 
 List build_list_table(Node *root){
-
+    DEBUG("============ CREATING LIST OF SYMBOL TABLE ===============\n");
     List list;
     list = init_table_list(NULL);
     int i = 0;
@@ -66,7 +66,7 @@ List build_list_table(Node *root){
     for(Node* function_root = functions_root->firstChild; function_root; function_root = function_root->nextSibling){
         
 
-
+        nb_args = 0;
         // =============== Management of the functions's header ==================
 
         Node* header_function = function_root->firstChild;
@@ -102,6 +102,10 @@ List build_list_table(Node *root){
 
 
         Symbol params_sym = create_func_sym(function_type->firstChild->u.ident, function_t, param_types, nb_args);
+        for(i = 0; i < nb_args; i++){
+            DEBUG("Name func : %s & Param type : %s\n", function_type->firstChild->u.ident, string_from_type(params_sym.u.f_type.args_types[i]));
+        }
+
         insert_symbol_in_table(params_sym, table);
 
    
@@ -123,6 +127,7 @@ List build_list_table(Node *root){
         }
         insert_table(list, table);
     }
+    DEBUG("===========================================================\n");
     return list;
 }
 
@@ -149,6 +154,7 @@ Symbol_table *get_table_by_name(char *name_table, List table_list){
         }
         if(!tmp) return NULL;
         tmp = tmp->next;
+        if(!tmp) return NULL;
     }
     
     return (tmp) ? tmp->table : NULL;
@@ -162,38 +168,61 @@ static int variable_call_sem_parser(Node *varcall_node, List table, char *name){
     return ret_val == 1;
 }
 
-static int check_param_function_call(Symbol_table *function_table, Node *fc_root){
+static int check_param_function_call(Symbol_table *function_table, Symbol_table *global_var_table, Node *fc_root){
 
     int i;
+    i = 0;
     Symbol params = get_symbol_by_name(function_table, function_table->name_table);
-
+    Symbol s;
+    DEBUG("param name %s symbol : %s\n", params.symbol_name ,string_from_type(params.u.p_type));
+    DEBUG("Name : %s\n", fc_root->u.ident);
+    if(!fc_root->firstChild){
+        DEBUG("This function '%s' expect %d arguments but no argument were find\n", function_table->name_table, function_table->nb_parameter);
+    }
     for(Node *n = fc_root->firstChild; n; n = n->nextSibling){
+
+        if(is_symbol_in_table(function_table, n->u.ident)){
+            s = get_symbol_by_name(function_table, n->u.ident);
+        }
+        else if (is_symbol_in_table(global_var_table, n->u.ident)){
+            s = get_symbol_by_name(global_var_table, n->u.ident);
+        } else {
+            DEBUG("Error : Unexpected parameter : %s\nThis parameters doesn't exist\n", n->u.ident);
+            return 0;
+        }
         
-        Symbol s = get_symbol_by_name(function_table, n->u.ident);
         if(s.u.p_type != params.u.f_type.args_types[i]){
+            DEBUG("Error : symbol name parameters n°%d : %s type : %s -> type expected : %s \n", i, s.symbol_name, string_from_type(s.u.p_type), string_from_type(params.u.f_type.args_types[i]));
             return 0;
         }
         i++;
     }
     return 1;
+
 }
 
-static int function_call_sem_parser(Node *fc_node, List table, char *name){
+static int function_call_sem_parser(Node *fc_node, List table, char *name_fun_caller, char *name_fun_called){
 
     Symbol_table *global_table = get_table_by_name("global_vars", table);
-    Symbol_table *fun_table = get_table_by_name(name, table);
-    if(!fun_table){
+    Symbol_table *fun_caller_table = get_table_by_name(name_fun_caller, table);
+    Symbol_table *fun_called_table = get_table_by_name(name_fun_called, table);
+    if(!fun_called_table){
+        DEBUG("E: Function %s does not exist or is not included from another file\n", name_fun_called);
         return 0;
     }
-    if(fun_table->nb_parameter != 0){
-        for(Node *n = fc_node->firstChild; n; n = n->nextSibling){
-            if(
-                n->label == Variable && 
-                (!(variable_call_sem_parser(n, table, name)) || !check_param_function_call(fun_table, n))     
-            ){
-                DEBUG("E: Symbol %s not in table : %s\n", n->u.ident, name);
-                return 0;
-            }
+    if(!check_param_function_call(fun_called_table, global_table, fc_node)){
+        DEBUG("E:Too much parameters in function : %s\n", fc_node->u.ident);
+        return 0;
+    }
+    for(Node *n = fc_node->firstChild; n; n = n->nextSibling){
+
+        if(
+            n->label == Variable && 
+            !(variable_call_sem_parser(n, table, name_fun_caller))    
+        ){
+            
+            DEBUG("E: Symbol %s not in table : %s\n", n->u.ident, name_fun_caller);
+            return 0;
         }
     }
     
@@ -281,12 +310,10 @@ int parse_sem_error(Node *n, List table, char *name_table){
     }
     if(n->label == EnTeteFonct) return parse_sem_error(n->nextSibling, table, name_table);
     if(n->label == DeclFonct) return parse_sem_error(n->firstChild->nextSibling, table, name_table);
-    DEBUG("Label : %s\n", stringFromLabel(n->label));
     switch(n->label){
         case FunctionCall:
-            return function_call_sem_parser(n, table, name_table) && parse_sem_error(n->nextSibling, table, name_table) && parse_sem_error(n->firstChild, table, name_table);
-        case Variable:
-            DEBUG("Variable : %s\n", n->u.ident);
+            return function_call_sem_parser(n, table, name_table, n->u.ident) && parse_sem_error(n->nextSibling, table, name_table) && parse_sem_error(n->firstChild, table, name_table);
+        case Variable: 
             return variable_call_sem_parser(n, table, name_table) && parse_sem_error(n->nextSibling, table, name_table);
         case Assign:
             return assign_check(n, table, name_table) && parse_sem_error(n->nextSibling, table, name_table) && parse_sem_error(n->firstChild, table, name_table);
@@ -394,10 +421,6 @@ int treat_simple_sub_in_main(Node *root){
 
     init_asm_(CLOSE, out);
     fclose(out);
-
-
-    
-
 
 
     return 1;
