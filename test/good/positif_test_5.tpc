@@ -6,9 +6,9 @@ int max;
 char salut;
 
 int valeur(int a, int b, int c, int x) {
-    reade(a);  
+
     a = b;
-    print(a);
+
     
     while((a||b)&&a)
         b=2;

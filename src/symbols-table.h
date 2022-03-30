@@ -3,6 +3,8 @@
 
 #include "symbol.h"
 #include "tree.h"
+#include "asm.h"
+
 #define MAX_SIZE_TABLE 255
 #define INIT_NAME_TABLE_SIZE 20
 #define INIT_TABLE_SIZ 10000
@@ -16,6 +18,7 @@ typedef struct table{
     int nb_symbol;
     Type *parameters;   
     int nb_parameter;   //Its a functions's symbol table
+    int total_size;
 
 }Symbol_table;
 

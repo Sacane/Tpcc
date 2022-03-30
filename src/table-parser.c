@@ -89,7 +89,7 @@ List build_list_table(Node *root){
                 Kind k = PARAM;
                 PrimType type = str_to_tpcType(paramType->u.ident);
                 Node* id = paramType->firstChild;
-                s = create_symbol(id->u.ident, k, type);
+                s = create_symbol(id->u.ident, k, type, 0);
                 insert_symbol_in_table(s, table);
                 table->nb_parameter += 1;
 
@@ -101,8 +101,6 @@ List build_list_table(Node *root){
 
 
         Symbol params_sym = create_func_sym(function_type->firstChild->u.ident, function_t, param_types, nb_args);
-
-
         insert_symbol_in_table(params_sym, table);
 
    
@@ -118,7 +116,7 @@ List build_list_table(Node *root){
             PrimType type = str_to_tpcType(global_types->u.ident); // type's variable
             Kind kind = VARIABLE;
             for(Node *id = global_types->firstChild; id; id = id->nextSibling){
-                s = create_symbol(id->u.ident, kind, type);
+                s = create_symbol(id->u.ident, kind, type, 0);
                 insert_symbol_in_table(s, table);
             }
         }
@@ -170,15 +168,16 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
     i = 0;
     Symbol params = get_symbol_by_name(function_table, function_table->name_table);
     Symbol s;
-    DEBUG("param name %s symbol : %s\n", params.symbol_name ,string_from_type(params.u.p_type));
-    DEBUG("Name : %s\n", fc_root->u.ident);
+
     if(!fc_root->firstChild){
+        DEBUG("Near line : %d\n", fc_root->lineno);
         DEBUG("This function '%s' expect %d arguments but no argument were find\n", function_table->name_table, function_table->nb_parameter);
     }
     for(Node *n = fc_root->firstChild; n; n = n->nextSibling){
         if(isPrimLabelNode(n)){
             if (labelToPrim(n->label) != params.u.f_type.args_types[i]){
-                DEBUG("ERROR : Expected type of parameter : %s, Type given : %s\n", string_from_type(labelToPrim(n->label)), string_from_type(params.u.f_type.args_types[i]));
+                DEBUG("type : %d\n", params.u.f_type.args_types[i]);
+                DEBUG("ERROR in function-call of %s : Expected type of parameter : %s, Type given : %s\n", fc_root->u.ident, string_from_type(params.u.f_type.args_types[i]), string_from_type(labelToPrim(n->label)));
                 return 0;
             }
             else {
@@ -200,7 +199,7 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
         }
         
         if(s.u.p_type != params.u.f_type.args_types[i]){
-            DEBUG("Error : symbol name parameters n°%d : %s type : %s -> type expected : %s \n", i, s.symbol_name, string_from_type(s.u.p_type), string_from_type(params.u.f_type.args_types[i]));
+            DEBUG("Error near line : %d >>> symbol name parameters n°%d : %s type : %s -> type expected : %s \n", fc_root->lineno, i, s.symbol_name, string_from_type(s.u.p_type), string_from_type(params.u.f_type.args_types[i]));
             return 0;
         }
         i++;
@@ -362,9 +361,9 @@ int open_close_asm_file(int mode, int fd){
 */
 void init_asm_(int mode,FILE* fd){
     char* chaine;
-    if(mode == OPEN) chaine = "global  _start\nsection  .text\n_start:\n";
+    if(mode == OPEN) chaine = "section  .text\nglobal  _start\n_start:\n";
     else chaine = "\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n";
-    fprintf(fd, chaine);
+    fprintf(fd, "%s", chaine);
 }
 
 
@@ -402,14 +401,13 @@ int treat_simple_sub_in_main(Node *root){
     FILE* out;
     Node* functions = root->firstChild->nextSibling;
     
-    out = fopen("_anonymous.asm", "wr");
+    out = fopen("_anonymous.asm", "w");
 
     init_asm_(OPEN, out);
 
     for(Node *function = functions->firstChild; function; function = function->nextSibling){
         
         if (!(strcmp(function->firstChild->firstChild->firstChild->u.ident, "main"))){
-            printf("MAIN\n");
             parse_and_apply_substraction(function->firstChild->nextSibling, out);
         }
 
@@ -419,6 +417,19 @@ int treat_simple_sub_in_main(Node *root){
     fclose(out);
 
 
+    return 1;
+}
+
+
+
+
+int build_asm(Node *root){
+    FILE *out;
+    out = fopen("_anonymous.asm", "a");
+    init_asm_(OPEN, out);
+    //WRITE
+    init_asm_(CLOSE, out);
+    fclose(out);
     return 1;
 }
 

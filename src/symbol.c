@@ -2,7 +2,7 @@
 
 
 
-Symbol create_symbol(char *name, Kind kind, PrimType type){
+Symbol create_symbol(char *name, Kind kind, PrimType type, int offset){
     Symbol symbol;
 
     symbol.symbol_name = (char*) malloc(sizeof(char) * strlen(name));
@@ -13,6 +13,7 @@ Symbol create_symbol(char *name, Kind kind, PrimType type){
     strcpy(symbol.symbol_name, name);
     symbol.kind = kind;
     symbol.u.p_type = type;
+    symbol.offset = offset;
 
     return symbol;
 
@@ -30,9 +31,7 @@ Symbol create_func_sym(char *name_func, PrimType return_type, PrimType arg_types
 
     func_sym.kind = FUNCTION;
     func_sym.u.f_type.is_void = (return_type == NONE) ? 1 : 0;
-    if(func_sym.u.f_type.is_void){
-        return func_sym;
-    }
+
     func_sym.u.f_type.return_type = return_type;
     for(i = 0; i < n_args; i++){
         func_sym.u.f_type.args_types[i] = arg_types[i];

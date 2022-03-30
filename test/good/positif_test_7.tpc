@@ -14,7 +14,7 @@ int main(void){
     t2 = 3;
 
     if(t1 != t2){
-        p = called(b);
+        p = called(t1, t2);
     }
     else{
         p = 'c';

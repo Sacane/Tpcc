@@ -12,6 +12,15 @@ unsigned long hash(unsigned char *str)
     return hash;
 }
 
+void init_global_asm(int size){
+    FILE* f = fopen("_anonymous.asm", "w+");
+
+    fprintf(f, "section .bss\n");
+    fprintf(f, "global_var: resp %d\n", size);
+    
+    
+    fclose(f);
+}
 
 
 Symbol_table *create_symbol_table(char *name_table){
@@ -22,6 +31,7 @@ Symbol_table *create_symbol_table(char *name_table){
     table->name_table = malloc(sizeof(char) * strlen(name_table));
     strcpy(table->name_table, name_table);
     table->nb_symbol = 0;
+    table->total_size = 0;
     if(!(table->s = malloc(sizeof(Symbol) * INIT_TABLE_SIZ))){
         fprintf(stderr, "Failed to allocated the symbol table : %s\n", name_table);
         return NULL;
@@ -81,6 +91,7 @@ int insert_symbol_in_table(Symbol symbol, Symbol_table *table){
         table->s[hashKey] = symbol;
         table->nb_symbol += 1;
     }
+    //DEBUG("Insert symbol %s in table %s\n", table->s[hashKey].symbol_name, table->name_table);
     return 1;
 }
 
@@ -111,6 +122,8 @@ Symbol_table *create_global_variable_table(Node *tree){
     Symbol_table *table = create_symbol_table("global_vars");
     Symbol symbol;
     Type type;
+    int current_offset = 0;
+
 
     if (!(tree->firstChild)){
         return NULL;
@@ -119,18 +132,34 @@ Symbol_table *create_global_variable_table(Node *tree){
     vars_as_node = tree->firstChild; /* Node of DeclVars according to our tree */
     
     for (Node *child = vars_as_node->firstChild; child != NULL; child = child->nextSibling) {
-
+        
         Kind kind = VARIABLE;
         
         type = (strcmp("int", child->u.ident) == 0) ? INT_TYPE : CHAR_TYPE;
 
+
         for(Node *grandChild = child->firstChild; grandChild != NULL; grandChild = grandChild->nextSibling){
-            Symbol s = create_symbol(grandChild->u.ident, kind, type);
+            Symbol s = create_symbol(grandChild->u.ident, kind, type, current_offset);
             insert_symbol_in_table(s, table);
+
+
+            switch (type){
+                case INT_TYPE:
+                    current_offset += 4;
+
+                    break;
+                case CHAR_TYPE:
+                    current_offset += 1;
+                    break;
+                default:
+                    break;
+            }
         }
+
     }
-
-
+    table->total_size = current_offset;
+    
+    
     return table;
 }
 
@@ -152,3 +181,4 @@ void print_symbol_table(Symbol_table *tab){
         
     }
 }
+

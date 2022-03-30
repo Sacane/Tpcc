@@ -1,13 +1,12 @@
-void print(void){
-    return;
-}
+int daioj;
+
 
 
 int main(void){
     char df;
     int a;
     a = 45;
-
+    
     switch(a){
         print('b');
         print('m');
@@ -21,4 +20,8 @@ int main(void){
             print('p');
     }
 
+}
+
+void print(char c){
+    return;
 }
