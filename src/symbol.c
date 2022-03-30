@@ -1,5 +1,7 @@
 #include "symbol.h"
 
+
+
 Symbol create_symbol(char *name, Kind kind, PrimType type){
     Symbol symbol;
 
@@ -77,6 +79,7 @@ void print_symbol(Symbol s){
 void free_symbol(Symbol *s){
     free(s->symbol_name);
 }
+
 
 
 PrimType str_to_tpcType(char* type){

@@ -28,7 +28,6 @@ Symbol_table *create_symbol_table(char *name_table){
     }
 
     table->size = INIT_TABLE_SIZ;
-
     table->nb_parameter = 0;
 
     for(i = 0; i < INIT_TABLE_SIZ; i++){
@@ -79,13 +78,32 @@ int insert_symbol_in_table(Symbol symbol, Symbol_table *table){
         return 0;
     }
     else{
-        fprintf(stderr, "insert symbol %s in %s\n", symbol.symbol_name, table->name_table);
         table->s[hashKey] = symbol;
         table->nb_symbol += 1;
     }
     return 1;
 }
 
+int isPrimLabelNode(Node *n){
+    switch(n->label){
+        case Int:
+        case Character:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+PrimType labelToPrim(label_t label){
+    switch(label){
+        case Int:
+            return INT;
+        case Character:
+            return CHAR;
+        default:
+            return NONE;
+    }
+}
 
 /* We suppose there is a var node */
 Symbol_table *create_global_variable_table(Node *tree){
@@ -108,7 +126,7 @@ Symbol_table *create_global_variable_table(Node *tree){
 
         for(Node *grandChild = child->firstChild; grandChild != NULL; grandChild = grandChild->nextSibling){
             Symbol s = create_symbol(grandChild->u.ident, kind, type);
-            printf("%s\n", (insert_symbol_in_table(s, table) ? "Insert success\n" : "Insert failed\n"));
+            insert_symbol_in_table(s, table);
         }
     }
 

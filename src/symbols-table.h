@@ -34,4 +34,8 @@ void print_symbol_table(Symbol_table *tab);
 
 int is_symbol_in_table(Symbol_table *table, char *symbol_name);
 
+int isPrimLabelNode(Node *n);
+
+PrimType labelToPrim(label_t label);
+
 #endif

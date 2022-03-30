@@ -9,13 +9,17 @@ int r1, r2;
 int max;
 
 
+
+
 int main(void) {
+   int max;
    int b, c ;
+   char cha;
    b=-1;
    while (b<=1) {
        c=-1;
        while (c<=1) {
-           if (trinome(1,b,c)) {
+           if (trinome(1092892,b,c)) {
                if (0<=r1 && r1<=max && 0>=r2 && r2>=-max)
                    return 0;
            }
@@ -39,6 +43,7 @@ int trinome(int a,int b, int c) {
 
     return 0;
 }
+
 
 int valeur(int a, int b, int c, int x) {
     return a*x*x+b*x+c;
