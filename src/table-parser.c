@@ -354,17 +354,6 @@ int open_close_asm_file(int mode, int fd){
     return close(fd);
 }
 
-/* Init asm file  with beginning expr or ending expr
- *
- * int mode -> 0 pour debut sinon fin
- * int fd -> descripteur fichier asm
-*/
-void init_asm_(int mode,FILE* fd){
-    char* chaine;
-    if(mode == OPEN) chaine = "section  .text\nglobal  _start\n_start:\n";
-    else chaine = "\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n";
-    fprintf(fd, "%s", chaine);
-}
 
 
 /* We suppose node parameter in the body of the main */
@@ -397,40 +386,10 @@ void parse_and_apply_substraction(Node* node, FILE *out){
     
 }
 
-int treat_simple_sub_in_main(Node *root){
-    FILE* out;
-    Node* functions = root->firstChild->nextSibling;
-    
-    out = fopen("_anonymous.asm", "w");
-
-    init_asm_(OPEN, out);
-
-    for(Node *function = functions->firstChild; function; function = function->nextSibling){
-        
-        if (!(strcmp(function->firstChild->firstChild->firstChild->u.ident, "main"))){
-            parse_and_apply_substraction(function->firstChild->nextSibling, out);
-        }
-
-    }
-
-    init_asm_(CLOSE, out);
-    fclose(out);
-
-
-    return 1;
-}
 
 
 
 
-int build_asm(Node *root){
-    FILE *out;
-    out = fopen("_anonymous.asm", "a");
-    init_asm_(OPEN, out);
-    //WRITE
-    init_asm_(CLOSE, out);
-    fclose(out);
-    return 1;
-}
+
 
 

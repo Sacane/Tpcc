@@ -66,4 +66,8 @@ char * string_from_type(PrimType t);
 void free_symbol(Symbol *s);
 
 Symbol create_func_sym(char *name_func, PrimType return_type, PrimType arg_types[], int n_args);
+
+
+
+
 #endif

@@ -14,7 +14,7 @@ struct Node* rootProg;
 
 %}
 %code requires {
-#include "tree.h"
+#include "nasm_adapter.h"
 #include "table-parser.h"
 Node* root;
 }
@@ -232,11 +232,12 @@ int main(int argc, char **argv){
 
         sem_err_res = parse_sem_function_error(rootProg, list);
         
-        
+
         if(sem_err_res){
             printf("No sementic errors detected ! \n");
             if(opt_asm){
-                build_asm(rootProg);
+                DEBUG("Writing nasm file...\n");
+                build_asm(rootProg, list);
             }
         }
         else {

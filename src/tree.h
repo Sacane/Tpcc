@@ -69,6 +69,8 @@ void deleteTree(Node*node);
 void printTree(Node *node);
 char *stringFromLabel(int label);
 char *getFuncNameFromDecl(Node *declFonctRoot);
+int isPrimLabel();
+
 
 #define FIRSTCHILD(node) node->firstChild
 #define SECONDCHILD(node) node->firstChild->nextSibling

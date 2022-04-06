@@ -10,12 +10,13 @@ all : makedirs bin/$(EXEC)
 
 makedirs:
 	@touch ./test/feedback.txt
+	@touch _anonymous.asm
 	@mkdir -p bin
 	@mkdir -p obj
 
 
 bin/$(EXEC): obj/lex.yy.o src/$(PARSER).tab.c 
-	$(CC) -o $@ $^ src/tree.c src/table-parser.c src/symbols-table.c src/symbol.c src/utils.c
+	$(CC) -o $@ $^ src/tree.c src/table-parser.c src/symbols-table.c src/symbol.c src/utils.c src/nasm_adapter.c
 
 src/lex.yy.c: src/$(LEXER).lex src/tree.h src/$(PARSER).tab.h
 	flex -o $@ src/$(LEXER).lex
@@ -43,10 +44,13 @@ obj/table-parser.o: src/table-parser.c src/table-parser.h
 obj/utils.o: src/utils.c src/utils.h
 	$(CC) -c src/utils.c -o obj/table-parser.o $(CFLAGS)
 
+obj/nasm_adapter.o: src/nasm_adapter.c src/nasm_adapter.h
+	$(CC) -c src/nasm_adapter.c -o obj/nasm_adapter.o $(CFLAGS)
+
 obj/%.o: src/%.c src/%.h
 	$(CC) -c $< -o $@ $(CFLAGS) 
 
 
 
 clean:
-	rm -f src/lex.yy.* src/$(PARSER).tab.* obj/* bin/* ./test/feedback.txt
+	rm -f src/lex.yy.* src/$(PARSER).tab.* obj/* bin/* ./test/feedback.txt ./_anonymous.asm

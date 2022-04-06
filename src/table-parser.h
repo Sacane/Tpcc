@@ -30,7 +30,8 @@ void print_chained_list(List lst);
 List build_list_table(Node *root);
 int treat_simple_sub_in_main(Node *root);
 int parse_sem_function_error(Node *node, List table);
+Symbol_table *get_table_by_name(char *name_table, List table_list);
 void free_table();
-int build_asm(Node *root);
+
 
 #endif

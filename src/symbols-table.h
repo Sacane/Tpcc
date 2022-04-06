@@ -3,7 +3,7 @@
 
 #include "symbol.h"
 #include "tree.h"
-#include "asm.h"
+
 
 #define MAX_SIZE_TABLE 255
 #define INIT_NAME_TABLE_SIZE 20
@@ -11,7 +11,7 @@
 #define INIT_PARAMETERS_SIZ 10
 
 typedef struct table{
-
+    
     char *name_table;
     unsigned long size;
     Symbol *s;
