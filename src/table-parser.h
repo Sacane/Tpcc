@@ -1,7 +1,7 @@
 #ifndef __TABLE_PARSER__H
 #define __TABLE_PARSER__H
 
-#include "table-parser.h"
+
 #include "symbols-table.h"
 
 
@@ -15,13 +15,16 @@
 #define OPEN  0
 #define CLOSE 1
 
+int check_sem_err;
+int check_warn;
+int hasMain;
+
 typedef struct list_table{
     
     Symbol_table *table;
     struct list_table *next;
 
 }Table, *List;
-
 
 List init_table_list();
 

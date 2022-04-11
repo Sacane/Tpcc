@@ -44,13 +44,12 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 16 "src/parser.y"
+#line 18 "src/parser.y"
 
 #include "nasm_adapter.h"
-#include "table-parser.h"
 Node* root;
 
-#line 54 "parser.tab.h"
+#line 53 "parser.tab.h"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -84,7 +83,7 @@ Node* root;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 22 "src/parser.y"
+#line 23 "src/parser.y"
 
   Node *node;
   char ident[64];
@@ -92,7 +91,7 @@ union YYSTYPE
   char byte;
   char comp[3];
 
-#line 96 "parser.tab.h"
+#line 95 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

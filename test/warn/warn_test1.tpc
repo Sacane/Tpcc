@@ -1,0 +1,8 @@
+int main(void){
+    char c;
+    c = 93; //Should be warning
+
+    
+
+    return 0;
+}

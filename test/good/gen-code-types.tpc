@@ -12,7 +12,6 @@ int main(void)  {
    letter='c';
    digit='0';
    uppercase=letter+('A'-'a');
-   reste=getint();
-   putchar('\n');
+
    return 0;
 }

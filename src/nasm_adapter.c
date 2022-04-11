@@ -137,7 +137,7 @@ int insert_fun(NasmFunCall nasmFunCall, char *var1, char *var2)
             fprintf(f, "\t%s %s\n", asm_to_string(nasmFunCall), var1);
             break;
         case 2:
-            fprintf(f, "\t%s %s %s\n", asm_to_string(nasmFunCall), var1, var2);
+            fprintf(f, "\t%s %s, %s\n", asm_to_string(nasmFunCall), var1, var2);
             break;
         default:
             break;
@@ -171,7 +171,7 @@ void assign_global_var(Symbol_table *global_table, FILE* in, Node *assign_node){
             DEBUG("Assign character\n");
             c = rValue->u.byte;
             sprintf(buf, "'%c'", c);
-            sprintf(buf2, "byte [resp + %d]", lVar.offset);
+            sprintf(buf2, "byte [global_var + %d]", lVar.offset);
             insert_fun(MOV, buf, buf2);
             
             break;
@@ -179,11 +179,11 @@ void assign_global_var(Symbol_table *global_table, FILE* in, Node *assign_node){
             DEBUG("Assign integer\n");
             i = rValue->u.num;
             sprintf(buf, "%d", i);
-            sprintf(buf2, "dword [resp + %d]", lVar.offset);
+            sprintf(buf2, "dword [global_var + %d]", lVar.offset);
             insert_fun(MOV, buf, buf2);
             break;
         default:
-            DEBUG("Not available in this version of compilation\n");
+            DEBUG("Assign from variable are Not available in this version of compilation\n");
             return;
 
     }
@@ -202,30 +202,123 @@ void write_global_eval(Symbol_table *global_table, Node *assign_node){
 
 }   
 
-/*
-int treat_simple_sub_in_main(Node *root){
-    FILE* out;
+
+/* We suppose node parameter in the body of the main */
+void addSubApply(Node* addSubNode, Symbol_table *global_table){
+    assert(addSubNode);
+    char buf[BUFSIZ];
+    char buf2[BUFSIZ];
+    Symbol s;
+    int a, b;
+    int offset;
+    if(FIRSTCHILD(addSubNode)->label == Addsub){
+        addSubApply(FIRSTCHILD(addSubNode), global_table);
+    } else {
+        switch (FIRSTCHILD(addSubNode)->label){
+            case Int:
+                a = addSubNode->firstChild->u.num;
+                sprintf(buf, "%d", a);
+                insert_fun(PUSH, buf, NULL);
+                break;
+            case Character: //TODO
+                break;
+            case Variable:
+                s = get_symbol_by_name(global_table, FIRSTCHILD(addSubNode)->u.ident);
+                switch(s.u.p_type){
+                    case INT:
+                        sprintf(buf, "dword [global_var + %d]", s.offset);
+                        break;
+                    case CHAR:
+                        sprintf(buf, "byte [global_var + %d", s.offset);
+                        break;
+                    default:
+                        break;
+                }
+                
+                insert_fun(PUSH, buf, NULL);
+                break;
+            default:
+                break;
+        }
+    }
+    if(SECONDCHILD(addSubNode)->label == Addsub){
+        addSubApply(SECONDCHILD(addSubNode), global_table);
+    }
+    if(addSubNode && addSubNode->label == Addsub){
+
+        switch (SECONDCHILD(addSubNode)->label){
+            case Int:
+                a = SECONDCHILD(addSubNode)->u.num;
+                sprintf(buf2, "%d", a);
+                insert_fun(PUSH, buf2, NULL);
+                break;
+            case Character: //TODO
+                break;
+            case Variable:
+                s = get_symbol_by_name(global_table, SECONDCHILD(addSubNode)->u.ident);
+                switch(s.u.p_type){
+                    case INT:
+                        sprintf(buf2, "dword [global_var + %d]", s.offset);
+                        break;
+                    case CHAR:
+                        sprintf(buf2, "byte [global_var + %d", s.offset);
+                        break;
+                    default:
+                        break;
+                }
+                
+                insert_fun(PUSH, buf2, NULL);
+                break;
+            default:
+                break;
+        }
+
+    }
+    insert_fun(POP, "r14", NULL);
+    insert_fun(POP, "r12", NULL);
+    switch(addSubNode->u.byte){
+        case '-':
+            insert_fun(SUB, "r12", "r14");
+            break;
+        case '+':
+            insert_fun(ADD, "r12", "r14");
+            break;
+        case '*':
+            insert_fun(MUL, "r12", "r14");
+            break;
+        case '/':
+            if(b == 0){
+                DEBUG("Error: Trying to divide by 0\n");
+            }
+            break;
+        case '%':
+            DEBUG("Modulo operation are not available yet in this version of compilator");
+            break;
+    }
+
+    insert_fun(PUSH, "r12", NULL);
+            
+    
+}
+
+/*int treat_simple_sub_in_main(Node *root){
     Node* functions = root->firstChild->nextSibling;
     
-    out = fopen("_anonymous.asm", "w");
-
-    init_asm_(OPEN, out);
 
     for(Node *function = functions->firstChild; function; function = function->nextSibling){
         
         if (!(strcmp(function->firstChild->firstChild->firstChild->u.ident, "main"))){
-            parse_and_apply_substraction(function->firstChild->nextSibling, out);
+            parse_and_apply_substraction(function->firstChild->nextSibling);
         }
 
     }
 
-    init_asm_(CLOSE, out);
-    fclose(out);
+
 
 
     return 1;
-}*/
-
+}
+*/
 
 //TODO
 void parse_tree(Node *root, Symbol_table *global_var_table){
@@ -236,7 +329,11 @@ void parse_tree(Node *root, Symbol_table *global_var_table){
 
     if(root->label == Assign && is_symbol_in_table(global_var_table, FIRSTCHILD(root)->u.ident)){
         assign_global_var(global_var_table, f, root);
+        if(SECONDCHILD(root)->label == Addsub){
+            addSubApply(SECONDCHILD(root), global_var_table);
+        }
     }
+    
 
 
     parse_tree(root->firstChild, global_var_table);

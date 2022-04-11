@@ -44,8 +44,8 @@ int is_identifier_key_in_table(Symbol_table *table, unsigned long symbol_key){
 
     return (table->s[symbol_key].symbol_name != NULL);
 }
-Symbol get_symbol_by_name(Symbol_table *table, char *name_table){
-    return table->s[hash(name_table)];
+Symbol get_symbol_by_name(Symbol_table *table, char *name_symbol){
+    return table->s[hash(name_symbol)];
 }
 
 int is_symbol_in_table(Symbol_table *table, char *symbol_name){

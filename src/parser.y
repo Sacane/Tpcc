@@ -11,11 +11,12 @@ extern int line_count;
 extern int linecharno;
 extern char *current_line;
 struct Node* rootProg;
+extern int check_sem_err;
+extern int check_warn;
 
 %}
 %code requires {
 #include "nasm_adapter.h"
-#include "table-parser.h"
 Node* root;
 }
 %expect 1
@@ -192,10 +193,13 @@ int main(int argc, char **argv){
             case 'a' : opt_asm = 1;
                         break;
 
-            default : break;
+            default : result = 3; break;
         }
     }
-    printf("%d\n", opt);
+    printf("opt: %d result: %d\n", opt, result);
+    if(result == 3){
+        return 3;
+    }
     while((option = getopt(argc, argv, ":thsa")) != - 1){
         switch(option){
             case 't':
@@ -220,34 +224,23 @@ int main(int argc, char **argv){
     if(showTree){
         printTree(rootProg);
     }
-
-    if(opt_semantic){
-        Symbol_table *globals_table = create_global_variable_table(rootProg);
-
-        List list;
-
-        list = build_list_table(rootProg);
-        insert_table(list, globals_table);
-
-
-        sem_err_res = parse_sem_function_error(rootProg, list);
-        
-
-        if(sem_err_res){
-            printf("No sementic errors detected ! \n");
-            if(opt_asm){
-                DEBUG("Writing nasm file...\n");
-                build_asm(rootProg, list);
-            }
-        }
-        else {
-            printf("Semantic errors detected !\n");
-        }
-
+    List list;
+    list = build_list_table(rootProg);
+    if (check_sem_err || !list){
+        return 2;
     }
-
-    
-
+    sem_err_res = parse_sem_function_error(rootProg, list);
+    if(sem_err_res){
+        printf("No sementic errors detected ! \n");
+    }
+    else {
+        result = 2;
+    }
+    if(opt_asm && sem_err_res){
+        DEBUG("Writing nasm file...\n");
+        build_asm(rootProg, list);
+    }
     deleteTree(rootProg);
+    printf("result : %d\n", result);
     return result;
 }
