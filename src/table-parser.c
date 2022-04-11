@@ -22,7 +22,7 @@ int insert_table(List list, Symbol_table *table){
     tmp = list;
 
     if(tmp->table == NULL){
-        tmp->table = table;
+        list->table = table;
         return 1;
     }
 
@@ -44,7 +44,6 @@ void print_chained_list(List lst){
     if(!lst){
         return;
     }
-    printf("List \n");
     while(tmp != NULL){
         print_symbol_table(tmp->table);
         tmp = tmp->next;
@@ -52,9 +51,11 @@ void print_chained_list(List lst){
 }
 
 List build_list_table(Node *root){
-    DEBUG("============ CREATING LIST OF SYMBOL TABLE ===============\n");
+
     List list;
     list = init_table_list(NULL);
+    Symbol_table *globals_table = create_global_variable_table(root);
+    insert_table(list, globals_table);
     int i = 0;
     int is_void, nb_args = 0;
     Node* functions_root;
@@ -65,7 +66,7 @@ List build_list_table(Node *root){
     //parse of the DeclFonct
     for(Node* function_root = functions_root->firstChild; function_root; function_root = function_root->nextSibling){
         
-
+        
         nb_args = 0;
         // =============== Management of the functions's header ==================
 
@@ -73,6 +74,13 @@ List build_list_table(Node *root){
         PrimType param_types[MAX_ARGUMENT_FUNC];
 
         Node *function_type = header_function->firstChild;
+
+        if(is_symbol_in_table(globals_table, function_type->firstChild->u.ident)){
+            DEBUG("Error : invalid function name because symbol '%s' already exist in global variable\n", function_type->firstChild->u.ident);
+            check_sem_err = 1;
+            return NULL;
+        }
+        
         is_void = (!(strcmp(function_type->u.ident, "void"))) ? 1 : 0;  
 
         function_t = str_to_tpcType(function_type->u.ident);
@@ -90,7 +98,7 @@ List build_list_table(Node *root){
                 Kind k = PARAM;
                 PrimType type = str_to_tpcType(paramType->u.ident);
                 Node* id = paramType->firstChild;
-                s = create_symbol(id->u.ident, k, type);
+                s = create_symbol(id->u.ident, k, type, 0);
                 insert_symbol_in_table(s, table);
                 table->nb_parameter += 1;
 
@@ -102,10 +110,6 @@ List build_list_table(Node *root){
 
 
         Symbol params_sym = create_func_sym(function_type->firstChild->u.ident, function_t, param_types, nb_args);
-        for(i = 0; i < nb_args; i++){
-            DEBUG("Name func : %s & Param type : %s\n", function_type->firstChild->u.ident, string_from_type(params_sym.u.f_type.args_types[i]));
-        }
-
         insert_symbol_in_table(params_sym, table);
 
    
@@ -113,7 +117,7 @@ List build_list_table(Node *root){
 
 
         Node* body = header_function->nextSibling;
-
+        
         
         //Function's local variable :
         Node* global = body->firstChild;
@@ -121,17 +125,24 @@ List build_list_table(Node *root){
             PrimType type = str_to_tpcType(global_types->u.ident); // type's variable
             Kind kind = VARIABLE;
             for(Node *id = global_types->firstChild; id; id = id->nextSibling){
-                s = create_symbol(id->u.ident, kind, type);
+                if(is_symbol_in_table(table, id->u.ident)){
+                    
+                    DEBUG("Sem-error : variable '%s' already declared as parameter near line %d\n", id->u.ident, id->lineno);
+                    return NULL;
+                }
+                s = create_symbol(id->u.ident, kind, type, 0);
                 insert_symbol_in_table(s, table);
             }
         }
         insert_table(list, table);
     }
-    DEBUG("===========================================================\n");
     return list;
 }
 
-
+int isSymbolInGlobalAndFunc(char * symbol_name, Symbol_table *funTable, Symbol_table *globalTable)
+{
+    return is_symbol_in_table(globalTable, symbol_name) && is_symbol_in_table(funTable, symbol_name);
+}
 
 /**
  * @brief Get the table by name object
@@ -168,31 +179,44 @@ static int variable_call_sem_parser(Node *varcall_node, List table, char *name){
     return ret_val == 1;
 }
 
-static int check_param_function_call(Symbol_table *function_table, Symbol_table *global_var_table, Node *fc_root){
+static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_table *function_table, Symbol_table *global_var_table, Node *fc_root){
 
     int i;
     i = 0;
     Symbol params = get_symbol_by_name(function_table, function_table->name_table);
     Symbol s;
-    DEBUG("param name %s symbol : %s\n", params.symbol_name ,string_from_type(params.u.p_type));
-    DEBUG("Name : %s\n", fc_root->u.ident);
+
     if(!fc_root->firstChild){
+        DEBUG("Near line : %d\n", fc_root->lineno);
         DEBUG("This function '%s' expect %d arguments but no argument were find\n", function_table->name_table, function_table->nb_parameter);
     }
     for(Node *n = fc_root->firstChild; n; n = n->nextSibling){
+        if(isPrimLabelNode(n)){
+            if (labelToPrim(n->label) != params.u.f_type.args_types[i]){
+                DEBUG("type : %d\n", params.u.f_type.args_types[i]);
+                DEBUG("ERROR in function-call of %s : Expected type of parameter : %s, Type given : %s\n", fc_root->u.ident, string_from_type(params.u.f_type.args_types[i]), string_from_type(labelToPrim(n->label)));
+                return 0;
+            }
+            else {
+                continue;
+            }
+        }
 
         if(is_symbol_in_table(function_table, n->u.ident)){
             s = get_symbol_by_name(function_table, n->u.ident);
         }
         else if (is_symbol_in_table(global_var_table, n->u.ident)){
             s = get_symbol_by_name(global_var_table, n->u.ident);
-        } else {
-            DEBUG("Error : Unexpected parameter : %s\nThis parameters doesn't exist\n", n->u.ident);
+        } else if (is_symbol_in_table(fun_caller_table, n->u.ident)){
+            s = get_symbol_by_name(fun_caller_table, n->u.ident);
+        }
+        else {
+            DEBUG("Error : Unexpected parameter : %s. This parameters doesn't exist\n", n->u.ident);
             return 0;
         }
         
         if(s.u.p_type != params.u.f_type.args_types[i]){
-            DEBUG("Error : symbol name parameters n°%d : %s type : %s -> type expected : %s \n", i, s.symbol_name, string_from_type(s.u.p_type), string_from_type(params.u.f_type.args_types[i]));
+            DEBUG("Error near line : %d >>> symbol name parameters n°%d : %s type : %s -> type expected : %s \n", fc_root->lineno, i, s.symbol_name, string_from_type(s.u.p_type), string_from_type(params.u.f_type.args_types[i]));
             return 0;
         }
         i++;
@@ -206,26 +230,15 @@ static int function_call_sem_parser(Node *fc_node, List table, char *name_fun_ca
     Symbol_table *global_table = get_table_by_name("global_vars", table);
     Symbol_table *fun_caller_table = get_table_by_name(name_fun_caller, table);
     Symbol_table *fun_called_table = get_table_by_name(name_fun_called, table);
+    
     if(!fun_called_table){
         DEBUG("E: Function %s does not exist or is not included from another file\n", name_fun_called);
         return 0;
     }
-    if(!check_param_function_call(fun_called_table, global_table, fc_node)){
-        DEBUG("E:Too much parameters in function : %s\n", fc_node->u.ident);
+    if(!check_param_function_call(fun_caller_table, fun_called_table, global_table, fc_node)){
         return 0;
     }
-    for(Node *n = fc_node->firstChild; n; n = n->nextSibling){
 
-        if(
-            n->label == Variable && 
-            !(variable_call_sem_parser(n, table, name_fun_caller))    
-        ){
-            
-            DEBUG("E: Symbol %s not in table : %s\n", n->u.ident, name_fun_caller);
-            return 0;
-        }
-    }
-    
     return 1;
 }
 
@@ -249,8 +262,10 @@ static int equal_check(Node *eq, List tab, char *name_tab){
             DEBUG("Error while equals check : symbol %s not in table %s or globals\n", id1, name_tab);
             return 0;
         }
-            
-
+        if(isSymbolInGlobalAndFunc(id1, function_tab, global_tab)){
+            DEBUG("Sem error : symbol %s in both table function and global var\n", id1);
+            return 0;
+        }
     }
 
     if(var2->label == Variable){
@@ -260,10 +275,33 @@ static int equal_check(Node *eq, List tab, char *name_tab){
             DEBUG("Error while equals check\n");
             return 0;
         }
-            
+        if(isSymbolInGlobalAndFunc(id2, function_tab, global_tab)){
+            DEBUG("Sem error : symbol %s in both table function and global var\n", id2);
+            return 0;
+        }
     }
 
     return 1;
+}
+
+static PrimType getTypeOfNode(Node *node, Symbol_table *funTable, Symbol_table *globalTable){
+    
+    switch (node->label){
+        case Int:  
+            return INT;
+        case Character:
+            return CHAR;
+        case Variable:
+            if(is_symbol_in_table(funTable, node->u.ident) || is_symbol_in_table(globalTable, node->u.ident)){
+                Symbol var = get_symbol_by_name(funTable, node->u.ident);
+                return var.u.p_type;
+            } else {
+                return NONE;
+            }
+            break;  
+        default:
+            return NONE;
+    }
 }
 
 int assign_check(Node *assign, List tab, char *name_tab){
@@ -275,6 +313,19 @@ int assign_check(Node *assign, List tab, char *name_tab){
     
     global_tab = get_table_by_name("global_vars", tab);
     function_tab = get_table_by_name(name_tab, tab);
+
+    Node *lValue = FIRSTCHILD(assign);
+    Node *rValue = SECONDCHILD(assign);
+
+
+    PrimType lType = getTypeOfNode(lValue, function_tab, global_tab);
+    PrimType rType = getTypeOfNode(rValue, function_tab, global_tab);
+
+    if(lType == CHAR && rType == INT) {
+        DEBUG("Warning : assigning char variable '%s' to integer %d\n", lValue->u.ident, rValue->u.num);
+        check_warn = 1;
+    }
+
     if(var1->label == Variable){
         check += is_symbol_in_table(global_tab, var1->u.ident);
         check += is_symbol_in_table(function_tab, var1->u.ident);
@@ -291,10 +342,7 @@ int assign_check(Node *assign, List tab, char *name_tab){
 
         return check == 1;
     }
-
     return 0;
-
-
 }
 
 /**
@@ -329,6 +377,11 @@ int parse_sem_function_error(Node *node, List table){
         return 1;
     }
 
+    if(!get_table_by_name("main", table)){
+        DEBUG("Error : No main function in this program\n");
+        check_sem_err = 1;
+        return 0;
+    }
 
     if(node->label != DeclFoncts){
         return parse_sem_function_error(node->nextSibling, table) && parse_sem_function_error(node->firstChild, table);
@@ -336,11 +389,9 @@ int parse_sem_function_error(Node *node, List table){
     else{
         //We suppose in declfoncts
         for(Node *n = node->firstChild; n; n = n->nextSibling){
-            DEBUG("function parsing now : %s\n", getFuncNameFromDecl(n));
             if(!parse_sem_error(n, table, getFuncNameFromDecl(n))){
                 return 0;
             }
-
         }
     }
     return 1;
@@ -359,71 +410,13 @@ int open_close_asm_file(int mode, int fd){
     return close(fd);
 }
 
-/* Init asm file  with beginning expr or ending expr
- *
- * int mode -> 0 pour debut sinon fin
- * int fd -> descripteur fichier asm
-*/
-void init_asm_(int mode,FILE* fd){
-    char* chaine;
-    if(mode == OPEN) chaine = "global  _start\nsection  .text\n_start:\n";
-    else chaine = "\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n";
-    fprintf(fd, chaine);
-}
 
 
-/* We suppose node parameter in the body of the main */
-void parse_and_apply_substraction(Node* node, FILE *out){
-    char *buf;
-    if(!node){
-        return;
-    }
-    
-    if(node && node->label == Addsub){
-        if(node->u.byte == '-'){
-            int a, b;
-            a = node->firstChild->u.num;
-            b = node->firstChild->nextSibling->u.num;
-            fprintf(out, "\tpush %d\n\tpush %d\n", a, b);
-            fprintf(out, "\tpop r14\n");
-            fprintf(out, "\tpop r12\n");
-            fprintf(out, "\tsub r12, r14\n");
-            fprintf(out, "\tpush r12\n");
-            
-        }else{
-            return;
-        }
-    }
-    else {
-        parse_and_apply_substraction(node->firstChild, out);
-        parse_and_apply_substraction(node->nextSibling, out);
-    }
-    
-    
-}
-
-int treat_simple_sub_in_main(Node *root){
-    FILE* out;
-    Node* functions = root->firstChild->nextSibling;
-    
-    out = fopen("_anonymous.asm", "wr");
-
-    init_asm_(OPEN, out);
-
-    for(Node *function = functions->firstChild; function; function = function->nextSibling){
-        
-        if (!(strcmp(function->firstChild->firstChild->firstChild->u.ident, "main"))){
-            printf("MAIN\n");
-            parse_and_apply_substraction(function->firstChild->nextSibling, out);
-        }
-
-    }
-
-    init_asm_(CLOSE, out);
-    fclose(out);
 
 
-    return 1;
-}
+
+
+
+
 
 

@@ -14,6 +14,7 @@ unsigned long hash(unsigned char *str)
 
 
 
+
 Symbol_table *create_symbol_table(char *name_table){
     Symbol_table *table;
     int i;
@@ -22,13 +23,13 @@ Symbol_table *create_symbol_table(char *name_table){
     table->name_table = malloc(sizeof(char) * strlen(name_table));
     strcpy(table->name_table, name_table);
     table->nb_symbol = 0;
+    table->total_size = 0;
     if(!(table->s = malloc(sizeof(Symbol) * INIT_TABLE_SIZ))){
         fprintf(stderr, "Failed to allocated the symbol table : %s\n", name_table);
         return NULL;
     }
 
     table->size = INIT_TABLE_SIZ;
-
     table->nb_parameter = 0;
 
     for(i = 0; i < INIT_TABLE_SIZ; i++){
@@ -43,8 +44,8 @@ int is_identifier_key_in_table(Symbol_table *table, unsigned long symbol_key){
 
     return (table->s[symbol_key].symbol_name != NULL);
 }
-Symbol get_symbol_by_name(Symbol_table *table, char *name_table){
-    return table->s[hash(name_table)];
+Symbol get_symbol_by_name(Symbol_table *table, char *name_symbol){
+    return table->s[hash(name_symbol)];
 }
 
 int is_symbol_in_table(Symbol_table *table, char *symbol_name){
@@ -79,13 +80,33 @@ int insert_symbol_in_table(Symbol symbol, Symbol_table *table){
         return 0;
     }
     else{
-        fprintf(stderr, "insert symbol %s in %s\n", symbol.symbol_name, table->name_table);
         table->s[hashKey] = symbol;
         table->nb_symbol += 1;
     }
+    //DEBUG("Insert symbol %s in table %s\n", table->s[hashKey].symbol_name, table->name_table);
     return 1;
 }
 
+int isPrimLabelNode(Node *n){
+    switch(n->label){
+        case Int:
+        case Character:
+            return 1;
+        default:
+            return 0;
+    }
+}
+
+PrimType labelToPrim(label_t label){
+    switch(label){
+        case Int:
+            return INT;
+        case Character:
+            return CHAR;
+        default:
+            return NONE;
+    }
+}
 
 /* We suppose there is a var node */
 Symbol_table *create_global_variable_table(Node *tree){
@@ -93,6 +114,8 @@ Symbol_table *create_global_variable_table(Node *tree){
     Symbol_table *table = create_symbol_table("global_vars");
     Symbol symbol;
     Type type;
+    int current_offset = 0;
+
 
     if (!(tree->firstChild)){
         return NULL;
@@ -101,18 +124,34 @@ Symbol_table *create_global_variable_table(Node *tree){
     vars_as_node = tree->firstChild; /* Node of DeclVars according to our tree */
     
     for (Node *child = vars_as_node->firstChild; child != NULL; child = child->nextSibling) {
-
+        
         Kind kind = VARIABLE;
         
         type = (strcmp("int", child->u.ident) == 0) ? INT_TYPE : CHAR_TYPE;
 
+
         for(Node *grandChild = child->firstChild; grandChild != NULL; grandChild = grandChild->nextSibling){
-            Symbol s = create_symbol(grandChild->u.ident, kind, type);
-            printf("%s\n", (insert_symbol_in_table(s, table) ? "Insert success\n" : "Insert failed\n"));
+            Symbol s = create_symbol(grandChild->u.ident, kind, type, current_offset);
+            insert_symbol_in_table(s, table);
+
+
+            switch (type){
+                case INT_TYPE:
+                    current_offset += 4;
+
+                    break;
+                case CHAR_TYPE:
+                    current_offset += 1;
+                    break;
+                default:
+                    break;
+            }
         }
+
     }
-
-
+    table->total_size = current_offset;
+    
+    
     return table;
 }
 
@@ -134,3 +173,4 @@ void print_symbol_table(Symbol_table *tab){
         
     }
 }
+

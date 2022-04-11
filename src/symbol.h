@@ -43,6 +43,7 @@ typedef struct symbol{
 
     char *symbol_name; /* name of the symbol  */
     Kind kind;         /* Kind of the symbol [function, variable or parameter] */
+    int offset;
     union {
         FunctionType f_type; /* Function  symbol */
         PrimType p_type;     /* Primitive symbol */
@@ -54,7 +55,7 @@ Symbol calloc_symbol();
 
 int is_symbol_null(Symbol symbol);
 
-Symbol create_symbol(char *name, Kind kind, PrimType type);
+Symbol create_symbol(char *name, Kind kind, PrimType type, int offset);
 
 PrimType str_to_tpcType(char* type);
 
@@ -65,4 +66,8 @@ char * string_from_type(PrimType t);
 void free_symbol(Symbol *s);
 
 Symbol create_func_sym(char *name_func, PrimType return_type, PrimType arg_types[], int n_args);
+
+
+
+
 #endif

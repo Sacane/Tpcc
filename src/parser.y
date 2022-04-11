@@ -11,11 +11,12 @@ extern int line_count;
 extern int linecharno;
 extern char *current_line;
 struct Node* rootProg;
+extern int check_sem_err;
+extern int check_warn;
 
 %}
 %code requires {
-#include "tree.h"
-#include "table-parser.h"
+#include "nasm_adapter.h"
 Node* root;
 }
 %expect 1
@@ -76,7 +77,7 @@ Instr:
     |  IF '(' Exp ')' Instr                 {$$ = makeNode(If); addChild($$, $3); addChild($$, $5);}
     |  IF '(' Exp ')' Instr ELSE Instr      {$$ = makeNode(If); addChild($$, $3); Node *else_n = makeNode(Else); addSibling($$, else_n); addChild(else_n, $5);}
     |  WHILE '(' Exp ')' Instr              {$$ = makeNode(While); addChild($$, $3); addChild($$, $5);}
-    |  IDENT '(' Arguments  ')' ';'         {$$ = makeNode(FunctionCall); strcpy($$->u.ident, $1); addChild($$, $3);}
+    |  IDENT '(' Arguments  ')' ';'         {$$ = makeNode(FunctionCall); $$->lineno = line_count; strcpy($$->u.ident, $1); addChild($$, $3);}
     |  SWITCH '(' Exp ')' '{' SuiteInstr BeginSwitchExpr '}' {$$ = makeNode(Switch); addChild($$,$3); addChild($$,$6); addChild($$,$7);}
     |  RETURN Exp ';'                       {$$ = makeNode(Return); addChild($$, $2);}
     |  RETURN ';'                           {$$ = makeNode(Return);}
@@ -107,7 +108,7 @@ F   :  ADDSUB F                             {$$ = makeNode(Addsub); $$->u.byte =
     |  NUM                                  {$$ = makeNode(Int); $$->u.num = $1;}
     |  CHARACTER                            {$$ = makeNode(Character); $$->u.byte = $1;}
     |  LValue                               {$$ = $1;}
-    |  IDENT '(' Arguments  ')'             {$$ = makeNode(FunctionCall); strcpy($$->u.ident, $1); addChild($$, $3);}
+    |  IDENT '(' Arguments  ')'             {$$ = makeNode(FunctionCall); $$->lineno = line_count;strcpy($$->u.ident, $1); addChild($$, $3);}
     ;
 LValue:
        IDENT                { $$ = makeNode(Variable); strcpy($$->u.ident, $1);}
@@ -160,8 +161,12 @@ int main(int argc, char **argv){
     int option;
     int showTree = 0;
     int result;
+
     int opt = 0;
     int option_index = 0;
+    int opt_semantic = 0;
+    int opt_asm = 0;
+
     int sem_err_res = 0;
     
     
@@ -169,9 +174,11 @@ int main(int argc, char **argv){
 
         {"help", no_argument,0,'h'},
         {"tree", no_argument,0,'t'},
+        {"sem", no_argument,0,'s'},
+        {"asm", no_argument,0,'a'},
         {0,0,0,0}
     };
-    while((opt = getopt_long(argc, argv,"t h", long_option, &option_index)) !=-1 ){
+    while((opt = getopt_long(argc, argv,"t h s a", long_option, &option_index)) !=-1 ){
 
         switch(opt){
 
@@ -181,11 +188,19 @@ int main(int argc, char **argv){
             case 't' : showTree = 1;
                        break;
 
-            default : break;
+            case 's' : opt_semantic = 1;
+                       break;
+            case 'a' : opt_asm = 1;
+                        break;
+
+            default : result = 3; break;
         }
     }
-    printf("%d\n", opt);
-    while((option = getopt(argc, argv, ":th")) != - 1){
+    printf("opt: %d result: %d\n", opt, result);
+    if(result == 3){
+        return 3;
+    }
+    while((option = getopt(argc, argv, ":thsa")) != - 1){
         switch(option){
             case 't':
                 showTree = 1;
@@ -193,6 +208,10 @@ int main(int argc, char **argv){
             case 'h':
                 print_help();
                 break;
+            case 's' : opt_semantic = 1;
+                        break;
+            case 'a' : opt_asm = 1;
+                       break;
             case '?':
                 printf("unknown option\n");
                 break;
@@ -204,25 +223,24 @@ int main(int argc, char **argv){
     }
     if(showTree){
         printTree(rootProg);
-        Symbol_table *globals_table = create_global_variable_table(rootProg);
-        List list;
-
-        list = build_list_table(rootProg);
-        insert_table(list, globals_table);
-
-        sem_err_res = parse_sem_function_error(rootProg, list);
-        
-
-        if(sem_err_res){
-            printf("No sementic errors detected ! \n");
-        }
-        else {
-            printf("Semantic errors detected \n");
-        }
-        
     }
-
-
+    List list;
+    list = build_list_table(rootProg);
+    if (check_sem_err || !list){
+        return 2;
+    }
+    sem_err_res = parse_sem_function_error(rootProg, list);
+    if(sem_err_res){
+        printf("No sementic errors detected ! \n");
+    }
+    else {
+        result = 2;
+    }
+    if(opt_asm && sem_err_res){
+        DEBUG("Writing nasm file...\n");
+        build_asm(rootProg, list);
+    }
     deleteTree(rootProg);
+    printf("result : %d\n", result);
     return result;
 }
