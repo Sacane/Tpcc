@@ -10,15 +10,27 @@
 #define INIT_TABLE_SIZ 10000
 #define INIT_PARAMETERS_SIZ 10
 
+#define GLOBAL "global_vars"
+
+typedef struct {
+
+    int number_global;
+
+}Global_table;
+
 typedef struct table{
     
     char *name_table;
     unsigned long size;
-    Symbol *s;
+    Symbol *s;          //Hashtable of symbols
     int nb_symbol;
     Type *parameters;   
     int nb_parameter;   //Its a functions's symbol table
     int total_size;
+
+    union {
+        int number_globals;
+    }u;
 
 }Symbol_table;
 

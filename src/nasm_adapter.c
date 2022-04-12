@@ -8,7 +8,7 @@ FILE *f;
 
 void init_global_asm(int size){
     fprintf(f, "section .bss\n");
-    fprintf(f, "global_var: resp %d\n", size);
+    fprintf(f, "global_var: resq %d\n", size);
 }
 
 void init_asm_(int total_global_size){
@@ -119,6 +119,8 @@ static int asm_fun_checker(NasmFunCall nasmFunCall, char *var1, char *var2){
             return var1 && (!var2);
         case 2:
             return var1 && var2;
+        default:
+            return -1;
     } 
 }
 
@@ -171,16 +173,16 @@ void assign_global_var(Symbol_table *global_table, FILE* in, Node *assign_node){
             DEBUG("Assign character\n");
             c = rValue->u.byte;
             sprintf(buf, "'%c'", c);
-            sprintf(buf2, "byte [global_var + %d]", lVar.offset);
-            insert_fun(MOV, buf, buf2);
+            sprintf(buf2, "qword [global_var + %d]", lVar.offset);
+            insert_fun(MOV, buf2, buf);
             
             break;
         case Int:
             DEBUG("Assign integer\n");
             i = rValue->u.num;
             sprintf(buf, "%d", i);
-            sprintf(buf2, "dword [global_var + %d]", lVar.offset);
-            insert_fun(MOV, buf, buf2);
+            sprintf(buf2, "qword [global_var + %d]", lVar.offset);
+            insert_fun(MOV, buf2, buf);
             break;
         default:
             DEBUG("Assign from variable are Not available in this version of compilation\n");
@@ -226,10 +228,10 @@ void addSubApply(Node* addSubNode, Symbol_table *global_table){
                 s = get_symbol_by_name(global_table, FIRSTCHILD(addSubNode)->u.ident);
                 switch(s.u.p_type){
                     case INT:
-                        sprintf(buf, "dword [global_var + %d]", s.offset);
+                        sprintf(buf, "qword [global_var + %d]", s.offset);
                         break;
                     case CHAR:
-                        sprintf(buf, "byte [global_var + %d", s.offset);
+                        sprintf(buf, "qword [global_var + %d]", s.offset);
                         break;
                     default:
                         break;
@@ -261,7 +263,7 @@ void addSubApply(Node* addSubNode, Symbol_table *global_table){
                         sprintf(buf2, "dword [global_var + %d]", s.offset);
                         break;
                     case CHAR:
-                        sprintf(buf2, "byte [global_var + %d", s.offset);
+                        sprintf(buf2, "byte [global_var + %d]", s.offset);
                         break;
                     default:
                         break;
@@ -295,9 +297,8 @@ void addSubApply(Node* addSubNode, Symbol_table *global_table){
             DEBUG("Modulo operation are not available yet in this version of compilator");
             break;
     }
-
-    insert_fun(PUSH, "r12", NULL);
-            
+    insert_fun(MOV, buf, "r12");
+    insert_fun(MOV, "r12", "0");
     
 }
 
