@@ -1,5 +1,7 @@
 
 int main(int argc){
+    int a;
+    a = 0;
     switch(a){
     case 'p' : print(2);
             break;

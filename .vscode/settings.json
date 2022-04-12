@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "string.h": "c",
-        "*.tpc": "c"
+        "*.tpc": "c",
+        "symbols-table.h": "c"
     }
 }

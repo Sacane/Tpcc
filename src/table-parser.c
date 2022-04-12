@@ -81,7 +81,8 @@ List build_list_table(Node *root){
             return NULL;
         }
         
-        is_void = (!(strcmp(function_type->u.ident, "void"))) ? 1 : 0;  
+        is_void = (SECONDCHILD(header_function))->firstChild->label == Void ? 1 : 0; 
+        printf("label : %d\n", SECONDCHILD(header_function)->firstChild->label); 
 
         function_t = str_to_tpcType(function_type->u.ident);
 
@@ -109,7 +110,7 @@ List build_list_table(Node *root){
         }
 
 
-        Symbol params_sym = create_func_sym(function_type->firstChild->u.ident, function_t, param_types, nb_args);
+        Symbol params_sym = create_func_sym(function_type->firstChild->u.ident, function_t, param_types, nb_args, is_void);
         insert_symbol_in_table(params_sym, table);
 
    
@@ -211,7 +212,9 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
                 continue;
             }
         }   
-        
+        if(n->label == Addsub){
+            continue;
+        }
         //On récupère le symbol de la fonction pour vérifier ses paramètres
         if(is_symbol_in_table(function_table, n->u.ident)){
             s = get_symbol_by_name(function_table, n->u.ident);

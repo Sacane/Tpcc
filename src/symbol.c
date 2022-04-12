@@ -19,7 +19,7 @@ Symbol create_symbol(char *name, Kind kind, PrimType type, int offset, int linen
 
 }
 
-Symbol create_func_sym(char *name_func, PrimType return_type, PrimType arg_types[], int n_args){
+Symbol create_func_sym(char *name_func, PrimType return_type, PrimType arg_types[], int n_args, int is_void){
     Symbol func_sym;
     int i;
     func_sym.symbol_name = (char*) malloc(sizeof(char) * strlen(name_func));
@@ -30,13 +30,14 @@ Symbol create_func_sym(char *name_func, PrimType return_type, PrimType arg_types
     strcpy(func_sym.symbol_name, name_func);
 
     func_sym.kind = FUNCTION;
-    func_sym.u.f_type.is_void = (return_type == NONE) ? 1 : 0;
+    func_sym.u.f_type.is_void = is_void;
 
     func_sym.u.f_type.return_type = return_type;
     for(i = 0; i < n_args; i++){
         func_sym.u.f_type.args_types[i] = arg_types[i];
         
     }
+    func_sym.u.f_type.nb_args = n_args;
     
     
     return func_sym;

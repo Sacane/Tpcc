@@ -3,6 +3,11 @@
 
 int global;
 
+int print(int a){
+    return 1;
+}
+
+
 int display(int to_display){
     if(to_display != 0 || to_display < 0){
         print(to_display);
@@ -21,7 +26,7 @@ int main(void){
         a = i;
         b = i+1;
         c = i+2 % 4;
-        display(a + b + c); 
+        display(a + b, c); 
     }
     print(a);
     print(b);
