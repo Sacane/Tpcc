@@ -2,7 +2,7 @@
 
 
 
-Symbol create_symbol(char *name, Kind kind, PrimType type, int offset){
+Symbol create_symbol(char *name, Kind kind, PrimType type, int offset, int lineno){
     Symbol symbol;
 
     symbol.symbol_name = (char*) malloc(sizeof(char) * strlen(name));
@@ -14,7 +14,7 @@ Symbol create_symbol(char *name, Kind kind, PrimType type, int offset){
     symbol.kind = kind;
     symbol.u.p_type = type;
     symbol.offset = offset;
-
+    symbol.lineno = lineno;
     return symbol;
 
 }

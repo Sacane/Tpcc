@@ -196,7 +196,6 @@ int main(int argc, char **argv){
             default : result = 3; break;
         }
     }
-    printf("opt: %d result: %d\n", opt, result);
     if(result == 3){
         return 3;
     }
@@ -230,17 +229,11 @@ int main(int argc, char **argv){
         return 2;
     }
     sem_err_res = parse_sem_function_error(rootProg, list);
-    if(sem_err_res){
-        printf("No sementic errors detected ! \n");
-    }
-    else {
-        result = 2;
-    }
+    result = (sem_err_res) ? 0 : 2;
     if(opt_asm && sem_err_res){
         DEBUG("Writing nasm file...\n");
         build_asm(rootProg, list);
     }
     deleteTree(rootProg);
-    printf("result : %d\n", result);
     return result;
 }

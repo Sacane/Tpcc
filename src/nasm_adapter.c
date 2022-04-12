@@ -8,7 +8,7 @@ FILE *f;
 
 void init_global_asm(int size){
     fprintf(f, "section .bss\n");
-    fprintf(f, "global_var: resp %d\n", size);
+    fprintf(f, "global_var: resq %d\n", size);
 }
 
 void init_asm_(int total_global_size){
@@ -119,6 +119,8 @@ static int asm_fun_checker(NasmFunCall nasmFunCall, char *var1, char *var2){
             return var1 && (!var2);
         case 2:
             return var1 && var2;
+        default:
+            return -1;
     } 
 }
 
@@ -144,49 +146,6 @@ int insert_fun(NasmFunCall nasmFunCall, char *var1, char *var2)
     }
     return 1;
 
-}
-
-//temporaire seulement pour variable global
-void assign_global_var(Symbol_table *global_table, FILE* in, Node *assign_node){
-    int i;
-    char c;
-    int pos;
-    char buf[BUFSIZ];
-    char buf2[BUFSIZ];
-    Node *lValue = FIRSTCHILD(assign_node);
-    Node *rValue = SECONDCHILD(assign_node);
-    if(lValue->label == Int || lValue->label == Character){
-        DEBUG("Error : trying to assign numeric or character\n");
-        return;
-    }
-    if(rValue->label == Variable){
-        DEBUG("Error : trying to assign variable to variable\n");
-        return;
-    }
-
-    Symbol lVar = get_symbol_by_name(global_table, lValue->u.ident);
-
-    switch(rValue->label){
-        case Character:
-            DEBUG("Assign character\n");
-            c = rValue->u.byte;
-            sprintf(buf, "'%c'", c);
-            sprintf(buf2, "byte [global_var + %d]", lVar.offset);
-            insert_fun(MOV, buf, buf2);
-            
-            break;
-        case Int:
-            DEBUG("Assign integer\n");
-            i = rValue->u.num;
-            sprintf(buf, "%d", i);
-            sprintf(buf2, "dword [global_var + %d]", lVar.offset);
-            insert_fun(MOV, buf, buf2);
-            break;
-        default:
-            DEBUG("Assign from variable are Not available in this version of compilation\n");
-            return;
-
-    }
 }
 
 
@@ -226,10 +185,10 @@ void addSubApply(Node* addSubNode, Symbol_table *global_table){
                 s = get_symbol_by_name(global_table, FIRSTCHILD(addSubNode)->u.ident);
                 switch(s.u.p_type){
                     case INT:
-                        sprintf(buf, "dword [global_var + %d]", s.offset);
+                        sprintf(buf, "qword [global_var + %d]", s.offset);
                         break;
                     case CHAR:
-                        sprintf(buf, "byte [global_var + %d", s.offset);
+                        sprintf(buf, "qword [global_var + %d]", s.offset);
                         break;
                     default:
                         break;
@@ -250,9 +209,10 @@ void addSubApply(Node* addSubNode, Symbol_table *global_table){
             case Int:
                 a = SECONDCHILD(addSubNode)->u.num;
                 sprintf(buf2, "%d", a);
-                insert_fun(PUSH, buf2, NULL);
                 break;
             case Character: //TODO
+                sprintf(buf2, "%c", SECONDCHILD(addSubNode)->u.byte);
+
                 break;
             case Variable:
                 s = get_symbol_by_name(global_table, SECONDCHILD(addSubNode)->u.ident);
@@ -261,18 +221,17 @@ void addSubApply(Node* addSubNode, Symbol_table *global_table){
                         sprintf(buf2, "dword [global_var + %d]", s.offset);
                         break;
                     case CHAR:
-                        sprintf(buf2, "byte [global_var + %d", s.offset);
+                        sprintf(buf2, "byte [global_var + %d]", s.offset);
                         break;
                     default:
                         break;
                 }
-                
-                insert_fun(PUSH, buf2, NULL);
+
                 break;
             default:
                 break;
         }
-
+        insert_fun(PUSH, buf2, NULL);
     }
     insert_fun(POP, "r14", NULL);
     insert_fun(POP, "r12", NULL);
@@ -295,10 +254,58 @@ void addSubApply(Node* addSubNode, Symbol_table *global_table){
             DEBUG("Modulo operation are not available yet in this version of compilator");
             break;
     }
-
-    insert_fun(PUSH, "r12", NULL);
-            
+    insert_fun(MOV, buf, "r12");
     
+}
+
+//temporaire seulement pour variable global
+void assign_global_var(Symbol_table *global_table, FILE* in, Node *assign_node){
+    int i;
+    char c;
+    int pos;
+    char buf[BUFSIZ];
+    char buf2[BUFSIZ];
+    Node *lValue = FIRSTCHILD(assign_node);
+    Node *rValue = SECONDCHILD(assign_node);
+    if(lValue->label == Int || lValue->label == Character){
+        DEBUG("Error : trying to assign numeric or character\n");
+        return;
+    }
+    if(rValue->label == Variable){
+        DEBUG("Error : trying to assign variable to variable\n");
+        return;
+    }
+
+    Symbol lVar = get_symbol_by_name(global_table, lValue->u.ident);
+
+    switch(rValue->label){
+        case Character:
+            DEBUG("Assign character\n");
+            c = rValue->u.byte;
+            sprintf(buf, "'%c'", c);
+            sprintf(buf2, "qword [global_var + %d]", lVar.offset);
+            insert_fun(MOV, buf2, buf);
+            
+            break;
+        case Int:
+            DEBUG("Assign integer\n");
+            i = rValue->u.num;
+            sprintf(buf, "%d", i);
+            sprintf(buf2, "qword [global_var + %d]", lVar.offset);
+            insert_fun(MOV, buf2, buf);
+            break;
+        case Addsub:
+            DEBUG("Assign addition or substraction\n");
+            addSubApply(rValue, global_table); // Put into r12 value of addition
+            sprintf(buf2, "qword [global_var + %d]", lVar.offset);
+            insert_fun(MOV, buf2, "r12");
+            insert_fun(MOV, "r12", "0");
+            break;
+        default:
+            DEBUG("Assign from variable are Not available in this version of compilation\n");
+            return;
+
+    }
 }
 
 /*int treat_simple_sub_in_main(Node *root){
@@ -329,9 +336,9 @@ void parse_tree(Node *root, Symbol_table *global_var_table){
 
     if(root->label == Assign && is_symbol_in_table(global_var_table, FIRSTCHILD(root)->u.ident)){
         assign_global_var(global_var_table, f, root);
-        if(SECONDCHILD(root)->label == Addsub){
+        /*if(SECONDCHILD(root)->label == Addsub){
             addSubApply(SECONDCHILD(root), global_var_table);
-        }
+        }*/
     }
     
 

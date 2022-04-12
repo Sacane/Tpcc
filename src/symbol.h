@@ -44,6 +44,7 @@ typedef struct symbol{
     char *symbol_name; /* name of the symbol  */
     Kind kind;         /* Kind of the symbol [function, variable or parameter] */
     int offset;
+    int lineno;
     union {
         FunctionType f_type; /* Function  symbol */
         PrimType p_type;     /* Primitive symbol */
@@ -55,7 +56,7 @@ Symbol calloc_symbol();
 
 int is_symbol_null(Symbol symbol);
 
-Symbol create_symbol(char *name, Kind kind, PrimType type, int offset);
+Symbol create_symbol(char *name, Kind kind, PrimType type, int offset, int lineno);
 
 PrimType str_to_tpcType(char* type);
 

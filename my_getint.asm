@@ -16,4 +16,3 @@ my_getint:
     syscall
     pop rax
     ret
-

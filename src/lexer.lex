@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-int lineno;
+int lineno = 1;
 int linecharno = 0;
 int line_count = 1;
 char* current_line = NULL;
@@ -41,5 +41,5 @@ int|char   {strncpy(yylval.ident, yytext, 64); linecharno = linecharno + yyleng;
 [a-zA-Z_][a-zA-Z0-9_]*            {strncpy(yylval.ident, yytext, 64); linecharno = linecharno + yyleng; return IDENT;}
 ^.*[\n] {current_line = (char*)malloc(sizeof(char)*1024); strcpy(current_line, yytext); REJECT;}
 . 	{linecharno = linecharno + yyleng; return yytext[0];}
-\n {line_count++; linecharno = 0;}
+\n {line_count++; linecharno = 0; lineno++;}
 %%

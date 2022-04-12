@@ -1,6 +1,8 @@
-int amhdfaiojdhzesuhd1928jdopizaj;
+char amhdfaiojdhzesuhd1928jdopizaj;
 
 
 int main(int argc){
+
+    amhdfaiojdhzesuhd1928jdopizaj = 100; //Should send a warning
     return 1;
 }

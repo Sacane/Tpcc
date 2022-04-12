@@ -14,14 +14,14 @@ int main(void){
     int t1, t2;
     t1 = 0;
     t2 = 3;
-
+    p = 9;
     if(t1 != t2){
-        p = called(t1);
+        p = called(p, 10);
     }
     else{
         p = 'c';
     }
-
+    called(10, 10);
     return 0;
 }
 

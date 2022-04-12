@@ -15,6 +15,7 @@ makedirs:
 	@mkdir -p obj
 
 
+
 bin/$(EXEC): obj/lex.yy.o src/$(PARSER).tab.c 
 	$(CC) -o $@ $^ src/tree.c src/table-parser.c src/symbols-table.c src/symbol.c src/utils.c src/nasm_adapter.c
 
