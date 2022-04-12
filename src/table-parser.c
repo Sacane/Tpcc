@@ -76,7 +76,7 @@ List build_list_table(Node *root){
         Node *function_type = header_function->firstChild;
 
         if(is_symbol_in_table(globals_table, function_type->firstChild->u.ident)){
-            DEBUG("Error : invalid function name because symbol '%s' already exist in global variable\n", function_type->firstChild->u.ident);
+            DEBUG("[SEM-ERROR] near line %d >>> function '%s' already exist as global variable\n", FIRSTCHILD(function_type)->lineno, function_type->firstChild->u.ident);
             check_sem_err = 1;
             return NULL;
         }
@@ -98,7 +98,7 @@ List build_list_table(Node *root){
                 Kind k = PARAM;
                 PrimType type = str_to_tpcType(paramType->u.ident);
                 Node* id = paramType->firstChild;
-                s = create_symbol(id->u.ident, k, type, 0);
+                s = create_symbol(id->u.ident, k, type, 0, id->lineno);
                 insert_symbol_in_table(s, table);
                 table->nb_parameter += 1;
 
@@ -126,11 +126,11 @@ List build_list_table(Node *root){
             Kind kind = VARIABLE;
             for(Node *id = global_types->firstChild; id; id = id->nextSibling){
                 if(is_symbol_in_table(table, id->u.ident)){
-                    
-                    DEBUG("Sem-error : variable '%s' already declared as parameter near line %d\n", id->u.ident, id->lineno);
+                    Symbol s = get_symbol_by_name(table, id->u.ident);
+                    DEBUG("[SEM-ERROR] : variable '%s' at line %d has already been declared as parameter at line %d\n", id->u.ident, id->lineno, s.lineno);
                     return NULL;
                 }
-                s = create_symbol(id->u.ident, kind, type, 0);
+                s = create_symbol(id->u.ident, kind, type, 0, id->lineno);
                 insert_symbol_in_table(s, table);
             }
         }
@@ -175,7 +175,7 @@ static int variable_call_sem_parser(Node *varcall_node, List table, char *name){
     Symbol_table *globals = get_table_by_name("global_vars", table);
     Symbol_table *func = get_table_by_name(name, table);
     int ret_val = is_symbol_in_table(globals, varcall_node->u.ident) || is_symbol_in_table(func, varcall_node->u.ident);
-    if(!ret_val) DEBUG("E: Symbol %s not in table %s\n", varcall_node->u.ident, func->name_table);
+    if(!ret_val) DEBUG("[ERROR] at line %d >>> Variable '%s' undeclared as global or local\n", varcall_node->lineno, varcall_node->u.ident);
     return ret_val == 1;
 }
 
@@ -185,36 +185,47 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
     i = 0;
     Symbol params = get_symbol_by_name(function_table, function_table->name_table);
     Symbol s;
+    //D'abord on check si la fonction ne retourne pas void
+    if(params.u.f_type.is_void && FIRSTCHILD(fc_root)->label != Void){
+        DEBUG("[SEM-ERROR] near line %d >>> Function '%s' does not expect parameters\n", fc_root->lineno, params.symbol_name);
+        return 0;
+    } 
+    if (params.u.f_type.is_void && FIRSTCHILD(fc_root)->label == Void){
+        return 1;
+    }
+
 
     if(!fc_root->firstChild){
-        DEBUG("Near line : %d\n", fc_root->lineno);
+        DEBUG("[SEM-ERROR] Near line %d ", fc_root->lineno);
         DEBUG("This function '%s' expect %d arguments but no argument were find\n", function_table->name_table, function_table->nb_parameter);
+        return 0;
     }
+
     for(Node *n = fc_root->firstChild; n; n = n->nextSibling){
         if(isPrimLabelNode(n)){
             if (labelToPrim(n->label) != params.u.f_type.args_types[i]){
-                DEBUG("type : %d\n", params.u.f_type.args_types[i]);
-                DEBUG("ERROR in function-call of %s : Expected type of parameter : %s, Type given : %s\n", fc_root->u.ident, string_from_type(params.u.f_type.args_types[i]), string_from_type(labelToPrim(n->label)));
+                DEBUG("[SEM-ERROR] at line %d >>> when trying to call '%s' -> Expected type '%s' but the given type was '%s'\n", n->lineno, fc_root->u.ident, string_from_type(params.u.f_type.args_types[i]), string_from_type(labelToPrim(n->label)));
                 return 0;
             }
             else {
                 continue;
             }
-        }
-
+        }   
+        
+        //On récupère le symbol de la fonction pour vérifier ses paramètres
         if(is_symbol_in_table(function_table, n->u.ident)){
             s = get_symbol_by_name(function_table, n->u.ident);
-        }
-        else if (is_symbol_in_table(global_var_table, n->u.ident)){
+        }  
+        else if (is_symbol_in_table(global_var_table, n->u.ident)){ //
             s = get_symbol_by_name(global_var_table, n->u.ident);
-        } else if (is_symbol_in_table(fun_caller_table, n->u.ident)){
+        }  
+        else if (is_symbol_in_table(fun_caller_table, n->u.ident)){
             s = get_symbol_by_name(fun_caller_table, n->u.ident);
-        }
+        } 
         else {
-            DEBUG("Error : Unexpected parameter : %s. This parameters doesn't exist\n", n->u.ident);
+            DEBUG("[ERROR] too much parameters called\n");
             return 0;
         }
-        
         if(s.u.p_type != params.u.f_type.args_types[i]){
             DEBUG("Error near line : %d >>> symbol name parameters n°%d : %s type : %s -> type expected : %s \n", fc_root->lineno, i, s.symbol_name, string_from_type(s.u.p_type), string_from_type(params.u.f_type.args_types[i]));
             return 0;
@@ -232,7 +243,7 @@ static int function_call_sem_parser(Node *fc_node, List table, char *name_fun_ca
     Symbol_table *fun_called_table = get_table_by_name(name_fun_called, table);
     
     if(!fun_called_table){
-        DEBUG("E: Function %s does not exist or is not included from another file\n", name_fun_called);
+        DEBUG("[ERROR] line %d >>> Trying to call a non-existing function : '%s'\n", fc_node->lineno, name_fun_called);
         return 0;
     }
     if(!check_param_function_call(fun_caller_table, fun_called_table, global_table, fc_node)){
@@ -285,20 +296,22 @@ static int equal_check(Node *eq, List tab, char *name_tab){
 }
 
 static PrimType getTypeOfNode(Node *node, Symbol_table *funTable, Symbol_table *globalTable){
-    
+    Symbol var;
     switch (node->label){
         case Int:  
             return INT;
         case Character:
             return CHAR;
         case Variable:
-            if(is_symbol_in_table(funTable, node->u.ident) || is_symbol_in_table(globalTable, node->u.ident)){
-                Symbol var = get_symbol_by_name(funTable, node->u.ident);
-                return var.u.p_type;
+            if(is_symbol_in_table(funTable, node->u.ident)){
+                var = get_symbol_by_name(funTable, node->u.ident);
+            } else if (is_symbol_in_table(globalTable, node->u.ident)){
+                var = get_symbol_by_name(globalTable, node->u.ident);
+                
             } else {
                 return NONE;
             }
-            break;  
+            return var.u.p_type;
         default:
             return NONE;
     }
@@ -320,21 +333,34 @@ int assign_check(Node *assign, List tab, char *name_tab){
 
     PrimType lType = getTypeOfNode(lValue, function_tab, global_tab);
     PrimType rType = getTypeOfNode(rValue, function_tab, global_tab);
-
     if(lType == CHAR && rType == INT) {
-        DEBUG("Warning : assigning char variable '%s' to integer %d\n", lValue->u.ident, rValue->u.num);
+        DEBUG("\033[0;35m");
+        DEBUG("[WARNING] ");
+        DEBUG("\033[0m");
+        DEBUG("near line %d : assigning char variable '%s' to integer %d\n", lValue->lineno, lValue->u.ident, rValue->u.num);
+        
         check_warn = 1;
     }
 
     if(var1->label == Variable){
         check += is_symbol_in_table(global_tab, var1->u.ident);
-        check += is_symbol_in_table(function_tab, var1->u.ident);
+        if(is_symbol_in_table(function_tab, var1->u.ident)){
+            Symbol s = get_symbol_by_name(function_tab, var1->u.ident);
+            if(s.kind != FUNCTION){
+                check += 1;
+            }
+        }
         switch(check){
             case 0:
-                DEBUG("%s unregistered in globals or local variables\n", var1->u.ident);
+                DEBUG("\033[0;31m");
+                DEBUG("[SEM-ERROR] ");
+                DEBUG("\033[0m");
+                DEBUG("near line %d >>> Left value : '%s' is neither a global or local variable\n", var1->lineno, var1->u.ident);
                 break;
             case 2:
-                DEBUG("value in both local and global variable : %s\n", var1->u.ident);
+                DEBUG("\033[0;31m");
+                DEBUG("[SEM-ERROR] : variable %s already been defined as global\n", var1->u.ident);
+                DEBUG("\033[0m");
                 break;
             default:
                 break;
@@ -376,13 +402,13 @@ int parse_sem_function_error(Node *node, List table){
     if(!node){
         return 1;
     }
-
     if(!get_table_by_name("main", table)){
-        DEBUG("Error : No main function in this program\n");
+        printf("\033[0;31m");
+        DEBUG("[SEM-ERROR] >>> No main function in this program\n");
+        printf("\033[0m");
         check_sem_err = 1;
         return 0;
     }
-
     if(node->label != DeclFoncts){
         return parse_sem_function_error(node->nextSibling, table) && parse_sem_function_error(node->firstChild, table);
     }
@@ -397,18 +423,6 @@ int parse_sem_function_error(Node *node, List table){
     return 1;
 }
 
-/* Open/close asm file.
- *
- * int mode -> ouverture = 0 | fermeture != 0
- * int fd descripteur du fichier à fermer
-*/
-int open_close_asm_file(int mode, int fd){
-
-    if(mode == OPEN){
-        return open("_anonymous.asm",O_WRONLY|O_APPEND);
-    }
-    return close(fd);
-}
 
 
 

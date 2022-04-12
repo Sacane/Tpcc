@@ -113,7 +113,7 @@ Symbol_table *create_global_variable_table(Node *tree){
     Node* vars_as_node;
     Symbol_table *table = create_symbol_table("global_vars");
     Symbol symbol;
-    Type type;
+    PrimType type;
     int current_offset = 0, number_globals = 0;
 
     
@@ -127,17 +127,16 @@ Symbol_table *create_global_variable_table(Node *tree){
         
         Kind kind = VARIABLE;
         
-        type = (strcmp("int", child->u.ident) == 0) ? INT_TYPE : CHAR_TYPE;
+        type = (strcmp("int", child->u.ident) == 0) ? INT : CHAR;
 
         
         for(Node *grandChild = child->firstChild; grandChild; grandChild = grandChild->nextSibling){
-            Symbol s = create_symbol(grandChild->u.ident, kind, type, current_offset);
+            Symbol s = create_symbol(grandChild->u.ident, kind, type, current_offset, grandChild->lineno);
             insert_symbol_in_table(s, table);
 
             number_globals += 1;
             current_offset += 8;
         }
-
     }
     table->total_size = number_globals;
     

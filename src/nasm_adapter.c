@@ -209,9 +209,10 @@ void addSubApply(Node* addSubNode, Symbol_table *global_table){
             case Int:
                 a = SECONDCHILD(addSubNode)->u.num;
                 sprintf(buf2, "%d", a);
-                insert_fun(PUSH, buf2, NULL);
                 break;
             case Character: //TODO
+                sprintf(buf2, "%c", SECONDCHILD(addSubNode)->u.byte);
+
                 break;
             case Variable:
                 s = get_symbol_by_name(global_table, SECONDCHILD(addSubNode)->u.ident);
@@ -225,13 +226,12 @@ void addSubApply(Node* addSubNode, Symbol_table *global_table){
                     default:
                         break;
                 }
-                
-                insert_fun(PUSH, buf2, NULL);
+
                 break;
             default:
                 break;
         }
-
+        insert_fun(PUSH, buf2, NULL);
     }
     insert_fun(POP, "r14", NULL);
     insert_fun(POP, "r12", NULL);
