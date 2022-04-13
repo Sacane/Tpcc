@@ -17,6 +17,7 @@ extern int check_warn;
 %}
 %code requires {
 #include "nasm_adapter.h"
+#include "sem_parser.h"
 Node* root;
 }
 %expect 1

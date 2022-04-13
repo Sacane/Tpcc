@@ -7,8 +7,11 @@
 
 void DEBUG(char *format, ... );
 
-void warnMessage(char *format, ...);
+void raiseWarning(int lineno, char *format,...);
 
-void errMessage(char *format, ...);
+void raiseError(int lineno, char *format, ...);
+
+
+
 
 #endif
