@@ -26,7 +26,7 @@ int main(void){
         a = i;
         b = i+1;
         c = i+2 % 4;
-        display(a + b, c); 
+        display(a + b); 
     }
     print(a);
     print(b);

@@ -7,6 +7,8 @@
 
 void DEBUG(char *format, ... );
 
+void warnMessage(char *format, ...);
 
+void errMessage(char *format, ...);
 
 #endif

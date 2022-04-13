@@ -82,7 +82,7 @@ Instr:
     |  RETURN Exp ';'                       {$$ = makeNode(Return); addChild($$, $2);}
     |  RETURN ';'                           {$$ = makeNode(Return);}
     |  '{' SuiteInstr '}'                   {$$ = $2;}
-    |  ';'                                  {$$ = makeNode(EmptyInstr);}
+    |  ';'                                   {$$ = makeNode(EmptyInstr);}
     ;
 Exp :  Exp OR TB                            {$$ = makeNode(Or); addChild($$, $1); addChild($$, $3);}
     |  TB                                   {$$ = $1;}
@@ -122,7 +122,7 @@ SwitchExpr:
     |   DEFAULT ':' EndSwitchExpr {$$ = makeNode(Default); addChild($$, $3);}
     ;
 EndSwitchExpr:
-        SuiteInstr BREAK ';' {$$ = makeNode(SuiteInstr); addSibling($$, makeNode(Break));}
+        SuiteInstr BREAK ';' {if($1) {$$ = $1; addSibling($$, makeNode(Break));} else {$$ = makeNode(Break);}}
     |   SuiteInstr           {$$ = $1;}
     ;
 Arguments:

@@ -60,6 +60,7 @@ List build_list_table(Node *root){
     int is_void, nb_args = 0;
     Node* functions_root;
     PrimType function_t;
+    int global_offset = 0;
     functions_root = root->firstChild->nextSibling; //On DeclFoncts
 
 
@@ -194,7 +195,7 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
     if (params.u.f_type.is_void && FIRSTCHILD(fc_root)->label == Void){
         return 1;
     }
-
+    
 
     if(!fc_root->firstChild){
         DEBUG("[SEM-ERROR] Near line %d ", fc_root->lineno);
@@ -209,10 +210,13 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
                 return 0;
             }
             else {
+                i++;
                 continue;
             }
         }   
         if(n->label == Addsub){
+            
+            i++;
             continue;
         }
         //On récupère le symbol de la fonction pour vérifier ses paramètres
@@ -234,6 +238,10 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
             return 0;
         }
         i++;
+    }
+    if(i != params.u.f_type.nb_args){
+        DEBUG("[ERROR] at line %d >>> Expected %d argument but %d were given\n", fc_root->lineno, params.u.f_type.nb_args, i);
+        return 0;
     }
     return 1;
 
