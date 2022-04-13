@@ -6,7 +6,7 @@ void print(int a){
 int main(int argc){
         int a;
     switch(a){
-    case 'p' : print('p');
+    case 'p' : print('p', 10);
             break;
     case 'a' : print(9);
             break;

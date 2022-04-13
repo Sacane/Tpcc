@@ -12,7 +12,7 @@ int main(int argc){
 	a = 9;
 	b=16;
 	c=5;
-  function_1(c);
+  function_1(b);
 	while(a!=b){   
     if(a>b && b > c)
       b=b+1;

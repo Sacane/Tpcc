@@ -1,5 +1,28 @@
 #include "sem_parser.h"
 
+static PrimType getTypeOfNode(Node *node, Symbol_table *funTable, Symbol_table *globalTable){
+    Symbol var;
+    switch (node->label){
+        case Int:  
+            return INT;
+        case Character:
+            return CHAR;
+        case Variable:
+            if(is_symbol_in_table(funTable, node->u.ident)){
+                var = get_symbol_by_name(funTable, node->u.ident);
+            } else if (is_symbol_in_table(globalTable, node->u.ident)){
+                var = get_symbol_by_name(globalTable, node->u.ident);
+                
+            } else {
+                return NONE;
+            }
+            return var.u.p_type;
+        default:
+            return NONE;
+    }
+}
+
+
 int isSymbolInGlobalAndFunc(char * symbol_name, Symbol_table *funTable, Symbol_table *globalTable)
 {
     return is_symbol_in_table(globalTable, symbol_name) && is_symbol_in_table(funTable, symbol_name);
@@ -38,8 +61,9 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
     for(Node *n = fc_root->firstChild; n; n = n->nextSibling){
         if(isPrimLabelNode(n)){
             if (labelToPrim(n->label) != params.u.f_type.args_types[i]){
-                raiseError(n->lineno, "When trying to call '%s' -> Expected type '%s' but the given type was '%s'\n", fc_root->u.ident, string_from_type(params.u.f_type.args_types[i]), string_from_type(labelToPrim(n->label)));
-                return 0;
+                raiseWarning(n->lineno, "When trying to call '%s' -> Expected type '%s' but the given type was '%s'\n", fc_root->u.ident, string_from_type(params.u.f_type.args_types[i]), string_from_type(labelToPrim(n->label)));
+                i++;
+                continue;
             }
             else {
                 i++;
@@ -65,8 +89,13 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
             raiseError(fc_root->lineno, "Too many parameters given in function '%s'", fun_caller_table->name_table);
             return 0;
         }
-        
+
         if(s.u.p_type != params.u.f_type.args_types[i]){
+            if(params.u.f_type.args_types[i] == INT){
+                if(s.u.p_type == CHAR){
+                    raiseWarning(fc_root->lineno, "Variable '%s' is type char but function '%s' expected type int\n", s.symbol_name, params.symbol_name);
+                }
+            }
             raiseError(fc_root->lineno, "symbol name parameters n°%d : %s type : %s -> type expected : %s \n", i, s.symbol_name, string_from_type(s.u.p_type), string_from_type(params.u.f_type.args_types[i]));
             return 0;
         }
@@ -139,27 +168,6 @@ static int equal_check(Node *eq, List tab, char *name_tab){
     return 1;
 }
 
-static PrimType getTypeOfNode(Node *node, Symbol_table *funTable, Symbol_table *globalTable){
-    Symbol var;
-    switch (node->label){
-        case Int:  
-            return INT;
-        case Character:
-            return CHAR;
-        case Variable:
-            if(is_symbol_in_table(funTable, node->u.ident)){
-                var = get_symbol_by_name(funTable, node->u.ident);
-            } else if (is_symbol_in_table(globalTable, node->u.ident)){
-                var = get_symbol_by_name(globalTable, node->u.ident);
-                
-            } else {
-                return NONE;
-            }
-            return var.u.p_type;
-        default:
-            return NONE;
-    }
-}
 
 int assign_check(Node *assign, List tab, char *name_tab){
     
