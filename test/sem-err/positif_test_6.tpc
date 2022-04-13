@@ -3,7 +3,11 @@
 
 int global;
 
-int display(int to_display){
+int print(int a){
+    return 1;
+}
+
+int display(int to_display, char c){
     if(to_display != 0 || to_display < 0){
         print(to_display);
     }

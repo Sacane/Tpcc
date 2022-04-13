@@ -1,7 +1,9 @@
 int daioj;
 
 
-
+void print(char c){
+    return;
+}
 int main(void){
     char df;
     int a;
@@ -15,6 +17,7 @@ int main(void){
         case 10:
             print('a');
             print('b');
+            print(10);
             break;
         default:
             print('p');
@@ -22,6 +25,3 @@ int main(void){
 
 }
 
-void print(char c){
-    return;
-}

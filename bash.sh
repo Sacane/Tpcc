@@ -36,4 +36,7 @@ test "./test/good/*.tpc" 0
 echo "============== Invalid tests ===============" 
 test "./test/syn-err/*.tpc" 1
 
+echo "============== Invalid tests ===============" 
+test "./test/sem-err/*.tpc" 2
+
 echo "Done."

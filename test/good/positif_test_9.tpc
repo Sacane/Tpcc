@@ -1,6 +1,8 @@
 int daioj;
 
-
+void print(char c){
+    return;
+}
 
 int main(void){
     char df;
@@ -22,6 +24,3 @@ int main(void){
 
 }
 
-void print(char c){
-    return;
-}
