@@ -7,4 +7,5 @@ int main(void)
 void foo(int n){
     int n;
     n = 2;
+    c = 9;
 }

@@ -6,7 +6,7 @@ int max;
 char salut;
 
 int valeur(int a, int b, int c, int x) {
-
+    int a;
     a = b;
 
     

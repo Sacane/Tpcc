@@ -12,9 +12,11 @@ int max;
 
 
 int main(void) {
+    int r1;
    int max;
    int b, c ;
    char cha;
+   r1 = 0;
    b=-1;
    while (b<=1) {
        c=-1;

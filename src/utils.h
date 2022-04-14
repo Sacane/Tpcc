@@ -5,6 +5,8 @@
 #include <stdarg.h>
 #include <assert.h>
 
+#define GLOBAL_ID "global_vars"
+
 void DEBUG(char *format, ... );
 
 void raiseWarning(int lineno, char *format,...);

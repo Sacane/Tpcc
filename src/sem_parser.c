@@ -29,7 +29,7 @@ int isSymbolInGlobalAndFunc(char * symbol_name, Symbol_table *funTable, Symbol_t
 }
 
 static int variable_call_sem_parser(Node *varcall_node, List table, char *name){
-    Symbol_table *globals = get_table_by_name("global_vars", table);
+    Symbol_table *globals = get_table_by_name(GLOBAL, table);
     Symbol_table *func = get_table_by_name(name, table);
     int ret_val = is_symbol_in_table(globals, varcall_node->u.ident) || is_symbol_in_table(func, varcall_node->u.ident);
     if(!ret_val) raiseError(varcall_node->lineno, "Variable '%s' undeclared as global or local\n", varcall_node->u.ident);
@@ -111,7 +111,7 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
 
 static int function_call_sem_parser(Node *fc_node, List table, char *name_fun_caller, char *name_fun_called){
 
-    Symbol_table *global_table = get_table_by_name("global_vars", table);
+    Symbol_table *global_table = get_table_by_name(GLOBAL, table);
     Symbol_table *fun_caller_table = get_table_by_name(name_fun_caller, table);
     Symbol_table *fun_called_table = get_table_by_name(name_fun_called, table);
     
@@ -136,7 +136,7 @@ static int equal_check(Node *eq, List tab, char *name_tab){
     Node *var2 = eq->firstChild->nextSibling;
 
 
-    global_tab = get_table_by_name("global_vars", tab);
+    global_tab = get_table_by_name(GLOBAL, tab);
     function_tab = get_table_by_name(name_tab, tab);
 
     if(var1->label == Variable){
@@ -144,10 +144,6 @@ static int equal_check(Node *eq, List tab, char *name_tab){
         strcpy(id1, var1->u.ident);
         if(!(is_symbol_in_table(global_tab,id1)) && !(is_symbol_in_table(function_tab,id1))){
             raiseError(var1->lineno, "variable '%s' neither declared as local in function %s or as globals\n", id1, name_tab);
-            return 0;
-        }
-        if(isSymbolInGlobalAndFunc(id1, function_tab, global_tab)){
-            raiseError(var1->lineno, "symbol '%s' declared as function and global variable\n", var1->u.ident);
             return 0;
         }
     }
@@ -175,7 +171,7 @@ int assign_check(Node *assign, List tab, char *name_tab){
     Symbol_table *function_tab;
     Symbol_table *fun_called;
     int check = 0;
-    global_tab = get_table_by_name("global_vars", tab);
+    global_tab = get_table_by_name(GLOBAL, tab);
     function_tab = get_table_by_name(name_tab, tab);
 
     Node *lValue = FIRSTCHILD(assign);
@@ -210,18 +206,10 @@ int assign_check(Node *assign, List tab, char *name_tab){
                 }
             }
         }
-        switch(check){
-            case 0:
-                raiseError(lValue->lineno, "Left value : '%s' is neither a global or local variable\n", lValue->u.ident);
-                break;
-            case 2:
-                raiseError(lValue->lineno, "variable %s already been defined as global\n", lValue->u.ident);
-                break;
-            default:
-                break;
+        if(!check){
+            raiseError(lValue->lineno, "Left value : '%s' is neither a global or local variable\n", lValue->u.ident);
         }
-
-        return check == 1;
+        return check == 1 || check == 2;
     }
     return 0;
 }

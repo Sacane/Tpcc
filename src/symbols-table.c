@@ -111,7 +111,7 @@ PrimType labelToPrim(label_t label){
 /* We suppose there is a var node */
 Symbol_table *create_global_variable_table(Node *tree){
     Node* vars_as_node;
-    Symbol_table *table = create_symbol_table("global_vars");
+    Symbol_table *table = create_symbol_table(GLOBAL);
     Symbol symbol;
     PrimType type;
     int current_offset = 0, number_globals = 0;

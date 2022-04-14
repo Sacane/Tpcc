@@ -167,7 +167,7 @@ int main(int argc, char **argv){
     int option_index = 0;
     int opt_semantic = 0;
     int opt_asm = 0;
-
+    int make_exec = 0;
     int sem_err_res = 0;
     
     
@@ -179,7 +179,7 @@ int main(int argc, char **argv){
         {"asm", no_argument,0,'a'},
         {0,0,0,0}
     };
-    while((opt = getopt_long(argc, argv,"t h s a", long_option, &option_index)) !=-1 ){
+    while((opt = getopt_long(argc, argv,"t h s a e", long_option, &option_index)) !=-1 ){
 
         switch(opt){
 
@@ -193,6 +193,8 @@ int main(int argc, char **argv){
                        break;
             case 'a' : opt_asm = 1;
                         break;
+            case 'e' : make_exec = 1;
+                        break;
 
             default : result = 3; break;
         }
@@ -200,7 +202,7 @@ int main(int argc, char **argv){
     if(result == 3){
         return 3;
     }
-    while((option = getopt(argc, argv, ":thsa")) != - 1){
+    while((option = getopt(argc, argv, ":thsae")) != - 1){
         switch(option){
             case 't':
                 showTree = 1;
@@ -212,6 +214,8 @@ int main(int argc, char **argv){
                         break;
             case 'a' : opt_asm = 1;
                        break;
+            case 'e' : make_exec = 1;
+                        break;
             case '?':
                 printf("unknown option\n");
                 break;
@@ -234,7 +238,12 @@ int main(int argc, char **argv){
     if(opt_asm && sem_err_res){
         DEBUG("Writing nasm file...\n");
         build_asm(rootProg, list);
+        if(make_exec){
+            DEBUG("Make executable...\n");
+            make_executable("out"); // make ./out
+        }
     }
+
     deleteTree(rootProg);
     return result;
 }

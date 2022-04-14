@@ -96,12 +96,12 @@ static int asm_arity_of(NasmFunCall fc){
         case JMP:
         case JG:
         case JE:
+        case DIV:
             return 1;
         case MOV:
         case ADD: 
         case SUB: 
         case MUL: 
-        case DIV: 
         case N_AND: 
         case N_OR:  
             return 2;
@@ -167,11 +167,13 @@ void opTranslate(Node* addSubNode, Symbol_table *global_table){
     assert(addSubNode);
     char buf[BUFSIZ];
     char buf2[BUFSIZ];
+    int denominator;
     Symbol s;
     int a, b;
     int offset;
     if(FIRSTCHILD(addSubNode)->label == Addsub || FIRSTCHILD(addSubNode)->label == divstar){
         opTranslate(FIRSTCHILD(addSubNode), global_table);
+        
     } else {
         switch (FIRSTCHILD(addSubNode)->label){
             case Int:
@@ -208,8 +210,19 @@ void opTranslate(Node* addSubNode, Symbol_table *global_table){
             case Int:
             case Character:
                 a = SECONDCHILD(addSubNode)->u.num;
+                if((addSubNode->u.byte == '/' || addSubNode->u.byte == '%')){
+                    if(a == 0){
+                        raiseError(addSubNode->lineno, "Trying to divide by 0 (nuuul)\n");
+                        return;
+                    } else {
+                        insert_fun(PUSH, "0", NULL);
+                        denominator = a;
+                        break;
+                    }
+                }
                 sprintf(buf2, "%d", a);
                 insert_fun(PUSH, buf2, NULL);
+                
                 break;
             case Variable:
                 s = get_symbol_by_name(global_table, SECONDCHILD(addSubNode)->u.ident);
@@ -221,28 +234,35 @@ void opTranslate(Node* addSubNode, Symbol_table *global_table){
         }
         
     }
-    insert_fun(POP, "r14", NULL);
-    insert_fun(POP, "r12", NULL);
+    insert_fun(POP, "rcx", NULL);
+    insert_fun(POP, "rax", NULL);
     switch(addSubNode->u.byte){
         case '-':
-            insert_fun(SUB, "r12", "r14");
+            insert_fun(SUB, "rax", "rcx");
             break;
         case '+':
-            insert_fun(ADD, "r12", "r14");
+            insert_fun(ADD, "rax", "rcx");
             break;
         case '*':
-            insert_fun(MUL, "r12", "r14");
+            insert_fun(MUL, "rax", "rcx");
             break;
         case '/':
-            if(b == 0){
-                DEBUG("Error: Trying to divide by 0\n");
-            }
+            sprintf(buf, "%d", denominator);
+            insert_fun(DIV, buf, NULL);
             break;
         case '%':
-            DEBUG("Modulo operation are not available yet in this version of compilator");
+            sprintf(buf, "%d", denominator);
+            insert_fun(DIV, buf, NULL);
             break;
     }
-    insert_fun(PUSH, "r12", NULL);
+    if(addSubNode->u.byte == '%'){
+        insert_fun(PUSH, "rdx", NULL); 
+        insert_fun(MOV, "r12", "rdx");
+    } else {
+        insert_fun(PUSH, "rax", NULL);
+    }
+    
+    insert_fun(MOV, "r12", "rax"); //Pour vérifier l'affichage avec show registers
     
 }
 
@@ -283,11 +303,12 @@ void assign_global_var(Symbol_table *global_table, FILE* in, Node *assign_node){
             insert_fun(MOV, buf2, buf);
             break;
         case Addsub:
+        case divstar:
             DEBUG("Assign addition or substraction\n");
             opTranslate(rValue, global_table); // Put into r12 value of addition
             sprintf(buf2, "qword [global_var + %d]", lVar.offset);
-            insert_fun(MOV, buf2, "r12");
-            insert_fun(MOV, "r12", "0");
+            insert_fun(MOV, buf2, "rax");
+            insert_fun(MOV, "rax", "0");
             break;
         default:
             DEBUG("Assign from variable are Not available in this version of compilation\n");
@@ -336,9 +357,6 @@ void parse_tree(Node *root, Symbol_table *global_var_table){
 }
 
 
-
-
-
 void build_asm(Node *root, List list){
     f = fopen("_anonymous.asm", "wr");
     Symbol_table *table;
@@ -347,4 +365,13 @@ void build_asm(Node *root, List list){
     init_asm_(table->total_size);
     parse_tree(root, table); //TODO
     end_asm();
+}
+
+
+void make_executable(char *fname){
+    char buf[BUFSIZ];
+    sprintf(buf, "nasm -f elf64 _anonymous.asm");
+    system(buf);
+    sprintf(buf, "gcc -o %s my_putchar.o _anonymous.o -nostartfiles -no-pie", fname);
+    system(buf);
 }

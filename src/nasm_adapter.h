@@ -25,7 +25,7 @@ typedef enum {
 
 
 void build_asm(Node *root, List list);
-
+void make_executable(char *fname);
 
 
 #endif
