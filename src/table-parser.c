@@ -76,12 +76,6 @@ List build_list_table(Node *root){
 
         Node *function_type = header_function->firstChild;
 
-        if(is_symbol_in_table(globals_table, function_type->firstChild->u.ident)){
-            raiseError(FIRSTCHILD(function_type)->lineno, "'%s' already exist as global variable\n", function_type->firstChild->u.ident);
-            check_sem_err = 1;
-            return NULL;
-        }
-        
         is_void = (SECONDCHILD(header_function))->firstChild->label == Void ? 1 : 0; 
 
         function_t = str_to_tpcType(function_type->u.ident);
@@ -126,11 +120,6 @@ List build_list_table(Node *root){
             PrimType type = str_to_tpcType(local_node->u.ident); // type's variable
             Kind kind = VARIABLE;
             for(Node *id = local_node->firstChild; id; id = id->nextSibling){
-                if(is_symbol_in_table(table, id->u.ident)){
-                    Symbol s = get_symbol_by_name(table, id->u.ident);
-                    raiseError(id->lineno, "variable '%s' at line %d has already been declared as parameter at line %d\n", id->u.ident, s.lineno);
-                    return NULL;
-                }
                 s = create_symbol(id->u.ident, kind, type, 0, id->lineno);
                 insert_symbol_in_table(s, table);
             }

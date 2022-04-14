@@ -14,7 +14,7 @@ void init_global_asm(int size){
 void init_asm_(int total_global_size){
 
     init_global_asm(total_global_size);
-    fprintf(f, "section  .text\nglobal  _start\n_start:\n");   
+    fprintf(f, "section  .text\nglobal  _start\nextern my_putchar\nextern my_getint\n_start:\n");   
     
 }
 
@@ -65,9 +65,9 @@ static char* asm_to_string(NasmFunCall asm_fun){
             break;
         case SUB:  return "sub";
             break;
-        case MUL:  return "mul";
+        case MUL:  return "imul";
             break;
-        case DIV:  return "div";
+        case DIV:  return "idiv";
             break;
         case NOT:  return "neg";
             break;
@@ -96,12 +96,12 @@ static int asm_arity_of(NasmFunCall fc){
         case JMP:
         case JG:
         case JE:
+        case DIV:
             return 1;
         case MOV:
         case ADD: 
         case SUB: 
         case MUL: 
-        case DIV: 
         case N_AND: 
         case N_OR:  
             return 2;
@@ -163,23 +163,24 @@ void write_global_eval(Symbol_table *global_table, Node *assign_node){
 
 
 /* We suppose node parameter in the body of the main */
-void addSubApply(Node* addSubNode, Symbol_table *global_table){
+void opTranslate(Node* addSubNode, Symbol_table *global_table){
     assert(addSubNode);
     char buf[BUFSIZ];
     char buf2[BUFSIZ];
+    int denominator;
     Symbol s;
     int a, b;
     int offset;
-    if(FIRSTCHILD(addSubNode)->label == Addsub){
-        addSubApply(FIRSTCHILD(addSubNode), global_table);
+    if(FIRSTCHILD(addSubNode)->label == Addsub || FIRSTCHILD(addSubNode)->label == divstar){
+        opTranslate(FIRSTCHILD(addSubNode), global_table);
+        
     } else {
         switch (FIRSTCHILD(addSubNode)->label){
             case Int:
+            case Character: 
                 a = addSubNode->firstChild->u.num;
                 sprintf(buf, "%d", a);
                 insert_fun(PUSH, buf, NULL);
-                break;
-            case Character: //TODO
                 break;
             case Variable:
                 s = get_symbol_by_name(global_table, FIRSTCHILD(addSubNode)->u.ident);
@@ -200,61 +201,68 @@ void addSubApply(Node* addSubNode, Symbol_table *global_table){
                 break;
         }
     }
-    if(SECONDCHILD(addSubNode)->label == Addsub){
-        addSubApply(SECONDCHILD(addSubNode), global_table);
+    if(SECONDCHILD(addSubNode)->label == Addsub || SECONDCHILD(addSubNode)->label == divstar){
+        opTranslate(SECONDCHILD(addSubNode), global_table);
     }
-    if(addSubNode && addSubNode->label == Addsub){
+    if(addSubNode && (addSubNode->label == Addsub || addSubNode->label == divstar)){
 
         switch (SECONDCHILD(addSubNode)->label){
             case Int:
+            case Character:
                 a = SECONDCHILD(addSubNode)->u.num;
+                if((addSubNode->u.byte == '/' || addSubNode->u.byte == '%')){
+                    if(a == 0){
+                        raiseError(addSubNode->lineno, "Trying to divide by 0 (nuuul)\n");
+                        return;
+                    } else {
+                        insert_fun(PUSH, "0", NULL);
+                        denominator = a;
+                        break;
+                    }
+                }
                 sprintf(buf2, "%d", a);
-                break;
-            case Character: //TODO
-                sprintf(buf2, "%c", SECONDCHILD(addSubNode)->u.byte);
-
+                insert_fun(PUSH, buf2, NULL);
+                
                 break;
             case Variable:
                 s = get_symbol_by_name(global_table, SECONDCHILD(addSubNode)->u.ident);
-                switch(s.u.p_type){
-                    case INT:
-                        sprintf(buf2, "dword [global_var + %d]", s.offset);
-                        break;
-                    case CHAR:
-                        sprintf(buf2, "byte [global_var + %d]", s.offset);
-                        break;
-                    default:
-                        break;
-                }
-
+                sprintf(buf2, "qword [global_var + %d]", s.offset);
+                insert_fun(PUSH, buf2, NULL);
                 break;
             default:
                 break;
         }
-        insert_fun(PUSH, buf2, NULL);
+        
     }
-    insert_fun(POP, "r14", NULL);
-    insert_fun(POP, "r12", NULL);
+    insert_fun(POP, "rcx", NULL);
+    insert_fun(POP, "rax", NULL);
     switch(addSubNode->u.byte){
         case '-':
-            insert_fun(SUB, "r12", "r14");
+            insert_fun(SUB, "rax", "rcx");
             break;
         case '+':
-            insert_fun(ADD, "r12", "r14");
+            insert_fun(ADD, "rax", "rcx");
             break;
         case '*':
-            insert_fun(MUL, "r12", "r14");
+            insert_fun(MUL, "rax", "rcx");
             break;
         case '/':
-            if(b == 0){
-                DEBUG("Error: Trying to divide by 0\n");
-            }
+            sprintf(buf, "%d", denominator);
+            insert_fun(DIV, buf, NULL);
             break;
         case '%':
-            DEBUG("Modulo operation are not available yet in this version of compilator");
+            sprintf(buf, "%d", denominator);
+            insert_fun(DIV, buf, NULL);
             break;
     }
-    insert_fun(MOV, buf, "r12");
+    if(addSubNode->u.byte == '%'){
+        insert_fun(PUSH, "rdx", NULL); 
+        insert_fun(MOV, "r12", "rdx");
+    } else {
+        insert_fun(PUSH, "rax", NULL);
+    }
+    
+    insert_fun(MOV, "r12", "rax"); //Pour vérifier l'affichage avec show registers
     
 }
 
@@ -295,11 +303,12 @@ void assign_global_var(Symbol_table *global_table, FILE* in, Node *assign_node){
             insert_fun(MOV, buf2, buf);
             break;
         case Addsub:
+        case divstar:
             DEBUG("Assign addition or substraction\n");
-            addSubApply(rValue, global_table); // Put into r12 value of addition
+            opTranslate(rValue, global_table); // Put into r12 value of addition
             sprintf(buf2, "qword [global_var + %d]", lVar.offset);
-            insert_fun(MOV, buf2, "r12");
-            insert_fun(MOV, "r12", "0");
+            insert_fun(MOV, buf2, "rax");
+            insert_fun(MOV, "rax", "0");
             break;
         default:
             DEBUG("Assign from variable are Not available in this version of compilation\n");
@@ -337,7 +346,7 @@ void parse_tree(Node *root, Symbol_table *global_var_table){
     if(root->label == Assign && is_symbol_in_table(global_var_table, FIRSTCHILD(root)->u.ident)){
         assign_global_var(global_var_table, f, root);
         /*if(SECONDCHILD(root)->label == Addsub){
-            addSubApply(SECONDCHILD(root), global_var_table);
+            opTranslate(SECONDCHILD(root), global_var_table);
         }*/
     }
     
@@ -348,9 +357,6 @@ void parse_tree(Node *root, Symbol_table *global_var_table){
 }
 
 
-
-
-
 void build_asm(Node *root, List list){
     f = fopen("_anonymous.asm", "wr");
     Symbol_table *table;
@@ -359,4 +365,13 @@ void build_asm(Node *root, List list){
     init_asm_(table->total_size);
     parse_tree(root, table); //TODO
     end_asm();
+}
+
+
+void make_executable(char *fname){
+    char buf[BUFSIZ];
+    sprintf(buf, "nasm -f elf64 _anonymous.asm");
+    system(buf);
+    sprintf(buf, "gcc -o %s my_putchar.o _anonymous.o -nostartfiles -no-pie", fname);
+    system(buf);
 }

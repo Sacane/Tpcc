@@ -19,7 +19,7 @@ int main(void) {
    while (b<=1) {
        c=-1;
        while (c<=1) {
-           if (trinome('p',b,c)) {
+           if (trinome('p',b,c, o)) {
                if (0<=r1 && r1<=max && 0>=r2 && r2>=-max)
                    return 0;
            }

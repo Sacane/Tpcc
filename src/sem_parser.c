@@ -1,12 +1,35 @@
 #include "sem_parser.h"
 
+static PrimType getTypeOfNode(Node *node, Symbol_table *funTable, Symbol_table *globalTable){
+    Symbol var;
+    switch (node->label){
+        case Int:  
+            return INT;
+        case Character:
+            return CHAR;
+        case Variable:
+            if(is_symbol_in_table(funTable, node->u.ident)){
+                var = get_symbol_by_name(funTable, node->u.ident);
+            } else if (is_symbol_in_table(globalTable, node->u.ident)){
+                var = get_symbol_by_name(globalTable, node->u.ident);
+                
+            } else {
+                return NONE;
+            }
+            return var.u.p_type;
+        default:
+            return NONE;
+    }
+}
+
+
 int isSymbolInGlobalAndFunc(char * symbol_name, Symbol_table *funTable, Symbol_table *globalTable)
 {
     return is_symbol_in_table(globalTable, symbol_name) && is_symbol_in_table(funTable, symbol_name);
 }
 
 static int variable_call_sem_parser(Node *varcall_node, List table, char *name){
-    Symbol_table *globals = get_table_by_name("global_vars", table);
+    Symbol_table *globals = get_table_by_name(GLOBAL, table);
     Symbol_table *func = get_table_by_name(name, table);
     int ret_val = is_symbol_in_table(globals, varcall_node->u.ident) || is_symbol_in_table(func, varcall_node->u.ident);
     if(!ret_val) raiseError(varcall_node->lineno, "Variable '%s' undeclared as global or local\n", varcall_node->u.ident);
@@ -38,8 +61,9 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
     for(Node *n = fc_root->firstChild; n; n = n->nextSibling){
         if(isPrimLabelNode(n)){
             if (labelToPrim(n->label) != params.u.f_type.args_types[i]){
-                raiseError(n->lineno, "When trying to call '%s' -> Expected type '%s' but the given type was '%s'\n", fc_root->u.ident, string_from_type(params.u.f_type.args_types[i]), string_from_type(labelToPrim(n->label)));
-                return 0;
+                raiseWarning(n->lineno, "When trying to call '%s' -> Expected type '%s' but the given type was '%s'\n", fc_root->u.ident, string_from_type(params.u.f_type.args_types[i]), string_from_type(labelToPrim(n->label)));
+                i++;
+                continue;
             }
             else {
                 i++;
@@ -65,8 +89,13 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
             raiseError(fc_root->lineno, "Too many parameters given in function '%s'", fun_caller_table->name_table);
             return 0;
         }
-        
+
         if(s.u.p_type != params.u.f_type.args_types[i]){
+            if(params.u.f_type.args_types[i] == INT){
+                if(s.u.p_type == CHAR){
+                    raiseWarning(fc_root->lineno, "Variable '%s' is type char but function '%s' expected type int\n", s.symbol_name, params.symbol_name);
+                }
+            }
             raiseError(fc_root->lineno, "symbol name parameters n°%d : %s type : %s -> type expected : %s \n", i, s.symbol_name, string_from_type(s.u.p_type), string_from_type(params.u.f_type.args_types[i]));
             return 0;
         }
@@ -82,7 +111,7 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
 
 static int function_call_sem_parser(Node *fc_node, List table, char *name_fun_caller, char *name_fun_called){
 
-    Symbol_table *global_table = get_table_by_name("global_vars", table);
+    Symbol_table *global_table = get_table_by_name(GLOBAL, table);
     Symbol_table *fun_caller_table = get_table_by_name(name_fun_caller, table);
     Symbol_table *fun_called_table = get_table_by_name(name_fun_called, table);
     
@@ -107,7 +136,7 @@ static int equal_check(Node *eq, List tab, char *name_tab){
     Node *var2 = eq->firstChild->nextSibling;
 
 
-    global_tab = get_table_by_name("global_vars", tab);
+    global_tab = get_table_by_name(GLOBAL, tab);
     function_tab = get_table_by_name(name_tab, tab);
 
     if(var1->label == Variable){
@@ -115,10 +144,6 @@ static int equal_check(Node *eq, List tab, char *name_tab){
         strcpy(id1, var1->u.ident);
         if(!(is_symbol_in_table(global_tab,id1)) && !(is_symbol_in_table(function_tab,id1))){
             raiseError(var1->lineno, "variable '%s' neither declared as local in function %s or as globals\n", id1, name_tab);
-            return 0;
-        }
-        if(isSymbolInGlobalAndFunc(id1, function_tab, global_tab)){
-            raiseError(var1->lineno, "symbol '%s' declared as function and global variable\n", var1->u.ident);
             return 0;
         }
     }
@@ -139,27 +164,6 @@ static int equal_check(Node *eq, List tab, char *name_tab){
     return 1;
 }
 
-static PrimType getTypeOfNode(Node *node, Symbol_table *funTable, Symbol_table *globalTable){
-    Symbol var;
-    switch (node->label){
-        case Int:  
-            return INT;
-        case Character:
-            return CHAR;
-        case Variable:
-            if(is_symbol_in_table(funTable, node->u.ident)){
-                var = get_symbol_by_name(funTable, node->u.ident);
-            } else if (is_symbol_in_table(globalTable, node->u.ident)){
-                var = get_symbol_by_name(globalTable, node->u.ident);
-                
-            } else {
-                return NONE;
-            }
-            return var.u.p_type;
-        default:
-            return NONE;
-    }
-}
 
 int assign_check(Node *assign, List tab, char *name_tab){
     
@@ -167,7 +171,7 @@ int assign_check(Node *assign, List tab, char *name_tab){
     Symbol_table *function_tab;
     Symbol_table *fun_called;
     int check = 0;
-    global_tab = get_table_by_name("global_vars", tab);
+    global_tab = get_table_by_name(GLOBAL, tab);
     function_tab = get_table_by_name(name_tab, tab);
 
     Node *lValue = FIRSTCHILD(assign);
@@ -202,18 +206,10 @@ int assign_check(Node *assign, List tab, char *name_tab){
                 }
             }
         }
-        switch(check){
-            case 0:
-                raiseError(lValue->lineno, "Left value : '%s' is neither a global or local variable\n", lValue->u.ident);
-                break;
-            case 2:
-                raiseError(lValue->lineno, "variable %s already been defined as global\n", lValue->u.ident);
-                break;
-            default:
-                break;
+        if(!check){
+            raiseError(lValue->lineno, "Left value : '%s' is neither a global or local variable\n", lValue->u.ident);
         }
-
-        return check == 1;
+        return check == 1 || check == 2;
     }
     return 0;
 }

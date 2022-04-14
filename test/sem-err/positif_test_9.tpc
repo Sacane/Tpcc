@@ -20,7 +20,7 @@ int main(void){
             print(10);
             break;
         default:
-            print('p');
+            print('p', 10);
     }
 
 }

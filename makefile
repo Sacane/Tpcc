@@ -57,4 +57,4 @@ obj/%.o: src/%.c src/%.h
 
 
 clean:
-	rm -f src/lex.yy.* src/$(PARSER).tab.* obj/* bin/* ./test/feedback.txt ./_anonymous.asm
+	rm -f src/lex.yy.* src/$(PARSER).tab.* obj/* bin/* ./test/feedback.txt ./_anonymous.* ./out 
