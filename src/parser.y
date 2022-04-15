@@ -233,14 +233,14 @@ int main(int argc, char **argv){
     if (check_sem_err || !list){
         return 2;
     }
-    sem_err_res = parse_sem_function_error(rootProg, list);
+    sem_err_res = parseSemError(rootProg, list);
     result = (sem_err_res) ? 0 : 2;
     if(opt_asm && sem_err_res){
         DEBUG("Writing nasm file...\n");
-        build_asm(rootProg, list);
+        buildNasmFile(rootProg, list);
         if(make_exec){
             DEBUG("Make executable...\n");
-            make_executable("out"); // make ./out
+            makeExecutable("out"); // make ./out
         }
     }
 

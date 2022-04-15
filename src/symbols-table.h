@@ -36,21 +36,72 @@ typedef struct table{
 
 
 
+/**
+ * @brief Create a symbol table object
+ * 
+ * @param name_table 
+ * @return Symbol_table* 
+ */
+Symbol_table *newSymbolTable(char *name_table);
 
-Symbol_table *create_symbol_table(char *name_table);
+/**
+ * @brief Get the symbol by name object
+ * 
+ * @param table 
+ * @param symbolName 
+ * @return Symbol 
+ */
+Symbol getSymbolInTableByName(Symbol_table *table, char *symbolName);
 
-Symbol get_symbol_by_name(Symbol_table *table, char *name_table);
-
+/**
+ * @brief 
+ * 
+ * @param symbol 
+ * @param table 
+ * @return int 
+ */
 int insert_symbol_in_table(Symbol symbol, Symbol_table *table);
 
-Symbol_table *create_global_variable_table(Node *tree);
+/**
+ * @brief Create a global variable table object
+ * 
+ * @param tree 
+ * @return Symbol_table* 
+ */
+Symbol_table *buildGlobalVariableSymbolTable(Node *tree);
 
+/**
+ * @brief 
+ * 
+ * @param tab 
+ */
 void print_symbol_table(Symbol_table *tab);
 
-int is_symbol_in_table(Symbol_table *table, char *symbol_name);
+/**
+ * @brief 
+ * 
+ * @param table 
+ * @param symbol_name 
+ * @return int 
+ */
+int isSymbolInTable(Symbol_table *table, char *symbol_name);
 
+/**
+ * @brief 
+ * 
+ * @param n 
+ * @return int 
+ */
 int isPrimLabelNode(Node *n);
 
+/**
+ * @brief 
+ * 
+ * @param label 
+ * @return PrimType 
+ */
 PrimType labelToPrim(label_t label);
+
+
 
 #endif

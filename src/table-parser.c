@@ -16,7 +16,7 @@ List init_table_list(Symbol_table *table){
 
 }
 
-int insert_table(List list, Symbol_table *table){
+int insertSymbolTableInList(List list, Symbol_table *table){
 
     List tmp;
     tmp = list;
@@ -25,13 +25,10 @@ int insert_table(List list, Symbol_table *table){
         list->table = table;
         return 1;
     }
-
-
     for(tmp; tmp->next; tmp = tmp->next){}
     tmp->next = init_table_list(table);
-
     if(!tmp->next){
-        fprintf(stderr, "Error while insert the table\n");
+        raiseError(-1, "Error while insert the table\n");
         return 0;
     }
 
@@ -53,37 +50,27 @@ void print_chained_list(List lst){
 List build_list_table(Node *root){
 
     List list;
-    list = init_table_list(NULL);
-    Symbol_table *globals_table = create_global_variable_table(root);
-    insert_table(list, globals_table);
-    int i = 0;
-    int is_void, nb_args = 0;
     Node* functions_root;
     PrimType function_t;
-    int global_offset = 0;
+    int i = 0, is_void, nb_args = 0, global_offset = 0;
+    Symbol_table *globals_table = buildGlobalVariableSymbolTable(root);
+    list = init_table_list(NULL);
+    insertSymbolTableInList(list, globals_table);
     functions_root = root->firstChild->nextSibling; //On DeclFoncts
-
-
     //parse of the DeclFonct
     for(Node* function_root = functions_root->firstChild; function_root; function_root = function_root->nextSibling){
-        
-        
+    
         nb_args = 0;
         // =============== Management of the functions's header ==================
 
         Node* header_function = function_root->firstChild;
         PrimType param_types[MAX_ARGUMENT_FUNC];
-
         Node *function_type = header_function->firstChild;
 
         is_void = (SECONDCHILD(header_function))->firstChild->label == Void ? 1 : 0; 
-
         function_t = str_to_tpcType(function_type->u.ident);
-
-        Symbol_table *table = create_symbol_table(function_type->firstChild->u.ident);
-
+        Symbol_table *table = newSymbolTable(function_type->firstChild->u.ident);
         Node *params = function_type->nextSibling;
-
         Symbol s;
 
         if(params->firstChild->label != Void){
@@ -107,13 +94,9 @@ List build_list_table(Node *root){
         Symbol params_sym = create_func_sym(function_type->firstChild->u.ident, function_t, param_types, nb_args, is_void);
         insert_symbol_in_table(params_sym, table);
 
-   
-        // ========================================================================
-
+        //=========================== Function's body ===========================
 
         Node* body = header_function->nextSibling;
-        
-        
         //Function's local variable :
         Node* local = body->firstChild;
         for(Node* local_node = local->firstChild; local_node; local_node = local_node->nextSibling){
@@ -123,8 +106,8 @@ List build_list_table(Node *root){
                 s = create_symbol(id->u.ident, kind, type, 0, id->lineno);
                 insert_symbol_in_table(s, table);
             }
-        } 
-        insert_table(list, table);
+        }
+        insertSymbolTableInList(list, table);
     }
     return list;
 }
@@ -136,7 +119,7 @@ List build_list_table(Node *root){
  * @param table_list 
  * @return Symbol_table* 
  */
-Symbol_table *get_table_by_name(char *name_table, List table_list){
+Symbol_table *getTableInListByName(char *name_table, List table_list){
     
     List tmp = table_list;
     if(!table_list){
@@ -155,11 +138,3 @@ Symbol_table *get_table_by_name(char *name_table, List table_list){
     
     return (tmp) ? tmp->table : NULL;
 }
-
-//Sem errors management
-
-
-
-
-
-

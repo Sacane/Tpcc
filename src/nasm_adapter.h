@@ -24,8 +24,8 @@ typedef enum {
 }NasmFunCall;
 
 
-void build_asm(Node *root, List list);
-void make_executable(char *fname);
+void buildNasmFile(Node *root, List list);
+void makeExecutable(char *fname);
 
 
 #endif

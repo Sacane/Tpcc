@@ -155,7 +155,7 @@ void write_global_eval(Symbol_table *global_table, Node *assign_node){
     Node *l_value = assign_node->firstChild;
     Node *r_value = l_value->nextSibling;
 
-    if(!is_symbol_in_table(global_table, l_value->u.ident) || is_symbol_in_table(global_table, r_value->u.ident)){
+    if(!isSymbolInTable(global_table, l_value->u.ident) || isSymbolInTable(global_table, r_value->u.ident)){
         return;
     }
 
@@ -183,7 +183,7 @@ void opTranslate(Node* addSubNode, Symbol_table *global_table){
                 insert_fun(PUSH, buf, NULL);
                 break;
             case Variable:
-                s = get_symbol_by_name(global_table, FIRSTCHILD(addSubNode)->u.ident);
+                s = getSymbolInTableByName(global_table, FIRSTCHILD(addSubNode)->u.ident);
                 switch(s.u.p_type){
                     case INT:
                         sprintf(buf, "qword [global_var + %d]", s.offset);
@@ -225,7 +225,7 @@ void opTranslate(Node* addSubNode, Symbol_table *global_table){
                 
                 break;
             case Variable:
-                s = get_symbol_by_name(global_table, SECONDCHILD(addSubNode)->u.ident);
+                s = getSymbolInTableByName(global_table, SECONDCHILD(addSubNode)->u.ident);
                 sprintf(buf2, "qword [global_var + %d]", s.offset);
                 insert_fun(PUSH, buf2, NULL);
                 break;
@@ -284,7 +284,7 @@ void assign_global_var(Symbol_table *global_table, FILE* in, Node *assign_node){
         return;
     }
 
-    Symbol lVar = get_symbol_by_name(global_table, lValue->u.ident);
+    Symbol lVar = getSymbolInTableByName(global_table, lValue->u.ident);
 
     switch(rValue->label){
         case Character:
@@ -343,7 +343,7 @@ void parse_tree(Node *root, Symbol_table *global_var_table){
         return;
     }
 
-    if(root->label == Assign && is_symbol_in_table(global_var_table, FIRSTCHILD(root)->u.ident)){
+    if(root->label == Assign && isSymbolInTable(global_var_table, FIRSTCHILD(root)->u.ident)){
         assign_global_var(global_var_table, f, root);
         /*if(SECONDCHILD(root)->label == Addsub){
             opTranslate(SECONDCHILD(root), global_var_table);
@@ -357,10 +357,10 @@ void parse_tree(Node *root, Symbol_table *global_var_table){
 }
 
 
-void build_asm(Node *root, List list){
+void buildNasmFile(Node *root, List list){
     f = fopen("_anonymous.asm", "wr");
     Symbol_table *table;
-    table = get_table_by_name("global_vars", list);
+    table = getTableInListByName("global_vars", list);
     
     init_asm_(table->total_size);
     parse_tree(root, table); //TODO
@@ -368,7 +368,7 @@ void build_asm(Node *root, List list){
 }
 
 
-void make_executable(char *fname){
+void makeExecutable(char *fname){
     char buf[BUFSIZ];
     sprintf(buf, "nasm -f elf64 _anonymous.asm");
     system(buf);

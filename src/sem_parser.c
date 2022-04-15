@@ -8,10 +8,10 @@ static PrimType getTypeOfNode(Node *node, Symbol_table *funTable, Symbol_table *
         case Character:
             return CHAR;
         case Variable:
-            if(is_symbol_in_table(funTable, node->u.ident)){
-                var = get_symbol_by_name(funTable, node->u.ident);
-            } else if (is_symbol_in_table(globalTable, node->u.ident)){
-                var = get_symbol_by_name(globalTable, node->u.ident);
+            if(isSymbolInTable(funTable, node->u.ident)){
+                var = getSymbolInTableByName(funTable, node->u.ident);
+            } else if (isSymbolInTable(globalTable, node->u.ident)){
+                var = getSymbolInTableByName(globalTable, node->u.ident);
                 
             } else {
                 return NONE;
@@ -25,23 +25,23 @@ static PrimType getTypeOfNode(Node *node, Symbol_table *funTable, Symbol_table *
 
 int isSymbolInGlobalAndFunc(char * symbol_name, Symbol_table *funTable, Symbol_table *globalTable)
 {
-    return is_symbol_in_table(globalTable, symbol_name) && is_symbol_in_table(funTable, symbol_name);
+    return isSymbolInTable(globalTable, symbol_name) && isSymbolInTable(funTable, symbol_name);
 }
 
-static int variable_call_sem_parser(Node *varcall_node, List table, char *name){
-    Symbol_table *globals = get_table_by_name(GLOBAL, table);
-    Symbol_table *func = get_table_by_name(name, table);
-    int ret_val = is_symbol_in_table(globals, varcall_node->u.ident) || is_symbol_in_table(func, varcall_node->u.ident);
+static int variableExistCheck(Node *varcall_node, List table, char *name){
+    Symbol_table *globals = getTableInListByName(GLOBAL, table);
+    Symbol_table *func = getTableInListByName(name, table);
+    int ret_val = isSymbolInTable(globals, varcall_node->u.ident) || isSymbolInTable(func, varcall_node->u.ident);
     if(!ret_val) raiseError(varcall_node->lineno, "Variable '%s' undeclared as global or local\n", varcall_node->u.ident);
     
     return ret_val == 1;
 }
 
-static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_table *function_table, Symbol_table *global_var_table, Node *fc_root){
+static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *function_table, Symbol_table *global_var_table, Node *fc_root){
 
     int i;
     i = 0;
-    Symbol params = get_symbol_by_name(function_table, function_table->name_table);
+    Symbol params = getSymbolInTableByName(function_table, function_table->name_table);
     Symbol s;
     //D'abord on check si la fonction ne retourne pas void
     if(params.u.f_type.is_void && FIRSTCHILD(fc_root)->label != Void){
@@ -76,14 +76,14 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
             continue;
         }
         //On récupère le symbol de la fonction pour vérifier ses paramètres
-        if(is_symbol_in_table(function_table, n->u.ident)){
-            s = get_symbol_by_name(function_table, n->u.ident);
+        if(isSymbolInTable(function_table, n->u.ident)){
+            s = getSymbolInTableByName(function_table, n->u.ident);
         }  
-        else if (is_symbol_in_table(global_var_table, n->u.ident)){ //
-            s = get_symbol_by_name(global_var_table, n->u.ident);
+        else if (isSymbolInTable(global_var_table, n->u.ident)){ //
+            s = getSymbolInTableByName(global_var_table, n->u.ident);
         }  
-        else if (is_symbol_in_table(fun_caller_table, n->u.ident)){
-            s = get_symbol_by_name(fun_caller_table, n->u.ident);
+        else if (isSymbolInTable(fun_caller_table, n->u.ident)){
+            s = getSymbolInTableByName(fun_caller_table, n->u.ident);
         } 
         else {
             raiseError(fc_root->lineno, "Too many parameters given in function '%s'", fun_caller_table->name_table);
@@ -109,17 +109,17 @@ static int check_param_function_call(Symbol_table *fun_caller_table, Symbol_tabl
 
 }
 
-static int function_call_sem_parser(Node *fc_node, List table, char *name_fun_caller, char *name_fun_called){
+static int functionCallCheck(Node *fc_node, List table, char *callerFunctionName, char *calledFunctionName){
 
-    Symbol_table *global_table = get_table_by_name(GLOBAL, table);
-    Symbol_table *fun_caller_table = get_table_by_name(name_fun_caller, table);
-    Symbol_table *fun_called_table = get_table_by_name(name_fun_called, table);
+    Symbol_table *tableGlobal = getTableInListByName(GLOBAL, table);
+    Symbol_table *tableCallerFunction = getTableInListByName(callerFunctionName, table);
+    Symbol_table *tableCalledFunction = getTableInListByName(calledFunctionName, table);
     
-    if(!fun_called_table){
-        raiseError(fc_node->lineno, "Trying to call a non-existing function : '%s'\n", name_fun_called);
+    if(!tableCalledFunction){
+        raiseError(fc_node->lineno, "Trying to call a non-existing function : '%s'\n", calledFunctionName);
         return 0;
     }
-    if(!check_param_function_call(fun_caller_table, fun_called_table, global_table, fc_node)){
+    if(!functionCallParamCheck(tableCallerFunction, tableCalledFunction, tableGlobal, fc_node)){
         return 0;
     }
 
@@ -128,7 +128,7 @@ static int function_call_sem_parser(Node *fc_node, List table, char *name_fun_ca
 
 
 
-static int equal_check(Node *eq, List tab, char *name_tab){
+static int equalCompareCheck(Node *eq, List tab, char *name_tab){
 
     Symbol_table* global_tab;
     Symbol_table* function_tab;
@@ -136,13 +136,13 @@ static int equal_check(Node *eq, List tab, char *name_tab){
     Node *var2 = eq->firstChild->nextSibling;
 
 
-    global_tab = get_table_by_name(GLOBAL, tab);
-    function_tab = get_table_by_name(name_tab, tab);
+    global_tab = getTableInListByName(GLOBAL, tab);
+    function_tab = getTableInListByName(name_tab, tab);
 
     if(var1->label == Variable){
         char id1[20];
         strcpy(id1, var1->u.ident);
-        if(!(is_symbol_in_table(global_tab,id1)) && !(is_symbol_in_table(function_tab,id1))){
+        if(!(isSymbolInTable(global_tab,id1)) && !(isSymbolInTable(function_tab,id1))){
             raiseError(var1->lineno, "variable '%s' neither declared as local in function %s or as globals\n", id1, name_tab);
             return 0;
         }
@@ -150,7 +150,7 @@ static int equal_check(Node *eq, List tab, char *name_tab){
 
     if(var2->label == Variable){
         char* id2 = var2->u.ident;
-        if(!(is_symbol_in_table(global_tab,id2)) && !(is_symbol_in_table(function_tab,id2))){
+        if(!(isSymbolInTable(global_tab,id2)) && !(isSymbolInTable(function_tab,id2))){
 
             raiseError(var2->lineno, "Variable '%s' undeclared neither as global or local\n", id2);
             return 0;
@@ -165,14 +165,14 @@ static int equal_check(Node *eq, List tab, char *name_tab){
 }
 
 
-int assign_check(Node *assign, List tab, char *name_tab){
+int assignCheck(Node *assign, List tab, char *name_tab){
     
     Symbol_table *global_tab;
     Symbol_table *function_tab;
     Symbol_table *fun_called;
     int check = 0;
-    global_tab = get_table_by_name(GLOBAL, tab);
-    function_tab = get_table_by_name(name_tab, tab);
+    global_tab = getTableInListByName(GLOBAL, tab);
+    function_tab = getTableInListByName(name_tab, tab);
 
     Node *lValue = FIRSTCHILD(assign);
     Node *rValue = SECONDCHILD(assign);
@@ -187,19 +187,19 @@ int assign_check(Node *assign, List tab, char *name_tab){
 
     if(lValue->label == Variable){
         
-        check += is_symbol_in_table(global_tab, lValue->u.ident);
-        if(is_symbol_in_table(function_tab, lValue->u.ident)){
-            Symbol s = get_symbol_by_name(function_tab, lValue->u.ident);
+        check += isSymbolInTable(global_tab, lValue->u.ident);
+        if(isSymbolInTable(function_tab, lValue->u.ident)){
+            Symbol s = getSymbolInTableByName(function_tab, lValue->u.ident);
             if(s.kind != FUNCTION){
                 check += 1;
             } 
             if (rValue->label == FunctionCall){
-                if(!function_call_sem_parser(rValue, tab, name_tab, rValue->u.ident)){
+                if(!functionCallCheck(rValue, tab, name_tab, rValue->u.ident)){
                     return 0;
                 }
-                fun_called = get_table_by_name(rValue->u.ident, tab);
+                fun_called = getTableInListByName(rValue->u.ident, tab);
 
-                Symbol fun = get_symbol_by_name(fun_called, rValue->u.ident);
+                Symbol fun = getSymbolInTableByName(fun_called, rValue->u.ident);
 
                 if(lType != fun.u.f_type.return_type){
                     raiseWarning(rValue->lineno, "Return type of function '%s' doesn't match with the assigned variable\n", rValue->u.ident);
@@ -221,42 +221,42 @@ int assign_check(Node *assign, List tab, char *name_tab){
  * @param table 
  * @return int 1 if the parse returned no error, 0 if there is at least 1 sem error
  */
-int parse_sem_error(Node *n, List table, char *name_table){
+int parseSemErrorAux(Node *n, List table, char *name_table){
     if (!n){
         return 1;
     }
-    if(n->label == EnTeteFonct) return parse_sem_error(n->nextSibling, table, name_table);
-    if(n->label == DeclFonct) return parse_sem_error(n->firstChild->nextSibling, table, name_table);
+    if(n->label == EnTeteFonct) return parseSemErrorAux(n->nextSibling, table, name_table);
+    if(n->label == DeclFonct) return parseSemErrorAux(n->firstChild->nextSibling, table, name_table);
     switch(n->label){
         case FunctionCall:
-            return function_call_sem_parser(n, table, name_table, n->u.ident) && parse_sem_error(n->nextSibling, table, name_table) && parse_sem_error(n->firstChild, table, name_table);
+            return functionCallCheck(n, table, name_table, n->u.ident) && parseSemErrorAux(n->nextSibling, table, name_table) && parseSemErrorAux(n->firstChild, table, name_table);
         case Variable: 
-            return variable_call_sem_parser(n, table, name_table) && parse_sem_error(n->nextSibling, table, name_table);
+            return variableExistCheck(n, table, name_table) && parseSemErrorAux(n->nextSibling, table, name_table);
         case Assign:
-            return assign_check(n, table, name_table) && parse_sem_error(n->nextSibling, table, name_table) && parse_sem_error(n->firstChild, table, name_table);
+            return assignCheck(n, table, name_table) && parseSemErrorAux(n->nextSibling, table, name_table) && parseSemErrorAux(n->firstChild, table, name_table);
         case Eq:
-            return equal_check(n, table, name_table) && parse_sem_error(n->nextSibling, table, name_table) && parse_sem_error(n->firstChild, table, name_table);
+            return equalCompareCheck(n, table, name_table) && parseSemErrorAux(n->nextSibling, table, name_table) && parseSemErrorAux(n->firstChild, table, name_table);
         default:
-            return parse_sem_error(n->nextSibling, table, name_table) && parse_sem_error(n->firstChild, table, name_table);
+            return parseSemErrorAux(n->nextSibling, table, name_table) && parseSemErrorAux(n->firstChild, table, name_table);
     }
 }
 
-int parse_sem_function_error(Node *node, List table){
+int parseSemError(Node *node, List table){
     if(!node){
         return 1;
     }
-    if(!get_table_by_name("main", table)){
+    if(!getTableInListByName("main", table)){
         raiseError(-1, "No main function in this program\n");
         check_sem_err = 1;
         return 0;
     }
     if(node->label != DeclFoncts){
-        return parse_sem_function_error(node->nextSibling, table) && parse_sem_function_error(node->firstChild, table);
+        return parseSemError(node->nextSibling, table) && parseSemError(node->firstChild, table);
     }
     else{
-        //We suppose in declfoncts
+        //We suppose the node in declfoncts
         for(Node *n = node->firstChild; n; n = n->nextSibling){
-            if(!parse_sem_error(n, table, getFuncNameFromDecl(n))){
+            if(!parseSemErrorAux(n, table, getFuncNameFromDecl(n))){
                 return 0;
             }
         }

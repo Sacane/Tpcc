@@ -28,12 +28,10 @@ typedef struct list_table{
 
 List init_table_list();
 
-int insert_table(List list, Symbol_table *table);
+int insertSymbolTableInList(List list, Symbol_table *table);
 void print_chained_list(List lst);
 List build_list_table(Node *root);
-int treat_simple_sub_in_main(Node *root);
-
-Symbol_table *get_table_by_name(char *name_table, List table_list);
+Symbol_table *getTableInListByName(char *name_table, List table_list);
 
 void free_table();
 
