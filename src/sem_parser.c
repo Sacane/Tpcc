@@ -151,7 +151,6 @@ static int equalCompareCheck(Node *eq, List tab, char *name_tab){
     if(var2->label == Variable){
         char* id2 = var2->u.ident;
         if(!(isSymbolInTable(global_tab,id2)) && !(isSymbolInTable(function_tab,id2))){
-
             raiseError(var2->lineno, "Variable '%s' undeclared neither as global or local\n", id2);
             return 0;
         }
@@ -165,14 +164,14 @@ static int equalCompareCheck(Node *eq, List tab, char *name_tab){
 }
 
 
-int assignCheck(Node *assign, List tab, char *name_tab){
+int assignCheck(Node *assign, List tab, char *nameTable){
     
     Symbol_table *global_tab;
     Symbol_table *function_tab;
-    Symbol_table *fun_called;
+    Symbol_table *calledTable;
     int check = 0;
     global_tab = getTableInListByName(GLOBAL, tab);
-    function_tab = getTableInListByName(name_tab, tab);
+    function_tab = getTableInListByName(nameTable, tab);
 
     Node *lValue = FIRSTCHILD(assign);
     Node *rValue = SECONDCHILD(assign);
@@ -194,12 +193,13 @@ int assignCheck(Node *assign, List tab, char *name_tab){
                 check += 1;
             } 
             if (rValue->label == FunctionCall){
-                if(!functionCallCheck(rValue, tab, name_tab, rValue->u.ident)){
+                if(!functionCallCheck(rValue, tab, nameTable, rValue->u.ident)){
+                    raiseError(rValue->lineno, "Function call failed : \n");
                     return 0;
                 }
-                fun_called = getTableInListByName(rValue->u.ident, tab);
+                calledTable = getTableInListByName(rValue->u.ident, tab);
 
-                Symbol fun = getSymbolInTableByName(fun_called, rValue->u.ident);
+                Symbol fun = getSymbolInTableByName(calledTable, rValue->u.ident);
 
                 if(lType != fun.u.f_type.return_type){
                     raiseWarning(rValue->lineno, "Return type of function '%s' doesn't match with the assigned variable\n", rValue->u.ident);
@@ -221,7 +221,7 @@ int assignCheck(Node *assign, List tab, char *name_tab){
  * @param table 
  * @return int 1 if the parse returned no error, 0 if there is at least 1 sem error
  */
-int parseSemErrorAux(Node *n, List table, char *name_table){
+static int parseSemErrorAux(Node *n, List table, char *name_table){
     if (!n){
         return 1;
     }
@@ -254,9 +254,9 @@ int parseSemError(Node *node, List table){
         return parseSemError(node->nextSibling, table) && parseSemError(node->firstChild, table);
     }
     else{
-        //We suppose the node in declfoncts
         for(Node *n = node->firstChild; n; n = n->nextSibling){
             if(!parseSemErrorAux(n, table, getFuncNameFromDecl(n))){
+                
                 return 0;
             }
         }

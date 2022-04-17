@@ -60,7 +60,7 @@ Symbol getSymbolInTableByName(Symbol_table *table, char *symbolName);
  * @param table 
  * @return int 
  */
-int insert_symbol_in_table(Symbol symbol, Symbol_table *table);
+int insertSymbol(Symbol symbol, Symbol_table *table);
 
 /**
  * @brief Create a global variable table object
@@ -75,7 +75,7 @@ Symbol_table *buildGlobalVariableSymbolTable(Node *tree);
  * 
  * @param tab 
  */
-void print_symbol_table(Symbol_table *tab);
+void printSymbolTable(Symbol_table *tab);
 
 /**
  * @brief 

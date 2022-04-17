@@ -26,14 +26,52 @@ typedef struct list_table{
 
 }Table, *List;
 
-List init_table_list();
+/**
+ * @brief 
+ * 
+ * @return List 
+ */
+List newSymbolTableList();
 
-int insertSymbolTableInList(List list, Symbol_table *table);
-void print_chained_list(List lst);
-List build_list_table(Node *root);
-Symbol_table *getTableInListByName(char *name_table, List table_list);
+/**
+ * @brief 
+ * 
+ * @param list 
+ * @param symbolTableList 
+ * @return int 
+ */
+int insertSymbolTableInList(List list, Symbol_table *symbolTableList);
 
-void free_table();
+/**
+ * @brief 
+ * 
+ * @param lst 
+ */
+void printSymbolTableList(List lst);
+
+/**
+ * @brief 
+ * 
+ * @param root 
+ * @return List 
+ */
+List buildSymbolTableListFromRoot(Node *root);
+
+/**
+ * @brief Get the Table In List By its Name object
+ * 
+ * @param nameTable 
+ * @param symbolTableList 
+ * @return Symbol_table* 
+ */
+Symbol_table *getTableInListByName(char *nameTable, List symbolTableList);
+
+
+/**
+ * @brief free the memory of the symbol table
+ * 
+ */
+void free_table(Symbol_table *symbolTable);
 
 
 #endif

@@ -69,17 +69,18 @@ static int realloc_table(Symbol_table *table, unsigned long hashkey){
             table->s[i] = calloc_symbol();
         }
     }
+    return 1;
 }
 
-int insert_symbol_in_table(Symbol symbol, Symbol_table *table){
+int insertSymbol(Symbol symbol, Symbol_table *table){
     Symbol *s;
     int i;
     unsigned long hashKey = hash(symbol.symbol_name);
     realloc_table(table, hashKey);
     if(table->s[hash(symbol.symbol_name)].symbol_name && !strcmp(table->s[hash(symbol.symbol_name)].symbol_name, symbol.symbol_name)){
+        raiseWarning(symbol.lineno, "Symbol '%s' already in table\n", symbol.symbol_name);
         return 0;
-    }
-    else{
+    } else {
         table->s[hashKey] = symbol;
         table->nb_symbol += 1;
     }
@@ -112,7 +113,7 @@ Symbol_table *buildGlobalVariableSymbolTable(Node *tree){
     Symbol_table *table = newSymbolTable(GLOBAL);
     Symbol symbol;
     PrimType type;
-    int currentOffset = 0, number_globals = 0;
+    int currentOffset = 0, nbGlobals = 0;
     if (!(tree->firstChild)){
         return NULL;
     }
@@ -122,14 +123,14 @@ Symbol_table *buildGlobalVariableSymbolTable(Node *tree){
         Kind kind = VARIABLE;
         type = (strcmp("int", child->u.ident) == 0) ? INT : CHAR;
         for(Node *grandChild = child->firstChild; grandChild; grandChild = grandChild->nextSibling){
-            Symbol s = create_symbol(grandChild->u.ident, kind, type, currentOffset, grandChild->lineno);
-            insert_symbol_in_table(s, table);
+            Symbol s = newSymbol(grandChild->u.ident, kind, type, currentOffset, grandChild->lineno);
+            insertSymbol(s, table);
 
-            number_globals += 1;
+            nbGlobals += 1;
             currentOffset += 8;
         }
     }
-    table->total_size = number_globals;
+    table->total_size = nbGlobals;
     
     
     return table;
@@ -137,7 +138,7 @@ Symbol_table *buildGlobalVariableSymbolTable(Node *tree){
 
 
 
-void print_symbol_table(Symbol_table *tab){
+void printSymbolTable(Symbol_table *tab){
     int pos;
     if(tab == NULL){
         printf("NULL \n");

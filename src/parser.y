@@ -229,7 +229,7 @@ int main(int argc, char **argv){
         printTree(rootProg);
     }
     List list;
-    list = build_list_table(rootProg);
+    list = buildSymbolTableListFromRoot(rootProg);
     if (check_sem_err || !list){
         return 2;
     }

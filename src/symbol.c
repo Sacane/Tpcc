@@ -2,7 +2,7 @@
 
 
 
-Symbol create_symbol(char *name, Kind kind, PrimType type, int offset, int lineno){
+Symbol newSymbol(char *name, Kind kind, PrimType type, int offset, int lineno){
     Symbol symbol;
 
     symbol.symbol_name = (char*) malloc(sizeof(char) * strlen(name));
@@ -19,7 +19,7 @@ Symbol create_symbol(char *name, Kind kind, PrimType type, int offset, int linen
 
 }
 
-Symbol create_func_sym(char *name_func, PrimType return_type, PrimType arg_types[], int n_args, int is_void){
+Symbol newFunctionSymbol(char *name_func, PrimType return_type, PrimType arg_types[], int n_args, int is_void){
     Symbol func_sym;
     int i;
     func_sym.symbol_name = (char*) malloc(sizeof(char) * strlen(name_func));
@@ -80,9 +80,7 @@ void free_symbol(Symbol *s){
     free(s->symbol_name);
 }
 
-
-
-PrimType str_to_tpcType(char* type){
+PrimType stringOfTpcType(char* type){
 
     if(strcmp(type, "int") == 0){
         return INT;

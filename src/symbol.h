@@ -52,21 +52,74 @@ typedef struct symbol{
 
 }Symbol;
 
+/**
+ * @brief 
+ * 
+ * @return Symbol 
+ */
 Symbol calloc_symbol();
 
+/**
+ * @brief 
+ * 
+ * @param symbol 
+ * @return int 
+ */
 int is_symbol_null(Symbol symbol);
 
-Symbol create_symbol(char *name, Kind kind, PrimType type, int offset, int lineno);
+/**
+ * @brief 
+ * 
+ * @param name 
+ * @param kind 
+ * @param type 
+ * @param offset 
+ * @param lineno 
+ * @return Symbol 
+ */
+Symbol newSymbol(char *name, Kind kind, PrimType type, int offset, int lineno);
 
-PrimType str_to_tpcType(char* type);
+/**
+ * @brief 
+ * 
+ * @param type 
+ * @return PrimType 
+ */
+PrimType stringOfTpcType(char* type);
 
+/**
+ * @brief 
+ * 
+ * @param s 
+ */
 void print_symbol(Symbol s);
 
+/**
+ * @brief 
+ * 
+ * @param t 
+ * @return char* 
+ */
 char * string_from_type(PrimType t);
 
+/**
+ * @brief 
+ * 
+ * @param s 
+ */
 void free_symbol(Symbol *s);
 
-Symbol create_func_sym(char *name_func, PrimType return_type, PrimType arg_types[], int n_args, int is_void);
+/**
+ * @brief Initialize a symbol for functions
+ * 
+ * @param name_func 
+ * @param return_type 
+ * @param arg_types 
+ * @param n_args 
+ * @param is_void 
+ * @return Symbol 
+ */
+Symbol newFunctionSymbol(char *name_func, PrimType return_type, PrimType arg_types[], int n_args, int is_void);
 
 
 

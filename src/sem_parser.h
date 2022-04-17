@@ -4,7 +4,13 @@
 
 #include "table-parser.h"
 
-
+/**
+ * @brief 
+ * 
+ * @param node 
+ * @param table 
+ * @return int 
+ */
 int parseSemError(Node *node, List table);
 
 

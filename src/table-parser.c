@@ -1,7 +1,7 @@
 #include "table-parser.h"
 
 
-List init_table_list(Symbol_table *table){
+List newSymbolTableList(Symbol_table *table){
     List ls_table;
     
     if(!(ls_table = (List)malloc(sizeof(Table)))){
@@ -26,7 +26,7 @@ int insertSymbolTableInList(List list, Symbol_table *table){
         return 1;
     }
     for(tmp; tmp->next; tmp = tmp->next){}
-    tmp->next = init_table_list(table);
+    tmp->next = newSymbolTableList(table);
     if(!tmp->next){
         raiseError(-1, "Error while insert the table\n");
         return 0;
@@ -35,26 +35,26 @@ int insertSymbolTableInList(List list, Symbol_table *table){
     return 1;
 }
 
-void print_chained_list(List lst){
+void printSymbolTableList(List lst){
 
     List tmp = lst;
     if(!lst){
         return;
     }
     while(tmp != NULL){
-        print_symbol_table(tmp->table);
+        printSymbolTable(tmp->table);
         tmp = tmp->next;
     }
 }
 
-List build_list_table(Node *root){
+List buildSymbolTableListFromRoot(Node *root){
 
     List list;
     Node* functions_root;
     PrimType function_t;
     int i = 0, is_void, nb_args = 0, global_offset = 0;
     Symbol_table *globals_table = buildGlobalVariableSymbolTable(root);
-    list = init_table_list(NULL);
+    list = newSymbolTableList(NULL);
     insertSymbolTableInList(list, globals_table);
     functions_root = root->firstChild->nextSibling; //On DeclFoncts
     //parse of the DeclFonct
@@ -68,7 +68,7 @@ List build_list_table(Node *root){
         Node *function_type = header_function->firstChild;
 
         is_void = (SECONDCHILD(header_function))->firstChild->label == Void ? 1 : 0; 
-        function_t = str_to_tpcType(function_type->u.ident);
+        function_t = stringOfTpcType(function_type->u.ident);
         Symbol_table *table = newSymbolTable(function_type->firstChild->u.ident);
         Node *params = function_type->nextSibling;
         Symbol s;
@@ -78,10 +78,10 @@ List build_list_table(Node *root){
             for (Node *paramType = params->firstChild; paramType; paramType = paramType->nextSibling){
                 //parametres
                 Kind k = PARAM;
-                PrimType type = str_to_tpcType(paramType->u.ident);
+                PrimType type = stringOfTpcType(paramType->u.ident);
                 Node* id = paramType->firstChild;
-                s = create_symbol(id->u.ident, k, type, 0, id->lineno);
-                insert_symbol_in_table(s, table);
+                s = newSymbol(id->u.ident, k, type, 0, id->lineno);
+                insertSymbol(s, table);
                 table->nb_parameter += 1;
 
                 //symbol de structure de fonction
@@ -91,8 +91,8 @@ List build_list_table(Node *root){
         }
 
 
-        Symbol params_sym = create_func_sym(function_type->firstChild->u.ident, function_t, param_types, nb_args, is_void);
-        insert_symbol_in_table(params_sym, table);
+        Symbol params_sym = newFunctionSymbol(function_type->firstChild->u.ident, function_t, param_types, nb_args, is_void);
+        insertSymbol(params_sym, table);
 
         //=========================== Function's body ===========================
 
@@ -100,11 +100,11 @@ List build_list_table(Node *root){
         //Function's local variable :
         Node* local = body->firstChild;
         for(Node* local_node = local->firstChild; local_node; local_node = local_node->nextSibling){
-            PrimType type = str_to_tpcType(local_node->u.ident); // type's variable
+            PrimType type = stringOfTpcType(local_node->u.ident); // type's variable
             Kind kind = VARIABLE;
             for(Node *id = local_node->firstChild; id; id = id->nextSibling){
-                s = create_symbol(id->u.ident, kind, type, 0, id->lineno);
-                insert_symbol_in_table(s, table);
+                s = newSymbol(id->u.ident, kind, type, 0, id->lineno);
+                insertSymbol(s, table);
             }
         }
         insertSymbolTableInList(list, table);
@@ -113,16 +113,16 @@ List build_list_table(Node *root){
 }
 
 /**
- * @brief Get the table by name object
+ * @brief get symbol table in list by its name
  * @warning may return null
  * @param name_table 
- * @param table_list 
+ * @param SymbolTableList 
  * @return Symbol_table* 
  */
-Symbol_table *getTableInListByName(char *name_table, List table_list){
+Symbol_table *getTableInListByName(char *name_table, List SymbolTableList){
     
-    List tmp = table_list;
-    if(!table_list){
+    List tmp = SymbolTableList;
+    if(!SymbolTableList){
         return NULL;
     }
     

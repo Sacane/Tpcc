@@ -23,8 +23,19 @@ typedef enum {
     N_OR
 }NasmFunCall;
 
-
+/**
+ * @brief 
+ * 
+ * @param root 
+ * @param list 
+ */
 void buildNasmFile(Node *root, List list);
+
+/**
+ * @brief 
+ * 
+ * @param fname 
+ */
 void makeExecutable(char *fname);
 
 
