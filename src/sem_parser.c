@@ -61,7 +61,7 @@ static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *
     for(Node *n = fc_root->firstChild; n; n = n->nextSibling){
         if(isPrimLabelNode(n)){
             if (labelToPrim(n->label) != params.u.f_type.args_types[i]){
-                raiseWarning(n->lineno, "When trying to call '%s' -> Expected type '%s' but the given type was '%s'\n", fc_root->u.ident, string_from_type(params.u.f_type.args_types[i]), string_from_type(labelToPrim(n->label)));
+                raiseWarning(n->lineno, "When trying to call '%s' -> Expected type '%s' but the given type was '%s'\n", fc_root->u.ident, stringOfType(params.u.f_type.args_types[i]), stringOfType(labelToPrim(n->label)));
                 i++;
                 continue;
             }
@@ -96,7 +96,7 @@ static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *
                     raiseWarning(fc_root->lineno, "Variable '%s' is type char but function '%s' expected type int\n", s.symbol_name, params.symbol_name);
                 }
             }
-            raiseError(fc_root->lineno, "symbol name parameters n°%d : %s type : %s -> type expected : %s \n", i, s.symbol_name, string_from_type(s.u.p_type), string_from_type(params.u.f_type.args_types[i]));
+            raiseError(fc_root->lineno, "symbol name parameters n°%d : %s type : %s -> type expected : %s \n", i, s.symbol_name, stringOfType(s.u.p_type), stringOfType(params.u.f_type.args_types[i]));
             return 0;
         }
         i++;

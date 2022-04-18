@@ -100,7 +100,7 @@ void print_symbol(Symbol s);
  * @param t 
  * @return char* 
  */
-char * string_from_type(PrimType t);
+char * stringOfType(PrimType t);
 
 /**
  * @brief 

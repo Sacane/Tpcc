@@ -93,7 +93,7 @@ PrimType stringOfTpcType(char* type){
     }
 }
 
-char * string_from_type(PrimType t){
+char * stringOfType(PrimType t){
     switch (t){
         case INT:
             return "int";

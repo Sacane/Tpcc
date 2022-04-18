@@ -6,14 +6,23 @@ FILE *f;
 
 
 
-void init_global_asm(int size){
+static void initBss(int globalBssSize, List listTable){
     fprintf(f, "section .bss\n");
-    fprintf(f, "global_var: resq %d\n", size);
+    fprintf(f, "global_var: resq %d\n", globalBssSize);
+    for(List l = listTable; l; l = l->next){
+        Symbol_table *st = l->table;
+        if(strcmp(st->name_table, GLOBAL) == 0){
+            continue;
+        }
+        fprintf(f, "%s: resq %d\n", st->name_table, st->total_size);
+    }
 }
 
-void writeNasmHeader(int total_global_size){
+void writeNasmHeader(int globalBssSize, List listTable){
+    
 
-    init_global_asm(total_global_size);
+    initBss(globalBssSize, listTable);
+    
     fprintf(f, "section  .text\nglobal  _start\nextern my_putchar\nextern my_getint\n_start:\n");   
     
 }
@@ -253,7 +262,8 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable){
             break;
         case '/':
             sprintf(buf, "%d", denominator);
-            writeNasmFunction(DIV, buf, NULL);
+            writeNasmFunction(MOV, "bl", buf);
+            writeNasmFunction(DIV, "bl", NULL);
             break;
         case '%':
             sprintf(buf, "%d", denominator);
@@ -318,7 +328,7 @@ void assign_global_var(Symbol_table *symbolTableOfGlobal, FILE* in, Node *assign
 
 
 //TODO
-static void parsingTree(Node *root, Symbol_table *global_var_table){
+static void nasmTranslateParsing(Node *root, Symbol_table *global_var_table){
 
     if(!root) {
         return;
@@ -326,12 +336,9 @@ static void parsingTree(Node *root, Symbol_table *global_var_table){
 
     if(root->label == Assign && isSymbolInTable(global_var_table, FIRSTCHILD(root)->u.ident)){
         assign_global_var(global_var_table, f, root);
-        /*if(SECONDCHILD(root)->label == Addsub){
-            opTranslate(SECONDCHILD(root), global_var_table);
-        }*/
     }
-    parsingTree(root->firstChild, global_var_table);
-    parsingTree(root->nextSibling, global_var_table);
+    nasmTranslateParsing(root->firstChild, global_var_table);
+    nasmTranslateParsing(root->nextSibling, global_var_table);
 }
 
 
@@ -340,8 +347,8 @@ void buildNasmFile(Node *root, List list){
     Symbol_table *table;
     table = getTableInListByName(GLOBAL, list);
     
-    writeNasmHeader(table->total_size);
-    parsingTree(root, table); //TODO
+    writeNasmHeader(table->total_size, list);
+    nasmTranslateParsing(root, table); 
     end_asm();
 }
 

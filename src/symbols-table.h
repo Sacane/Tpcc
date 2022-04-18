@@ -27,7 +27,7 @@ typedef struct table{
     Type *parameters;   
     int nb_parameter;   //Its a functions's symbol table
     int total_size;
-
+    
     union {
         int number_globals;
     }u;

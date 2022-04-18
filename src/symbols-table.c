@@ -32,7 +32,7 @@ Symbol_table *newSymbolTable(char *name_table){
     table->total_size = 0;
     table->size = INIT_TABLE_SIZ;
     table->nb_parameter = 0;
-
+    table->u.number_globals = 0;
     for(i = 0; i < INIT_TABLE_SIZ; i++){
         table->s[i] = calloc_symbol();
     }
@@ -110,9 +110,9 @@ PrimType labelToPrim(label_t label){
 
 /* We suppose there is a var node */
 Symbol_table *buildGlobalVariableSymbolTable(Node *tree){
-    Symbol_table *table = newSymbolTable(GLOBAL);
     Symbol symbol;
     PrimType type;
+    Symbol_table *table = newSymbolTable(GLOBAL);
     int currentOffset = 0, nbGlobals = 0;
     if (!(tree->firstChild)){
         return NULL;
@@ -125,14 +125,11 @@ Symbol_table *buildGlobalVariableSymbolTable(Node *tree){
         for(Node *grandChild = child->firstChild; grandChild; grandChild = grandChild->nextSibling){
             Symbol s = newSymbol(grandChild->u.ident, kind, type, currentOffset, grandChild->lineno);
             insertSymbol(s, table);
-
             nbGlobals += 1;
             currentOffset += 8;
         }
     }
     table->total_size = nbGlobals;
-    
-    
     return table;
 }
 

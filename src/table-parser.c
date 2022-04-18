@@ -53,6 +53,7 @@ List buildSymbolTableListFromRoot(Node *root){
     Node* functions_root;
     PrimType function_t;
     int i = 0, is_void, nb_args = 0, global_offset = 0;
+    int totalFuncOffset = 0, totalLocalVariable = 0;
     Symbol_table *globals_table = buildGlobalVariableSymbolTable(root);
     list = newSymbolTableList(NULL);
     insertSymbolTableInList(list, globals_table);
@@ -61,6 +62,7 @@ List buildSymbolTableListFromRoot(Node *root){
     for(Node* function_root = functions_root->firstChild; function_root; function_root = function_root->nextSibling){
     
         nb_args = 0;
+        totalLocalVariable = 0;
         // =============== Management of the functions's header ==================
 
         Node* header_function = function_root->firstChild;
@@ -99,22 +101,28 @@ List buildSymbolTableListFromRoot(Node *root){
         Node* body = header_function->nextSibling;
         //Function's local variable :
         Node* local = body->firstChild;
-        for(Node* local_node = local->firstChild; local_node; local_node = local_node->nextSibling){
-            PrimType type = stringOfTpcType(local_node->u.ident); // type's variable
+        totalFuncOffset = 0;
+        for(Node* localVarNode = local->firstChild; localVarNode; localVarNode = localVarNode->nextSibling){
+
+            totalLocalVariable += 1;
+            PrimType type = stringOfTpcType(localVarNode->u.ident); // type's variable
             Kind kind = VARIABLE;
-            for(Node *id = local_node->firstChild; id; id = id->nextSibling){
-                s = newSymbol(id->u.ident, kind, type, 0, id->lineno);
+            for(Node *id = localVarNode->firstChild; id; id = id->nextSibling){
+                
+                s = newSymbol(id->u.ident, kind, type, totalFuncOffset, id->lineno);
                 insertSymbol(s, table);
+                totalFuncOffset += 8;
             }
         }
+        table->total_size = totalLocalVariable;
         insertSymbolTableInList(list, table);
     }
     return list;
 }
 
 /**
- * @brief get symbol table in list by its name
- * @warning may return null
+ * @brief To get the symbol table stored in the StList
+ * @warning may return null if the table doesn't exist
  * @param name_table 
  * @param SymbolTableList 
  * @return Symbol_table* 
