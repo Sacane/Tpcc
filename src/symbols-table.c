@@ -40,9 +40,6 @@ Symbol_table *newSymbolTable(char *name_table){
 }
 
 
-int is_identifier_key_in_table(Symbol_table *table, unsigned long symbol_key){
-    return (table->s[symbol_key].symbol_name != NULL);
-}
 
 Symbol getSymbolInTableByName(Symbol_table *table, char *symbolName){
     return table->s[hash(symbolName)];
@@ -109,16 +106,17 @@ PrimType labelToPrim(label_t label){
 }
 
 /* We suppose there is a var node */
-Symbol_table *buildGlobalVariableSymbolTable(Node *tree){
+Symbol_table *buildGlobalVariableSymbolTable(Node *root){
     Symbol symbol;
     PrimType type;
     Symbol_table *table = newSymbolTable(GLOBAL);
     int currentOffset = 0, nbGlobals = 0;
-    if (!(tree->firstChild)){
+    if (!(root->firstChild)){
         return NULL;
     }
-    Node *nodeVars = tree->firstChild; /* Node of DeclVars according to our tree */
+    Node *nodeVars = FIRSTCHILD(root); /* Node of DeclVars according to our tree */
     
+    //Variable globaux
     for (Node *child = nodeVars->firstChild; child; child = child->nextSibling) {
         Kind kind = VARIABLE;
         type = (strcmp("int", child->u.ident) == 0) ? INT : CHAR;
@@ -129,6 +127,7 @@ Symbol_table *buildGlobalVariableSymbolTable(Node *tree){
             currentOffset += 8;
         }
     }
+
     table->total_size = nbGlobals;
     return table;
 }

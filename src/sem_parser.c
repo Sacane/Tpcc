@@ -214,6 +214,7 @@ int assignCheck(Node *assign, List tab, char *nameTable){
     return 0;
 }
 
+
 /**
  * @brief parse the tree and check if there is a sem error or not
  * 

@@ -29,7 +29,7 @@ Node* root;
   char comp[3];
 }
 
-%token OR AND RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK
+%token OR AND RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK PUTCHAR
 %token <num> NUM
 %token <ident> IDENT TYPE
 %token <byte>  DIVSTAR ADDSUB CHARACTER
@@ -78,10 +78,11 @@ Instr:
     |  IF '(' Exp ')' Instr                 {$$ = makeNode(If); addChild($$, $3); addChild($$, $5);}
     |  IF '(' Exp ')' Instr ELSE Instr      {$$ = makeNode(If); addChild($$, $3); Node *else_n = makeNode(Else); addSibling($$, else_n); addChild(else_n, $5);}
     |  WHILE '(' Exp ')' Instr              {$$ = makeNode(While); addChild($$, $3); addChild($$, $5);}
-    |  IDENT '(' Arguments  ')' ';'         {$$ = makeNode(FunctionCall); $$->lineno = line_count; strcpy($$->u.ident, $1); addChild($$, $3);}
+    |  IDENT '(' Arguments  ')' ';'         {$$ = makeNode(FunctionCall); $$->lineno = lineno; strcpy($$->u.ident, $1); addChild($$, $3);}
     |  SWITCH '(' Exp ')' '{' SuiteInstr BeginSwitchExpr '}' {$$ = makeNode(Switch); addChild($$,$3); addChild($$,$6); addChild($$,$7);}
     |  RETURN Exp ';'                       {$$ = makeNode(Return); addChild($$, $2);}
-    |  RETURN ';'                           {$$ = makeNode(Return);}
+    |  RETURN ';'                            {$$ = makeNode(Return);}
+    |  PUTCHAR '(' Arguments ')' ';'         {$$ = makeNode(Putchar); addChild($$,$3);}
     |  '{' SuiteInstr '}'                   {$$ = $2;}
     |  ';'                                   {$$ = makeNode(EmptyInstr);}
     ;

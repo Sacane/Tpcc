@@ -4,65 +4,7 @@
 
 FILE *f;
 
-
-
-static void initBss(int globalBssSize, List listTable){
-    fprintf(f, "section .bss\n");
-    fprintf(f, "global_var: resq %d\n", globalBssSize);
-    for(List l = listTable; l; l = l->next){
-        Symbol_table *st = l->table;
-        if(strcmp(st->name_table, GLOBAL) == 0){
-            continue;
-        }
-        fprintf(f, "%s: resq %d\n", st->name_table, st->total_size);
-    }
-}
-
-void writeNasmHeader(int globalBssSize, List listTable){
-    
-
-    initBss(globalBssSize, listTable);
-    
-    fprintf(f, "section  .text\nglobal  _start\nextern my_putchar\nextern my_getint\n_start:\n");   
-    
-}
-
-void end_asm(){
-    fprintf(f, "\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n");
-    fclose(f);
-}
-
-void write_op(Node *opNode){
-    char buf[BUFSIZ];
-    char l_char[BUFSIZ];
-    
-    switch(opNode->u.byte){
-        case '-':
-            switch(FIRSTCHILD(opNode)->label){
-                case Variable:
-                case Int:
-                    sprintf(l_char, "%d", FIRSTCHILD(opNode)->u.num);
-                    break;
-
-            }
-            
-            break;
-        case '+':
-            if(SECONDCHILD(opNode)->label == Variable){
-                
-            }
-            break;
-        default:
-            break;
-    }
-}
-
-
-
-
-
-static char* asm_to_string(NasmFunCall nasmFunction){
-    char writer[10];
+static char* stringOfNasmFun(NasmFunCall nasmFunction){
     switch (nasmFunction){
         case PUSH: return "push";
             break;
@@ -90,12 +32,41 @@ static char* asm_to_string(NasmFunCall nasmFunction){
             break;
         case RET:   return "ret";
             break;
-        case N_AND:   return "add";
+        case N_AND: return "add";
             break;
-        case N_OR:    return "or";
+        case N_OR:  return "or";
+            break;
+        case CALL:  return "call";
             break;
     }
 }
+
+static void initBss(int globalBssSize, List listTable){
+    fprintf(f, "section .bss\n");
+    fprintf(f, "global_var: resq %d\n", globalBssSize);
+    for(List l = listTable; l; l = l->next){
+        Symbol_table *st = l->table;
+        if(strcmp(st->name_table, GLOBAL) == 0){
+            continue;
+        }
+        fprintf(f, "%s: resq %d\n", st->name_table, st->total_size);
+    }
+}
+
+void writeNasmHeader(int globalBssSize, List listTable){
+    
+
+    initBss(globalBssSize, listTable);
+    
+    fprintf(f, "section  .text\nglobal  _start\nextern my_putchar\nextern my_getint\n_start:\n");   
+    
+}
+
+void end_asm(){
+    fprintf(f, "\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n");
+    fclose(f);
+}
+
 
 static int nasmArityOf(NasmFunCall fc){
     switch (fc){
@@ -106,6 +77,7 @@ static int nasmArityOf(NasmFunCall fc){
         case JG:
         case JE:
         case DIV:
+        case CALL:
             return 1;
         case MOV:
         case ADD: 
@@ -133,7 +105,7 @@ static int nasmFunArityCheck(NasmFunCall nasmFunCall, char *var1, char *var2){
     } 
 }
 
-int writeNasmFunction(NasmFunCall nasmFunCall, char *var1, char *var2)
+int nasmCall(NasmFunCall nasmFunCall, char *var1, char *var2)
 {  
     if(!nasmFunArityCheck(nasmFunCall, var1, var2)){
         DEBUG("Fail to write into the nasm generator file : Incorrect usage of writer fun\n");
@@ -142,13 +114,13 @@ int writeNasmFunction(NasmFunCall nasmFunCall, char *var1, char *var2)
 
     switch(nasmArityOf(nasmFunCall)){
         case 0:
-            fprintf(f, "\t%s\n", asm_to_string(nasmFunCall));
+            fprintf(f, "\t%s\n", stringOfNasmFun(nasmFunCall));
             break;
         case 1:
-            fprintf(f, "\t%s %s\n", asm_to_string(nasmFunCall), var1);
+            fprintf(f, "\t%s %s\n", stringOfNasmFun(nasmFunCall), var1);
             break;
         case 2:
-            fprintf(f, "\t%s %s, %s\n", asm_to_string(nasmFunCall), var1, var2);
+            fprintf(f, "\t%s %s, %s\n", stringOfNasmFun(nasmFunCall), var1, var2);
             break;
         default:
             break;
@@ -194,7 +166,7 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable){
             case Character: 
                 a = addSubNode->firstChild->u.num;
                 sprintf(buf, "%d", a);
-                writeNasmFunction(PUSH, buf, NULL);
+                nasmCall(PUSH, buf, NULL);
                 break;
             case Variable:
                 s = getSymbolInTableByName(symbolTable, FIRSTCHILD(addSubNode)->u.ident);
@@ -209,7 +181,7 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable){
                         break;
                 }
                 
-                writeNasmFunction(PUSH, buf, NULL);
+                nasmCall(PUSH, buf, NULL);
                 break;
             default:
                 break;
@@ -226,57 +198,57 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable){
                 a = SECONDCHILD(addSubNode)->u.num;
                 if((addSubNode->u.byte == '/' || addSubNode->u.byte == '%')){
                     if(a == 0){
-                        raiseError(addSubNode->lineno, "Trying to divide by 0 (nuuul)\n");
-                        return;
+                        raiseError(addSubNode->lineno, "Trying to divide by 0\n");
+                        exit(EXIT_FAILURE);
                     } else {
-                        writeNasmFunction(PUSH, "0", NULL);
+                        nasmCall(PUSH, "0", NULL);
                         denominator = a;
                         break;
                     }
                 }
                 sprintf(buf2, "%d", a);
-                writeNasmFunction(PUSH, buf2, NULL);
+                nasmCall(PUSH, buf2, NULL);
                 
                 break;
             case Variable:
                 s = getSymbolInTableByName(symbolTable, SECONDCHILD(addSubNode)->u.ident);
                 sprintf(buf2, "qword [global_var + %d]", s.offset);
-                writeNasmFunction(PUSH, buf2, NULL);
+                nasmCall(PUSH, buf2, NULL);
                 break;
             default:
                 break;
         }
         
     }
-    writeNasmFunction(POP, "rcx", NULL);
-    writeNasmFunction(POP, "rax", NULL);
+    nasmCall(POP, "rcx", NULL);
+    nasmCall(POP, "rax", NULL);
     switch(addSubNode->u.byte){
         case '-':
-            writeNasmFunction(SUB, "rax", "rcx");
+            nasmCall(SUB, "rax", "rcx");
             break;
         case '+':
-            writeNasmFunction(ADD, "rax", "rcx");
+            nasmCall(ADD, "rax", "rcx");
             break;
         case '*':
-            writeNasmFunction(MUL, "rax", "rcx");
+            nasmCall(MUL, "rax", "rcx");
             break;
         case '/':
             sprintf(buf, "%d", denominator);
-            writeNasmFunction(MOV, "bl", buf);
-            writeNasmFunction(DIV, "bl", NULL);
+            nasmCall(MOV, "bl", buf);
+            nasmCall(DIV, "bl", NULL);
             break;
         case '%':
             sprintf(buf, "%d", denominator);
-            writeNasmFunction(DIV, buf, NULL);
+            nasmCall(DIV, buf, NULL);
             break;
     }
     if(addSubNode->u.byte == '%'){
-        writeNasmFunction(PUSH, "rdx", NULL); 
-        writeNasmFunction(MOV, "r12", "rdx");
+        nasmCall(PUSH, "rdx", NULL); 
+        nasmCall(MOV, "r12", "rdx");
     } else {
-        writeNasmFunction(PUSH, "rax", NULL);
+        nasmCall(PUSH, "rax", NULL);
     }
-    writeNasmFunction(MOV, "r12", "rax"); //Pour vérifier l'affichage avec show registers
+    nasmCall(MOV, "r12", "rax"); //Pour vérifier l'affichage avec show registers
 }
 
 //temporaire seulement pour variable global
@@ -292,32 +264,27 @@ void assign_global_var(Symbol_table *symbolTableOfGlobal, FILE* in, Node *assign
         raiseError(assign_node->lineno, "trying to assign numeric or character\n");
         return;
     }
-
     Symbol lVar = getSymbolInTableByName(symbolTableOfGlobal, lValue->u.ident);
-
     switch(rValue->label){
         case Character:
-            DEBUG("Assign character\n");
             c = rValue->u.byte;
             sprintf(buf, "'%c'", c);
             sprintf(buf2, "qword [global_var + %d]", lVar.offset);
-            writeNasmFunction(MOV, buf2, buf);
+            nasmCall(MOV, buf2, buf);
             
             break;
         case Int:
-            DEBUG("Assign integer\n");
             i = rValue->u.num;
             sprintf(buf, "%d", i);
             sprintf(buf2, "qword [global_var + %d]", lVar.offset);
-            writeNasmFunction(MOV, buf2, buf);
+            nasmCall(MOV, buf2, buf);
             break;
         case Addsub:
         case divstar:
-            DEBUG("Assign addition or substraction\n");
             opTranslate(rValue, symbolTableOfGlobal); // Put into r12 value of addition
             sprintf(buf2, "qword [global_var + %d]", lVar.offset);
-            writeNasmFunction(MOV, buf2, "rax");
-            writeNasmFunction(MOV, "rax", "0");
+            nasmCall(MOV, buf2, "rax");
+            nasmCall(MOV, "rax", "0");
             break;
         default:
             raiseWarning(rValue->lineno, "Assign from variable are Not available in this version of compilation\n");
@@ -326,29 +293,73 @@ void assign_global_var(Symbol_table *symbolTableOfGlobal, FILE* in, Node *assign
     }
 }
 
+static void orderTranslate(Node *orderNode){
+    Node *leftExpr = FIRSTCHILD(orderNode);
+    Node *rightExpr = SECONDCHILD(orderNode);
+    
+}
 
-//TODO
+static void writePutchar(Node *putcharNode){
+    char buf[BUFSIZ];
+    char c = FIRSTCHILD(putcharNode)->u.byte;
+    if(c == '\n'){
+        sprintf(buf, "%d", 13);
+        nasmCall(MOV, "rdi", buf);
+        nasmCall(CALL, "my_putchar", NULL);
+        sprintf(buf, "%d", 10);
+        nasmCall(MOV, "rdi", buf);
+        nasmCall(CALL, "my_putchar", NULL);
+        return;
+    } else {
+        sprintf(buf, "'%c'", c);
+    }
+    nasmCall(MOV, "rdi", buf);
+    nasmCall(CALL, "my_putchar", NULL);
+}
+
+//TODO : boolean operations
 static void nasmTranslateParsing(Node *root, Symbol_table *global_var_table){
-
     if(!root) {
+        DEBUG("return\n");
         return;
     }
 
     if(root->label == Assign && isSymbolInTable(global_var_table, FIRSTCHILD(root)->u.ident)){
         assign_global_var(global_var_table, f, root);
     }
+    if(root->label == Putchar){
+        DEBUG("Helo\n");
+        writePutchar(root); 
+    }
+
     nasmTranslateParsing(root->firstChild, global_var_table);
     nasmTranslateParsing(root->nextSibling, global_var_table);
+}
+
+static void orderInstr(Node *orderNode){
+
+}
+
+static void translateMain(Node *root, Symbol_table *global){
+    Node *funs = SECONDCHILD(root);
+    for(Node *n = FIRSTCHILD(funs); n; n = n->nextSibling){
+        if(strcmp("main", n->firstChild->firstChild->firstChild->u.ident) == 0){
+            DEBUG("main\n");
+            nasmTranslateParsing(SECONDCHILD(n), global);
+            return;
+        }
+    }
 }
 
 
 void buildNasmFile(Node *root, List list){
     f = fopen("_anonymous.asm", "wr");
-    Symbol_table *table;
+    Symbol_table *table, *mainTable;
     table = getTableInListByName(GLOBAL, list);
     
     writeNasmHeader(table->total_size, list);
-    nasmTranslateParsing(root, table); 
+
+    translateMain(root, table);
     end_asm();
 }
 

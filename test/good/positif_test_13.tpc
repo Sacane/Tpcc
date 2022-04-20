@@ -1,0 +1,9 @@
+int main(int argc)
+{
+    int e;
+    e = 10;
+    if(8){
+        e = 12;
+    }
+    return 0;
+}

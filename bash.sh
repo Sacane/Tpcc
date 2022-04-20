@@ -5,7 +5,7 @@ make
 test(){
     n=0
     passed=0
-    files=($1)
+    files=($1) #$1 $2 args
     for f in ${files[@]}; do
         let n++
         printf "(%02d/%02d) - %s\n" $n ${#files[@]} "Testing $f..." 
@@ -40,3 +40,5 @@ echo "============== Invalid tests ==============="
 test "./test/sem-err/*.tpc" 2
 
 echo "Done."
+
+make clean

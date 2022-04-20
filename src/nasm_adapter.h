@@ -5,6 +5,7 @@
 #include "table-parser.h"
 
 
+
 typedef enum {
     PUSH,
     POP,
@@ -20,7 +21,8 @@ typedef enum {
     JE,
     RET,
     N_AND,
-    N_OR
+    N_OR,
+    CALL
 }NasmFunCall;
 
 /**

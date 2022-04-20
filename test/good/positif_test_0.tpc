@@ -1,8 +1,37 @@
 int gob1, gob2;
 
-int main(void){
-    int a;
-    gob2 = 10;
-    gob1 = 10 / 10;
+int foo(void){
+    char c;
+    c = '\n';
+    putchar('W');
+    putchar('e');
+    putchar(' ');
+    putchar('g');
+    putchar('o');
+    putchar('t');
+    putchar(' ');
+    putchar('p');
+    putchar('u');
+    putchar('t');
+    putchar('c');
+    putchar('h');
+    putchar('a');
+    putchar('r');
+    putchar('\n');
     return 0;
+}
+
+
+int main(void){
+    putchar('P');
+    putchar('\n');
+    return 1;
+}
+
+int bar(void){
+    int a;
+    a = 0;
+    putchar('b');
+    putchar('\n');
+    return 1;
 }

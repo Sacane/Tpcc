@@ -46,6 +46,7 @@ static const char *StringFromLabel[] = {
   "Case",
   "Default",
   "Break",
+  "Putchar"
   /* list all other node labels, if any */
   /* The list must coincide with the label_t enum in tree.h */
   /* To avoid listing them twice, see https://stackoverflow.com/a/10966395 */
@@ -113,14 +114,18 @@ void printTree(Node *node) {
       break;
     case Addsub:
     case divstar:
-    case Character:
-      printf(" : %c", node->u.byte);
+    case Character: 
+      if(node->u.byte == '\n'){
+        printf(" : \\n");
+      } else {
+        printf(" : %c", node->u.byte);
+      }
+      
       break;
     case Order:
     case Eq:
       printf(": %s", node->u.comp);
       break;
-    
     default:
       break;
   }

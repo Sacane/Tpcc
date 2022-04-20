@@ -32,10 +32,35 @@ switch      {linecharno = linecharno + yyleng; return SWITCH;}
 case        {linecharno = linecharno + yyleng; return CASE;}
 default     {linecharno = linecharno + yyleng; return DEFAULT;}
 break       {linecharno = linecharno + yyleng; return BREAK;}
+putchar     {linecharno = linecharno + yyleng; return PUTCHAR;}
 [0-9]+  	{yylval.num = atoi(yytext); linecharno = linecharno + yyleng; return NUM;}
 "||"        {linecharno = linecharno + yyleng; return OR;}
 "&&"        {linecharno = linecharno + yyleng; return AND;}
-\'.\'|\'[ ]*\'|\'\\t\'|\'\\n\'|\'\\r\'|\'\\b\'|\'\\0\'|\'\\\'	    {yylval.byte = yytext[1]; linecharno = linecharno + yyleng; return CHARACTER;}
+\'.\'|\'[ ]*\'|\'\\t\'|\'\\n\'|\'\\r\'|\'\\b\'|\'\\0\'|\'\\\'	    {
+    if(yytext[1] == '\\'){
+        switch(yytext[2]){
+            case 'n':
+                yylval.byte = '\n';
+                break;
+            case 't':
+                yylval.byte = '\t';
+                break;
+            case 'r':
+                yylval.byte = '\r';
+                break;
+            case 'b':
+                yylval.byte = '\b';
+                break;
+            case '0':
+                yylval.byte = '\0';
+                break;
+        }
+    } else {
+        yylval.byte = yytext[1];
+    }
+    linecharno = linecharno + yyleng; 
+    return CHARACTER;
+}
 " "|\t     {linecharno = linecharno + yyleng;}
 int|char   {strncpy(yylval.ident, yytext, 64); linecharno = linecharno + yyleng; return TYPE;}
 [a-zA-Z_][a-zA-Z0-9_]*            {strncpy(yylval.ident, yytext, 64); linecharno = linecharno + yyleng; return IDENT;}
