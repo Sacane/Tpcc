@@ -29,7 +29,7 @@ Node* root;
   char comp[3];
 }
 
-%token OR AND RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK PUTCHAR
+%token OR AND RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK PUTCHAR PUTINT
 %token <num> NUM
 %token <ident> IDENT TYPE
 %token <byte>  DIVSTAR ADDSUB CHARACTER
@@ -83,6 +83,7 @@ Instr:
     |  RETURN Exp ';'                       {$$ = makeNode(Return); addChild($$, $2);}
     |  RETURN ';'                            {$$ = makeNode(Return);}
     |  PUTCHAR '(' Arguments ')' ';'         {$$ = makeNode(Putchar); addChild($$,$3);}
+    |  PUTINT '(' Arguments ')' ';'          {$$ = makeNode(Putint); addChild($$, $3);}
     |  '{' SuiteInstr '}'                   {$$ = $2;}
     |  ';'                                   {$$ = makeNode(EmptyInstr);}
     ;

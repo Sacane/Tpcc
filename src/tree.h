@@ -43,7 +43,8 @@ typedef enum {
   Case,
   Default,
   Break,
-  Putchar
+  Putchar,
+  Putint
   
   /* list all other node labels, if any */
   /* The list must coincide with the string array in tree.c */

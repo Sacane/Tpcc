@@ -46,7 +46,8 @@ static const char *StringFromLabel[] = {
   "Case",
   "Default",
   "Break",
-  "Putchar"
+  "Putchar",
+  "Putint"
   /* list all other node labels, if any */
   /* The list must coincide with the label_t enum in tree.h */
   /* To avoid listing them twice, see https://stackoverflow.com/a/10966395 */
