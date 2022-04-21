@@ -4,9 +4,9 @@ int a, b;
 
 int main(int argc)
 {
-    a = 1 + 2;
+    a = 0 - 8 + 4 + 192;
     b = 3 / 2;
-    if(a){
+    if(a > 2){
         putchar('A');
         putchar('\n');
         if(b){

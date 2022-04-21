@@ -24,6 +24,10 @@ typedef enum {
     N_OR,
     CALL,
     CMP,
+    JLE,
+    JGE,
+    JL,
+    JNE
 }NasmFunCall;
 
 /**

@@ -3,7 +3,10 @@
 
 #define LABEL_IF "labelId_"
 #define LABEL_ELSE "labelElse_"
-#define LABEL_CODE "labelCode_"
+#define LABEL_CODE "labelCode_" 
+#define OPERATOR 0
+#define VAR 1
+#define CONST 2
 
 FILE *f;
 
@@ -32,6 +35,10 @@ static char* stringOfNasmFun(NasmFunCall nasmFunction){
         case N_OR:  return "or";
         case CALL:  return "call";
         case CMP :  return "cmp";
+        case JLE : return "jle";
+        case JGE : return "jge";
+        case JL: return "jl";
+        case JNE: return "jne";
 
     }
 }
@@ -73,6 +80,10 @@ static int nasmArityOf(NasmFunCall fc){
         case JE:
         case DIV:
         case CALL:
+        case JLE:
+        case JGE:
+        case JL:
+        case JNE:
             return 1;
         case MOV:
         case ADD: 
@@ -244,6 +255,7 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable){
     }
     if(addSubNode->u.byte == '%'){
         nasmCall(PUSH, "rdx", NULL); 
+        nasmCall(MOV, "rax", "rdx");
         nasmCall(MOV, "r12", "rdx");
     } else {
         nasmCall(PUSH, "rax", NULL);
@@ -286,6 +298,7 @@ void assign_global_var(Symbol_table *symbolTableOfGlobal, FILE* in, Node *assign
             sprintf(buf2, "qword [%s + %d]", GLOBAL, lVar.offset);
             nasmCall(MOV, buf2, "rax");
             nasmCall(MOV, "rax", "0");
+            nasmCall(MOV, "rbx", "0");
             break;
         default:
             raiseWarning(rValue->lineno, "Assign from variable are Not available in this version of compilation\n");
@@ -318,6 +331,106 @@ static void writePutchar(Node *putcharNode){
     nasmCall(CALL, "my_putchar", NULL);
 }
 
+int checkNodeContent(Node *n){
+    switch(n->label){
+        case Addsub:
+        case divstar:
+            return OPERATOR;
+        case Variable:
+            return VAR;
+        case Int:
+        case Character:
+            return CONST;
+        default:
+            return -1;
+    }
+}
+
+int compareInstrAux(Node *condNode, List list, Symbol_table *funTable){
+    Node *opLeft, *opRight;
+    int lValue, rValue;
+    Symbol_table *global;
+    Symbol s;
+    
+    opLeft = FIRSTCHILD(condNode);
+    opRight = SECONDCHILD(condNode);
+    char buf[BUFSIZ];
+    int isGlobalLayer;
+
+    global = getTableInListByName(GLOBAL, list);
+
+
+    switch(checkNodeContent(opLeft)){
+        case OPERATOR: {
+            opTranslate(condNode, funTable);  //rax
+            nasmCall(MOV, "r14", "rax");
+
+        }
+        break;
+        case VAR: {
+            if(isSymbolInTable(global, opLeft->u.ident)){
+                s = getSymbolInTableByName(global, opLeft->u.ident);
+            } 
+            if(isSymbolInTable(funTable, opLeft->u.ident)){
+                s = getSymbolInTableByName(funTable, opLeft->u.ident);
+                isGlobalLayer = 0;
+            } 
+            else {
+                isGlobalLayer = 1;
+            }
+
+            sprintf(buf, "qword [%s + %d]", (isGlobalLayer) ? GLOBAL : funTable->name_table, s.offset);
+            nasmCall(MOV, "r14", buf);
+        }
+        break;
+        case CONST: {
+            if(opLeft->label == Character){
+                lValue = opLeft->u.byte;
+            }
+            else {
+                lValue = opLeft->u.num;
+            }
+            sprintf(buf, "%d", lValue);
+            nasmCall(MOV, "r14", buf);
+        }
+        break;
+    }
+
+    switch(checkNodeContent(opRight)){
+        case OPERATOR: {
+            opTranslate(condNode, funTable);  //rax
+            nasmCall(MOV, "r15", "rax");
+
+        }
+        case VAR: {
+            if(isSymbolInTable(global, opRight->u.ident)){
+                s = getSymbolInTableByName(global, opRight->u.ident);
+            } 
+            if(isSymbolInTable(funTable, opRight->u.ident)){
+                s = getSymbolInTableByName(funTable, opRight->u.ident);
+                isGlobalLayer = 0;
+            } 
+            else {
+                isGlobalLayer = 1;
+            }
+
+            sprintf(buf, "qword [%s + %d]", (isGlobalLayer) ? GLOBAL : funTable->name_table, s.offset);
+            nasmCall(MOV, "r15", buf);
+        }
+        case CONST: {
+            if(opRight->label == Character){
+                rValue = opRight->u.byte;
+            }
+            else {
+                rValue = opRight->u.num;
+            }
+            sprintf(buf, "%d", rValue);
+            nasmCall(MOV, "r15", buf);
+        }
+    }
+
+
+}
 
 void ifInstr(Node *ifInstr, List list, Symbol_table *funTable){
     char buf[BUFSIZ];
@@ -328,6 +441,7 @@ void ifInstr(Node *ifInstr, List list, Symbol_table *funTable){
     int hasElse = 0; 
     int checkIf = 0;
     int currentId = labelId;
+    NasmFunCall compFun;
     Symbol_table * globalTable;
     Node *cond = FIRSTCHILD(ifInstr);
     Symbol s;
@@ -366,23 +480,37 @@ void ifInstr(Node *ifInstr, List list, Symbol_table *funTable){
             nasmCall(JG, bufLabel, NULL);
             break;
         case Order:
-
+            compareInstrAux(cond, list, funTable);
+            nasmCall(CMP, "r14", "r15");
             
-            
-            /*if(strcmp() == 0){
-                
+            if(strcmp(cond->u.ident, "<=") == 0){
+                compFun = JLE;
             }
-            if (strcmp() == 0){
-
+            if (strcmp(cond->u.ident, ">=") == 0){
+                compFun = JGE;
             }
-            if(strcmp() == 0){
+            if(strcmp(cond->u.ident, "<") == 0){
+                compFun = JL;
+            }
+            if(strcmp(cond->u.ident, ">") == 0){
+                compFun = JG;
+            }
+            if(strcmp(cond->u.ident, "==") == 0){
+                compFun = JE;
+            }
+            if(strcmp(cond->u.ident, "!=") == 0){
+                compFun = JNE;
+            }
 
-            }*/
-
+            nasmCall(compFun, bufLabel, NULL);
+            nasmCall(MOV, "r14", "0");
+            nasmCall(MOV, "r15", "0");
             break;
         case Addsub:
         case divstar:
-
+            opTranslate(cond, funTable); //Resultat de l'opération dans rax
+            nasmCall(ADD, "rbx", "rax");
+            nasmCall(JG, bufLabel, NULL);
 
             break;
         default:
