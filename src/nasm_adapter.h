@@ -22,7 +22,8 @@ typedef enum {
     RET,
     N_AND,
     N_OR,
-    CALL
+    CALL,
+    CMP,
 }NasmFunCall;
 
 /**

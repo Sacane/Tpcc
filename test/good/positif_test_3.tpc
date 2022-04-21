@@ -9,8 +9,9 @@ int r1, r2;
 int max;
 
 
-void foo(void){
-    
+void foo(int a){
+    int a;
+    a = 0;
 }
 
 int main(void) {

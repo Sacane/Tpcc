@@ -76,7 +76,7 @@ SuiteInstr:
 Instr:
        LValue '=' Exp ';'                   {$$ = makeNode(Assign); addChild($$, $1); addChild($$, $3);}
     |  IF '(' Exp ')' Instr                 {$$ = makeNode(If); addChild($$, $3); addChild($$, $5);}
-    |  IF '(' Exp ')' Instr ELSE Instr      {$$ = makeNode(If); addChild($$, $3); Node *else_n = makeNode(Else); addSibling($$, else_n); addChild(else_n, $5);}
+    |  IF '(' Exp ')' Instr ELSE Instr      {$$ = makeNode(If); addChild($$, $3); addChild($$, $5); Node *else_n = makeNode(Else); addSibling($3, else_n); addChild(else_n, $7);}
     |  WHILE '(' Exp ')' Instr              {$$ = makeNode(While); addChild($$, $3); addChild($$, $5);}
     |  IDENT '(' Arguments  ')' ';'         {$$ = makeNode(FunctionCall); $$->lineno = lineno; strcpy($$->u.ident, $1); addChild($$, $3);}
     |  SWITCH '(' Exp ')' '{' SuiteInstr BeginSwitchExpr '}' {$$ = makeNode(Switch); addChild($$,$3); addChild($$,$6); addChild($$,$7);}

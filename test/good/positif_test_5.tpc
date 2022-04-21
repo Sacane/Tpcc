@@ -12,6 +12,14 @@ int valeur(int a, int b, int c, int x) {
     
     while((a||b)&&a)
         b=2;
+    
+    if(a == 0){
+        b = 3;
+        b = 10;
+    } 
+    else {
+        b = 4;
+    }
     return a+b;
 }
 

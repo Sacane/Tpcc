@@ -18,6 +18,9 @@ int main(int argc){
       b=b+1;
     if(a<6)
       a=a+a;
+    if(a){
+      a = a;
+    }
     c=c-1;
   }
 
