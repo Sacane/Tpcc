@@ -113,7 +113,7 @@ static int nasmArityOf(NasmFunCall fc){
     }
 }
 
-static char *findSymbolIn(){
+static char *varStaticAdress(){
     char buf[BUFSIZ];
 }
 
@@ -305,6 +305,17 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list){
 
 }
 
+//We suppose functionRoot in declFonct
+void allocateLocalVar(Node *functionRoot, List lst, Symbol_table *funTable){
+    int totalOffset;    
+    char buf[BUFSIZ];
+    totalOffset = (-1) * funTable->total_size;
+    Node *varsNode = FIRSTCHILD(SECONDCHILD(functionRoot));
+    sprintf(buf, "%d", totalOffset);
+    nasmCall(ADD, "rsp", buf);
+
+}
+
 //temporaire seulement pour variable global
 void assign_global_var(Symbol_table *symbolTable, FILE* in, Node *assign_node, List list){
     int i;
@@ -380,19 +391,33 @@ int checkNodeContent(Node *n){
     }
 }
 
-static void writePutint(Node *putIntNode){
+static void callPrintf(char *content){
+    nasmCall(MOV, "rsi", content);
+    nasmCall(MOV, "rax", "0");
+    nasmCall(MOV, "rdi", "formatInt");
+    nasmCall(CALL, "printf", NULL);
+}
+
+static void writePutint(Node *putIntNode, List list){
     char buf[BUFSIZ];
     int n;
+    Symbol s;
+    Symbol_table *globalTable = getTableInListByName(GLOBAL, list);
     switch(checkNodeContent(FIRSTCHILD(putIntNode))){
         case CONST:
             n = FIRSTCHILD(putIntNode)->u.num;
             break;
+        case VAR:
+            if(isSymbolInTable(globalTable, FIRSTCHILD(putIntNode)->u.ident)){
+                s = getSymbolInTableByName(globalTable, FIRSTCHILD(putIntNode)->u.ident);
+                sprintf(buf, "qword [%s + %d]", GLOBAL, s.offset);
+                callPrintf(buf);
+                return;
+            }
+            break;
     }
     sprintf(buf, "%d", n);
-    nasmCall(MOV, "rsi", buf);
-    nasmCall(MOV, "rax", "0");
-    nasmCall(MOV, "rdi", "formatInt");
-    nasmCall(CALL, "printf", NULL);
+    callPrintf(buf);
 }
 
 static void writePutchar(Node *putcharNode, Symbol_table *funTable, List list){
@@ -638,7 +663,7 @@ void nasmTranslateParsing(Node *root, Symbol_table *global_var_table, List list,
         writePutchar(root, getTableInListByName(currentFunName, list), list); 
     }
     if(root->label == Putint){
-        writePutint(root);
+        writePutint(root, list);
     }
     if(root->label == If){
         labelId += 1;
