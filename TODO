@@ -1,0 +1,4 @@
+parametres : 
+Au départ on a les paramtres dans les registres.
+
+On reserve la place des parametres comme ci c'était des variables locales

@@ -305,6 +305,15 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list){
 
 }
 
+/*=================== Function setup ============ */
+
+void setFunctionHeader(Node *functionRoot, List lst, Symbol_table* funTable){
+
+    fprintf(f, "%s:", funTable->name_table);
+    
+
+}
+
 //We suppose functionRoot in declFonct
 void allocateLocalVar(Node *functionRoot, List lst, Symbol_table *funTable){
     int totalOffset;    
@@ -316,6 +325,9 @@ void allocateLocalVar(Node *functionRoot, List lst, Symbol_table *funTable){
 
 }
 
+
+
+/*=====================================================*/
 //temporaire seulement pour variable global
 void assign_global_var(Symbol_table *symbolTable, FILE* in, Node *assign_node, List list){
     int i;
@@ -485,7 +497,7 @@ int compareInstrAux(Node *condNode, List list, Symbol_table *funTable){
         case VAR: {
             if(isSymbolInTable(global, opLeft->u.ident)){
                 s = getSymbolInTableByName(global, opLeft->u.ident);
-            } 
+            } //TODO : remove to refract local variables
             if(isSymbolInTable(funTable, opLeft->u.ident)){
                 s = getSymbolInTableByName(funTable, opLeft->u.ident);
                 isGlobalLayer = 0;
@@ -594,7 +606,9 @@ void ifInstr(Node *ifInstr, List list, Symbol_table *funTable){
             nasmCall(ADD, "rbx", buf);
             nasmCall(JG, bufLabel, NULL);
             break;
+        case Eq:
         case Order:
+
             compareInstrAux(cond, list, funTable);
             nasmCall(CMP, "r14", "r15");
             
@@ -677,14 +691,26 @@ void nasmTranslateParsing(Node *root, Symbol_table *global_var_table, List list,
 
 }
 
+void setFunctions(Node *fonctNode, List list){
+    
+    Symbol_table *global = getTableInListByName(GLOBAL, list);
+    fprintf(f, "%s:", fonctNode->firstChild->firstChild->firstChild->u.ident);
+    DEBUG("bug here : %d | %s\n", SECONDCHILD(fonctNode)->label, fonctNode->firstChild->firstChild->firstChild->u.ident);
+    
+    nasmTranslateParsing(SECONDCHILD(fonctNode), global, list, fonctNode->firstChild->firstChild->firstChild->u.ident);
+    DEBUG("After ??\n");
+}
 
 static void translateMain(Node *root, Symbol_table *global, List list, Symbol_table *mainTable){
     Node *funs = SECONDCHILD(root);
+
     for(Node *n = FIRSTCHILD(funs); n; n = n->nextSibling){
         if(strcmp("main", n->firstChild->firstChild->firstChild->u.ident) == 0){
             nasmTranslateParsing(SECONDCHILD(n), global, list, "main");
             return;
-        }
+        } /*else {
+            setFunctions(funs, list);
+        }*/
     }
 }
 

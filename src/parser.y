@@ -93,7 +93,7 @@ Exp :  Exp OR TB                            {$$ = makeNode(Or); addChild($$, $1)
 TB  :  TB AND FB                            {$$ = makeNode(And); addChild($$, $1); addChild($$, $3);}
     |  FB                                   {$$ = $1;}
     ;
-FB  :  FB EQ M                              {$$ = makeNode(Eq); addChild($$, $1); addChild($$, $3);}
+FB  :  FB EQ M                              {$$ = makeNode(Eq); strcpy($$->u.comp, $2); addChild($$, $1); addChild($$, $3);}
     |  M                                    {$$ = $1;}
     ;
 M   :  M ORDER E                            {$$ = makeNode(Order); strcpy($$->u.comp, $2); addChild($$, $1); addChild($$, $3);}
