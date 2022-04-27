@@ -1,13 +1,21 @@
-int a, b;
+int a, b, c;
 
+int test(void){
+    if (1) {
+        return 0;
+    }
 
+}
 
 int main(int argc)
 {
-    a = 2;
-    b = 3 / 2;
+
+    c = 1000;
+    a = 1;
+    b = 1;
+    putint(a);
     putint(b);
-    if(a == 2 && b == 1){
+    if(b==0 || a==0 || a == 0){
         putchar('A');
         putchar('\n');
         if(b){
@@ -16,9 +24,11 @@ int main(int argc)
         }
         putchar('C');
         putchar('\n');
-    }
-    putchar('D');
-    putchar('\n');
+        return 0;
+    } else {
+        putint(c);
 
-    return 0;
+        return 1;
+    }
+
 }
