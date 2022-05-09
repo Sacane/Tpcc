@@ -92,6 +92,8 @@ void deleteTree(Node *node) {
   free(node);
 }
 
+
+
 void printTree(Node *node) {
   static bool rightmost[128]; // tells if node is rightmost sibling
   static int depth = 0;       // depth of current node

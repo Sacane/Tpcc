@@ -13,12 +13,17 @@ int main(int argc)
     c = 1000;
     a = 1;
     b = 1;
-    putint(a);
-    putint(b);
-    if(b==0 || a==0 || a == 0){
-        putchar('A');
+    putint(2039 + 10);
+    if(b==0 || a==0 || a == 2 || a == 1){
+        putint(1);
+        putchar('s');
+        putchar('t');
+        putchar('\n');
+        putchar('I');
+        putchar('F');
         putchar('\n');
         if(b){
+
             putchar('B');
             putchar('\n');
         }

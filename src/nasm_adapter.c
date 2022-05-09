@@ -407,8 +407,15 @@ int checkNodeContent(Node *n){
     }
 }
 
+/**
+ * @brief 
+ * 
+ * @param content 
+ */
 static void callPrintf(char *content){
+    
     nasmCall(MOV, "rsi", content);
+    
     nasmCall(MOV, "rax", "0");
     nasmCall(MOV, "rdi", "formatInt");
     nasmCall(CALL, "printf", NULL);
@@ -431,6 +438,10 @@ static void writePutint(Node *putIntNode, List list){
                 return;
             }
             break;
+        default:
+            opTranslate(FIRSTCHILD(putIntNode), globalTable, list);
+            callPrintf("rax");
+            return;
     }
     sprintf(buf, "%d", n);
     callPrintf(buf);
@@ -565,7 +576,7 @@ int compareInstrAux(Node *condNode, List list, Symbol_table *funTable){
 
 }
 
-void treatExpr(Node *conditionNode, List list, Symbol_table *funTable, char *labelIf, char *labelElse, char *labelCode){
+void treatExpr(Node *conditionNode, List list, Symbol_table *funTable, char *labelIf, char *labelElse, char *labelCode, int hasElse){
 
     Symbol s;
     NasmFunCall compFun;
@@ -629,19 +640,28 @@ void treatExpr(Node *conditionNode, List list, Symbol_table *funTable, char *lab
 
             break;
         case Or:
+
+            sprintf(buf, "%s%d:", LABEL_EXPR, labelId);
+
+            if((conditionNode->firstChild->label != Or && conditionNode->firstChild->label != And) &&
+            (conditionNode->firstChild->nextSibling->label != Or && conditionNode->firstChild->nextSibling->label != And)){
+                fprintf(f, "%s\n", buf);
+            }
+            labelId += 1;
+            sprintf(buf, "%s%d:", LABEL_EXPR, labelId);
+            treatExpr(conditionNode->firstChild, list, funTable, labelIf, buf, labelCode, hasElse);
+            sprintf(buf, "%s%d:\n", LABEL_EXPR, labelId);
+            labelId += 1;
+            fprintf(f, "%s", buf);
+            treatExpr(conditionNode->firstChild->nextSibling, list, funTable, labelIf, labelElse, labelCode, hasElse);
+            break;
+        case And:
             sprintf(buf, "%s%d:", LABEL_EXPR, labelId);
             labelId += 1;
             fprintf(f, "%s\n", buf);
             sprintf(buf, "%s%d:", LABEL_EXPR, labelId);
-            treatExpr(conditionNode->firstChild, list, funTable, labelIf, buf, labelCode);
+            treatExpr(conditionNode->firstChild, list, funTable, buf, labelElse, labelCode, hasElse);
             
-            sprintf(buf, "%s%d:\n", LABEL_EXPR, labelId);
-            labelId += 1;
-            fprintf(f, "%s", buf);
-            treatExpr(conditionNode->firstChild->nextSibling, list, funTable, labelIf, labelElse, labelCode);
-            break;
-        case And:
-    
             
             break;
         default:
@@ -651,46 +671,6 @@ void treatExpr(Node *conditionNode, List list, Symbol_table *funTable, char *lab
     
     
 }
-/*
-void treatLogicalExpr(Node *conditionNode, List list, Symbol_table *funTable, char *labelIf, char *labelElse, char *labelCode, char* labelExpr, int hasElse, int isLogicalTeatment){
-    
-    char buf[BUFSIZ];
-    int currLabelId = labelId;
-    
-    switch(conditionNode->label){
-        case Or:
-            labelId += 1;
-            sprintf(buf, "%s%d", LABEL_EXPR, currLabelId);
-            if(conditionNode->firstChild && conditionNode->firstChild->label == Or){
-                treatLogicalExpr(conditionNode->firstChild, list, funTable, labelIf, buf, labelCode, buf, hasElse, 0);
-            }
-            else {
-                treatLogicalExpr(conditionNode->firstChild, list, funTable, labelIf, labelElse, labelCode, buf, hasElse, 0);
-            }
-            sprintf(buf, "%s%d", LABEL_EXPR, currLabelId);
-            firstCall = 0;
-            treatLogicalExpr(SECONDCHILD(conditionNode), list, funTable, labelIf, labelElse, labelCode, buf, hasElse, 0);
-
-            break;
-        case And:
-
-            break;
-        case Neg:
-
-            break;
-        case Assign:
-        case Addsub:
-        case divstar:
-        case Eq:
-        case Order:
-        case Int:
-        case Variable:
-            treatExpr(conditionNode, list, funTable, labelIf, labelElse, labelCode);
-            break;
-        default:
-            break;
-    }
-}*/
 
 
 void ifInstr(Node *ifInstr, List list, Symbol_table *funTable){
@@ -717,7 +697,7 @@ void ifInstr(Node *ifInstr, List list, Symbol_table *funTable){
     sprintf(bufLabel, "%s%d", LABEL_IF, labelId);
     sprintf(bufCode, "%s%d", LABEL_CODE, currentId);
     if(hasElse) sprintf(bufElse, "%s%d", LABEL_ELSE, labelId);
-    treatExpr(cond, list, funTable, bufLabel, bufElse, bufCode);
+    treatExpr(cond, list, funTable, bufLabel, bufElse, bufCode, hasElse);
     /*switch(cond->label){
         case Variable:
             globalTable = getTableInListByName(GLOBAL, list);
