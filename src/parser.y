@@ -232,6 +232,7 @@ int main(int argc, char **argv){
     }
     List list;
     list = buildSymbolTableListFromRoot(rootProg);
+    printf("check err sem : %d\n", check_sem_err);
     if (check_sem_err || !list){
         return 2;
     }

@@ -10,13 +10,13 @@ int max;
 
 
 void foo(int a){
-    int a;
+    
     a = 0;
 }
 
 int main(void) {
-    int r1;
-   int max;
+   
+   
    int b, c ;
    char cha;
    r1 = 0;

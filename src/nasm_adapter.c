@@ -51,15 +51,11 @@ static char* stringOfNasmFun(NasmFunCall nasmFunction){
 }
 
 static void initBss(int globalBssSize, List listTable){
+    
+
     fprintf(f, "section .bss\n");
     fprintf(f, "%s: resq %d\n", GLOBAL, globalBssSize);
-    for(List l = listTable; l; l = l->next){
-        Symbol_table *st = l->table;
-        if(strcmp(st->name_table, GLOBAL) == 0){
-            continue;
-        }
-        fprintf(f, "%s: resq %d\n", st->name_table, st->total_size);
-    }
+
 }
 
 void writeNasmHeader(int globalBssSize, List listTable){
@@ -77,12 +73,13 @@ void writeNasmHeader(int globalBssSize, List listTable){
     extern my_putchar\n \
     extern show_registers\n \
     extern my_getint\n \
-    extern printf\n \
-    _start:\n");   
+    extern printf\n");   
     
 }
 
 void end_asm(){
+    fprintf(f, "_start:\n");
+    fprintf(f, "\tcall main\n");
     fprintf(f, "\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n");
     fclose(f);
 }
@@ -572,8 +569,6 @@ int compareInstrAux(Node *condNode, List list, Symbol_table *funTable){
             nasmCall(MOV, "r15", buf);
         }
     }
-
-
 }
 
 void treatExpr(Node *conditionNode, List list, Symbol_table *funTable, char *labelIf, char *labelElse, char *labelCode, int hasElse){
@@ -667,9 +662,6 @@ void treatExpr(Node *conditionNode, List list, Symbol_table *funTable, char *lab
         default:
             break;
     }
-
-    
-    
 }
 
 
@@ -790,7 +782,7 @@ void nasmTranslateParsing(Node *root, Symbol_table *global_var_table, List list,
     }
     if(root->label == If){
         labelId += 1;
-        fprintf(f, "\t;IF parsing started\n");
+        fprintf(f, ";IF parsing started\n");
         ifInstr(root, list, getTableInListByName(currentFunName, list));
         nasmTranslateParsing(root->nextSibling, global_var_table, list, currentFunName);
         return;
@@ -813,14 +805,12 @@ void setFunctions(Node *fonctNode, List list){
 
 static void translateMain(Node *root, Symbol_table *global, List list, Symbol_table *mainTable){
     Node *funs = SECONDCHILD(root);
-
+    char buf[BUFSIZ];
     for(Node *n = FIRSTCHILD(funs); n; n = n->nextSibling){
-        if(strcmp("main", n->firstChild->firstChild->firstChild->u.ident) == 0){
-            nasmTranslateParsing(SECONDCHILD(n), global, list, "main");
-            return;
-        } /*else {
-            setFunctions(funs, list);
-        }*/
+        fprintf(f, "%s:\n", n->firstChild->firstChild->firstChild->u.ident);
+        nasmTranslateParsing(SECONDCHILD(n), global, list, "main");
+        nasmCall(POP, "rax", NULL);
+        fprintf(f, "\tret\n");
     }
 }
 

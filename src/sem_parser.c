@@ -17,6 +17,7 @@ static PrimType getTypeOfNode(Node *node, Symbol_table *funTable, Symbol_table *
                 return NONE;
             }
             return var.u.p_type;
+        //TODO case functionCall
         default:
             return NONE;
     }
@@ -127,7 +128,6 @@ static int functionCallCheck(Node *fc_node, List table, char *callerFunctionName
 }
 
 
-
 static int equalCompareCheck(Node *eq, List tab, char *name_tab){
 
     Symbol_table* global_tab;
@@ -182,10 +182,10 @@ int assignCheck(Node *assign, List tab, char *nameTable){
     if(lType == CHAR && rType == INT) {
         raiseWarning(lValue->lineno, "assigning char variable '%s' to integer %d\n", lValue->u.ident, rValue->u.num);
         check_warn = 1;
-    }
+    }   
 
     if(lValue->label == Variable){
-        
+        //La variable est dans la table des globaux
         check += isSymbolInTable(global_tab, lValue->u.ident);
         if(isSymbolInTable(function_tab, lValue->u.ident)){
             Symbol s = getSymbolInTableByName(function_tab, lValue->u.ident);
@@ -208,10 +208,12 @@ int assignCheck(Node *assign, List tab, char *nameTable){
         }
         if(!check){
             raiseError(lValue->lineno, "Left value : '%s' is neither a global or local variable\n", lValue->u.ident);
+            check_sem_err = 1;
+            return 0;
         }
         return check == 1 || check == 2;
     }
-    return 0;
+    return 1;
 }
 
 

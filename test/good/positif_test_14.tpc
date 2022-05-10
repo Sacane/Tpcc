@@ -13,9 +13,9 @@ int main(int argc)
     c = 1000;
     a = 1;
     b = 1;
-    putint(2039 + 10);
+    putint(2039 + 10 + 9 + 50 - 102 - 2007);
     if(b==0 || a==0 || a == 2 || a == 1){
-        putint(1);
+        
         putchar('s');
         putchar('t');
         putchar('\n');
@@ -23,7 +23,6 @@ int main(int argc)
         putchar('F');
         putchar('\n');
         if(b){
-
             putchar('B');
             putchar('\n');
         }
@@ -35,5 +34,6 @@ int main(int argc)
 
         return 1;
     }
+    
 
 }

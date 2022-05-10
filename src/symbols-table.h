@@ -34,7 +34,7 @@ typedef struct table{
 
 }Symbol_table;
 
-
+int check_sem_err; 
 
 /**
  * @brief Create a symbol table object

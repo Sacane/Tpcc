@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 #define MAX_FUNC_NAME_SIZ 64
 #define MAX_ARGUMENT_FUNC 15
 
@@ -37,6 +38,11 @@ typedef struct {
     int nb_args;
 }FunctionType;
 
+typedef struct {
+    PrimType type;
+    int isGlobal;
+
+}VariableType;
 
 typedef struct symbol{
 

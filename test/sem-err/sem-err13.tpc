@@ -1,0 +1,13 @@
+
+int b;
+
+void foo(int b){
+    int b;
+    b = 10;
+}
+
+int main(void)
+{
+    a = 10;
+    return 0;
+}
