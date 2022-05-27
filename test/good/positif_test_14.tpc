@@ -19,7 +19,7 @@ int bar(int argc)
 {
 
     int local;
-
+    local = 2;
     c = 1000;
     a = 0 + 2;
     b = 0;
@@ -58,7 +58,18 @@ int bar(int argc)
 
 
 int main(void){
-    if((1 && 2 && 3 && 20)){
+    int loc;
+    int i;
+    int m;
+    loc = 10 + 20 - 108;
+    m = 1029;
+    i = 0;
+    a = 10;
+    b = 0;
+    putint(loc);
+    putint(m);
+    putint(i);
+    if((a && b)){
         putint(10);
     }
     putint(20);

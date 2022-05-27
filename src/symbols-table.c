@@ -142,11 +142,10 @@ void printSymbolTable(Symbol_table *tab){
         return;
     }
 
-    fprintf(stderr,"Tab Name : %s\n",tab->name_table);
+    fprintf(stderr,"TAB NAME : %s\n",tab->name_table);
     fprintf(stderr,"nb symbol : %d\n",tab->nb_symbol);
     for(pos = 0; pos < tab->size;pos++){
         if(tab->s[pos].symbol_name == NULL) continue;;
-        printf("%s\n", tab->s[pos].symbol_name);
         print_symbol(tab->s[pos]);
         
     }

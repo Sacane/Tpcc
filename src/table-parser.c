@@ -91,30 +91,25 @@ List buildSymbolTableListFromRoot(Node *root){
                 nb_args += 1;
             }
         }
-
-
-        Symbol params_sym = newFunctionSymbol(function_type->firstChild->u.ident, function_t, param_types, nb_args, is_void);
-        insertSymbol(params_sym, table);
-
         //=========================== Function's body ===========================
 
         Node* body = header_function->nextSibling;
         //Function's local variable :
         Node* local = body->firstChild;
-        totalFuncOffset = 0;
+        totalFuncOffset = -8;
         for(Node* localVarNode = local->firstChild; localVarNode; localVarNode = localVarNode->nextSibling){
-
             totalLocalVariable += 1;
             PrimType type = stringOfTpcType(localVarNode->u.ident); // type's variable
             Kind kind = VARIABLE;
             for(Node *id = localVarNode->firstChild; id; id = id->nextSibling){
-                
                 s = newSymbol(id->u.ident, kind, type, totalFuncOffset, id->lineno);
                 insertSymbol(s, table);
-                totalFuncOffset += 8;
+                totalFuncOffset -= 8;
             }
         }
         table->total_size = totalLocalVariable;
+        Symbol params_sym = newFunctionSymbol(function_type->firstChild->u.ident, function_t, param_types, nb_args, is_void, totalLocalVariable);
+        insertSymbol(params_sym, table);
         insertSymbolTableInList(list, table);
     }
     return list;

@@ -33,7 +33,7 @@ obj/lex.yy.o: src/lex.yy.c
 obj/tree.o: src/tree.c src/tree.h src/utils.h
 	$(CC) -c src/tree.c -o obj/tree.o $(CFLAGS)
 
-obj/symbol.o: src/symbol.c src/symbol.h
+obj/symbol.o: src/symbol.c src/symbol.h 
 	$(CC) -c src/symbol.c -o obj/symbol.o $(CFLAGS) 
 
 obj/symbols-table.o: src/symbols-table.c src/symbols-table.h src/tree.h

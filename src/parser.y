@@ -171,6 +171,7 @@ int main(int argc, char **argv){
     int opt_asm = 0;
     int make_exec = 0;
     int sem_err_res = 0;
+    int showTable = 0;
     
     
     static struct option long_option[] = {
@@ -179,6 +180,7 @@ int main(int argc, char **argv){
         {"tree", no_argument,0,'t'},
         {"sem", no_argument,0,'s'},
         {"asm", no_argument,0,'a'},
+        {"table", no_argument,0,'l'},
         {0,0,0,0}
     };
     while((opt = getopt_long(argc, argv,"t h s a e", long_option, &option_index)) !=-1 ){
@@ -197,6 +199,8 @@ int main(int argc, char **argv){
                         break;
             case 'e' : make_exec = 1;
                         break;
+            case 'l' : showTable = 1;
+                        break;
 
             default : result = 3; break;
         }
@@ -204,7 +208,7 @@ int main(int argc, char **argv){
     if(result == 3){
         return 3;
     }
-    while((option = getopt(argc, argv, ":thsae")) != - 1){
+    while((option = getopt(argc, argv, ":thsael")) != - 1){
         switch(option){
             case 't':
                 showTree = 1;
@@ -218,6 +222,7 @@ int main(int argc, char **argv){
                        break;
             case 'e' : make_exec = 1;
                         break;
+            case 'l' : showTable = 1; break;
             case '?':
                 printf("unknown option\n");
                 break;
@@ -232,6 +237,10 @@ int main(int argc, char **argv){
     }
     List list;
     list = buildSymbolTableListFromRoot(rootProg);
+    if(showTable){
+        printSymbolTableList(list);
+    }
+    
     if(!getTableInListByName("main", list)){
         raiseError(-1, "No main function in this program\n");
         check_sem_err = 1;

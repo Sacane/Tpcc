@@ -19,7 +19,7 @@ Symbol newSymbol(char *name, Kind kind, PrimType type, int offset, int lineno){
 
 }
 
-Symbol newFunctionSymbol(char *name_func, PrimType return_type, PrimType arg_types[], int n_args, int is_void){
+Symbol newFunctionSymbol(char *name_func, PrimType return_type, PrimType arg_types[], int n_args, int is_void, int number_locals){
     Symbol func_sym;
     int i;
     func_sym.symbol_name = (char*) malloc(sizeof(char) * strlen(name_func));
@@ -38,7 +38,7 @@ Symbol newFunctionSymbol(char *name_func, PrimType return_type, PrimType arg_typ
         
     }
     func_sym.u.f_type.nb_args = n_args;
-    
+    func_sym.u.f_type.nb_local = number_locals;
     
     return func_sym;
 }
@@ -57,15 +57,20 @@ int is_symbol_null(Symbol symbol){
 }
 
 void print_symbol(Symbol s){
-    fprintf(stderr, "name : %s |\n", s.symbol_name);
-
+    DEBUG("======= SYMBOL : %s========\n", s.symbol_name);
+    DEBUG("==============================\n");
     fprintf(stderr, "Kind : ");
     switch(s.kind){
         case FUNCTION:
             fprintf(stderr, "function\n");
+            DEBUG("is void : %s\n", (s.u.f_type.is_void) ? "yes" : "no");
+            if(!(s.u.f_type.is_void)){
+                DEBUG("Return Type : %s\n", (s.u.f_type.return_type == CHAR) ? "Char\n" : "Int\n");
+                DEBUG("Number of argument : %d | Number of local variable : %d\n", s.u.f_type.nb_args, s.u.f_type.nb_local);
+            }
             break;
         case VARIABLE:
-            fprintf(stderr, "variable\n");
+            fprintf(stderr, "variable | Location : %d\n", s.offset);
             break;
         case PARAM:
             fprintf(stderr, "parametre\n");
@@ -74,6 +79,8 @@ void print_symbol(Symbol s){
             fprintf(stderr, "Unknown\n");
             break;
     }
+    DEBUG("==============================\n");
+    DEBUG("==============================\n");
 }
 
 void free_symbol(Symbol *s){

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "utils.h"
 
 
 #define MAX_FUNC_NAME_SIZ 64
@@ -36,6 +37,7 @@ typedef struct {
     PrimType args_types[MAX_ARGUMENT_FUNC];
     PrimType return_type;
     int nb_args;
+    int nb_local;
 }FunctionType;
 
 typedef struct {
@@ -125,7 +127,7 @@ void free_symbol(Symbol *s);
  * @param is_void 
  * @return Symbol 
  */
-Symbol newFunctionSymbol(char *name_func, PrimType return_type, PrimType arg_types[], int n_args, int is_void);
+Symbol newFunctionSymbol(char *name_func, PrimType return_type, PrimType arg_types[], int n_args, int is_void, int local_variable);
 
 
 
