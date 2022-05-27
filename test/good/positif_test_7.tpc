@@ -22,7 +22,7 @@ int main(void){
         p = 'c';
     }
 
-
+    return 0;
 }
 
 
@@ -34,4 +34,5 @@ int caller(int flag){
     else{
         c = 3;
     }
+    return 0;
 }

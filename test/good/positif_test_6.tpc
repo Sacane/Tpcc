@@ -9,6 +9,7 @@ int print(int a){
     } else {
         a = 2;
     }
+    return 0;
 }
 
 

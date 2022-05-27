@@ -353,71 +353,51 @@ int switchCheck(List listTable, char * tableName, Node *switchNode){
     }
 }
 
-int hasIfElse(Node *ifNode){
-    for(Node *child = ifNode->firstChild; child; child = child->nextSibling){
-        if(child->label == Else){
+Node * hasLabel(Node *root, label_t label){
+    for(Node *child = root->firstChild; child; child = child->nextSibling){
+        if(label == child->label){
+            return child;   
+        }
+    }
+    return NULL;
+}
+
+int isReturnComplete(List list, Node *node) {
+    Node *elseNode;
+    Node *ifNode;
+    //Vérifier si la fonction a une return value
+
+    if(node->label == DeclFonct){
+        if(hasLabel(node->firstChild->nextSibling, Return)){
             return 1;
         }
-    }
-    return 0;
-}
-
-void checkReturnsRec(Node *n, int *parseCpt){
-    if(!n){
-        return;
-    }
-    if(n->label == If || n->label == Else){
-        
-        (*parseCpt)++;
-        for(Node *childN = n->firstChild; childN; childN = childN->nextSibling){
-            if(childN->label == If){
-                checkReturnsRec(childN, parseCpt);
-            } 
-            if(childN->label == Return){
-                (*parseCpt)--;
+        else {
+            ifNode = hasLabel(node->firstChild->nextSibling, If);
+            if(ifNode && (elseNode = hasLabel(ifNode, Else))){
+                return isReturnComplete(list, ifNode) && isReturnComplete(list, elseNode);
+            } else {
+                return 0;
             }
         }
-        
     }
-
-    checkReturnsRec(n->nextSibling, parseCpt);
-    checkReturnsRec(n->firstChild, parseCpt);
-}
-
-void checkReturnsFunction(List list, Node *declFonctNode) {
-    int parseCpt = 0;
-    int firstLevelCheck;
-    Node *bodyNode = SECONDCHILD(declFonctNode);
-    //Vérifier si la fonction a une return value
-    char *nameFun = getFuncNameFromDecl(declFonctNode);
-    Symbol_table *table = getTableInListByName(nameFun, list);
-    Symbol funS = getSymbolInTableByName(table, nameFun);
-
-
-    for(Node *child = bodyNode->firstChild; child; child = child->nextSibling){
-        
-        if(child->label == Return){
-            /*if(funS.u.f_type.is_void && child->firstChild){
-                raiseError(funS.lineno, "Can't return value on a void-return function\n");
-                check_sem_err = 1;
-            }*/
-            firstLevelCheck = 1;
-            return;
-        } else {
-            firstLevelCheck = 0;
+    if(node->label == If || node->label == Else){
+        if(hasLabel(node, Return)){
+            return 1;
+        }
+        else {
+            ifNode = hasLabel(node, If);
+            if(ifNode && (elseNode = hasLabel(ifNode, Else))){
+                return isReturnComplete(list, ifNode) && isReturnComplete(list, elseNode);
+            } else {
+                return 0;
+            }
         }
     }
-
-    //Check unreached of non-void function
-    if(!(funS.u.f_type.is_void)){
-        checkReturnsRec(SECONDCHILD(declFonctNode), &parseCpt);
-    }
-    
-    DEBUG("ParseCpt : %d\n", parseCpt);
-    if(parseCpt){
-        raiseError(declFonctNode->lineno, "Reached end of control flow in non-void function\n");
+    /*if(parseCpt){
+        raiseError(node->lineno, "Reached end of control flow in non-void function\n");
         check_sem_err = 1;
-    }
+    }*/
+
 }
 
 
@@ -473,8 +453,12 @@ int parseSemError(Node *node, List table){
             char *nameFun = getFuncNameFromDecl(n);
             Symbol_table *sTable = getTableInListByName(nameFun, table);
             Symbol funS = getSymbolInTableByName(sTable, nameFun);
-            if(funS.u.f_type.is_void){
-                checkReturnsFunction(table, n);
+            DEBUG("Function : %s\n", nameFun);
+            if(!funS.u.f_type.is_void){
+                if(!isReturnComplete(table, n)){
+                    raiseError(n->lineno, "Unreached end of non-void function\n");
+                    check_sem_err = 1;
+                }
             }
             parseSemErrorAux(n, table, getFuncNameFromDecl(n));
         }
