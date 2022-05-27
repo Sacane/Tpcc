@@ -431,6 +431,11 @@ static void callPrintf(char *content){
     nasmCall(CALL, "printf", NULL);
 }
 
+static void writeGetchar(Node *getcharNode, List list, Symbol_table *funTable){
+    char buf[BUFSIZ];
+    
+}
+
 static void writePutint(Node *putIntNode, List list, Symbol_table *funTable){
     char buf[BUFSIZ];
     int n;

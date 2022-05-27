@@ -29,7 +29,7 @@ Node* root;
   char comp[3];
 }
 
-%token OR AND RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK PUTCHAR PUTINT
+%token OR AND RETURN WHILE IF ELSE FOR VOID SWITCH DEFAULT CASE BREAK PUTCHAR PUTINT GETINT GETCHAR
 %token <num> NUM
 %token <ident> IDENT TYPE
 %token <byte>  DIVSTAR ADDSUB CHARACTER
@@ -112,6 +112,8 @@ F   :  ADDSUB F                             {$$ = makeNode(Addsub); $$->u.byte =
     |  CHARACTER                            {$$ = makeNode(Character); $$->u.byte = $1;}
     |  LValue                               {$$ = $1;}
     |  IDENT '(' Arguments  ')'             {$$ = makeNode(FunctionCall); $$->lineno = line_count;strcpy($$->u.ident, $1); addChild($$, $3);}
+    |  GETCHAR '('')'            {$$ = makeNode(Getchar); $$->lineno = line_count;}
+    |  GETINT '('')'                   {$$ = makeNode(Getint); $$->lineno = line_count;}
     ;
 LValue:
        IDENT                { $$ = makeNode(Variable); strcpy($$->u.ident, $1);}

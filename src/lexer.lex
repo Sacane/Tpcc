@@ -34,6 +34,8 @@ default     {linecharno = linecharno + yyleng; return DEFAULT;}
 break       {linecharno = linecharno + yyleng; return BREAK;}
 putchar     {linecharno = linecharno + yyleng; return PUTCHAR;}
 putint      {linecharno = linecharno + yyleng; return PUTINT;}
+getint      {linecharno = linecharno + yyleng; return GETINT;}
+getchar     {linecharno = linecharno + yyleng; return GETCHAR;}
 [0-9]+  	{yylval.num = atoi(yytext); linecharno = linecharno + yyleng; return NUM;}
 "||"        {linecharno = linecharno + yyleng; return OR;}
 "&&"        {linecharno = linecharno + yyleng; return AND;}

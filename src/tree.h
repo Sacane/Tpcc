@@ -44,7 +44,9 @@ typedef enum {
   Default,
   Break,
   Putchar,
-  Putint
+  Putint,
+  Getint,
+  Getchar
   
   /* list all other node labels, if any */
   /* The list must coincide with the string array in tree.c */

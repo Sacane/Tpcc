@@ -19,7 +19,7 @@ int bar(int argc)
 {
 
     int local;
-    local = 2;
+    local = getint();
     c = 1000;
     a = 0 + 2;
     b = 0;
