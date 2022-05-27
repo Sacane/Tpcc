@@ -12,4 +12,5 @@ int main(int argc){
             argc = 11;
             break;
     }
+    return 0;
 }

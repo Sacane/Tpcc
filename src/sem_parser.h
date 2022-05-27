@@ -12,6 +12,6 @@
  * @return int 
  */
 int parseSemError(Node *node, List table);
-
+int computeOpNode(Node *opNode);
 
 #endif

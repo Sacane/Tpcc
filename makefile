@@ -36,7 +36,7 @@ obj/tree.o: src/tree.c src/tree.h src/utils.h
 obj/symbol.o: src/symbol.c src/symbol.h
 	$(CC) -c src/symbol.c -o obj/symbol.o $(CFLAGS) 
 
-obj/symbols-table.o: src/symbols-table.c src/symbols-table.h 
+obj/symbols-table.o: src/symbols-table.c src/symbols-table.h src/tree.h
 	$(CC) -c src/symbols-table.c -o obj/symbols-table.o $(CFLAGS)
 
 obj/table-parser.o: src/table-parser.c src/table-parser.h

@@ -7,8 +7,6 @@ int main(void){
             return 1;
         case 12:
         case 10:
-        case 0:
-            a = 12;
             break;
             
     }

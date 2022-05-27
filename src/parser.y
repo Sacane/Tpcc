@@ -79,7 +79,7 @@ Instr:
     |  IF '(' Exp ')' Instr ELSE Instr      {$$ = makeNode(If); addChild($$, $3); addChild($$, $5); Node *else_n = makeNode(Else); addSibling($3, else_n); addChild(else_n, $7);}
     |  WHILE '(' Exp ')' Instr              {$$ = makeNode(While); addChild($$, $3); addChild($$, $5);}
     |  IDENT '(' Arguments  ')' ';'         {$$ = makeNode(FunctionCall); $$->lineno = lineno; strcpy($$->u.ident, $1); addChild($$, $3);}
-    |  SWITCH '(' Exp ')' '{' SuiteInstr BeginSwitchExpr '}' {$$ = makeNode(Switch); addChild($$,$3); addChild($$,$6); addChild($$,$7);}
+    |  SWITCH '(' Exp ')' '{' SuiteInstr BeginSwitchExpr '}' {$$ = makeNode(Switch); addChild($$,$3); Node* instrNode = makeNode(SuiteInstr); addChild(instrNode, $6); addChild($$, instrNode); addChild($$,$7);}
     |  RETURN Exp ';'                       {$$ = makeNode(Return); addChild($$, $2);}
     |  RETURN ';'                            {$$ = makeNode(Return);}
     |  PUTCHAR '(' Arguments ')' ';'         {$$ = makeNode(Putchar); addChild($$,$3);}
@@ -121,12 +121,12 @@ BeginSwitchExpr:
     |   %empty                     {$$ = NULL;}
     ;
 SwitchExpr: 
-        CASE Exp ':' EndSwitchExpr {$$ = makeNode(Case); addChild($$, $4);}
-    |   DEFAULT ':' EndSwitchExpr {$$ = makeNode(Default); addChild($$, $3);}
+        CASE Exp ':' EndSwitchExpr  {$$ = makeNode(Case); addChild($$, $2); addChild($$, $4);}
+    |   DEFAULT ':' EndSwitchExpr  {$$ = makeNode(Default); addChild($$, $3);}
+    |   BREAK ';'   EndSwitchExpr  {$$ = makeNode(Break); addSibling($$, $3);}
     ;
 EndSwitchExpr:
-        SuiteInstr BREAK ';' {if($1) {$$ = $1; addSibling($$, makeNode(Break));} else {$$ = makeNode(Break);}}
-    |   SuiteInstr           {$$ = $1;}
+       SuiteInstr         {$$ = $1;}
     ;
 Arguments:
        ListExp              {$$ = $1;}
@@ -232,13 +232,16 @@ int main(int argc, char **argv){
     }
     List list;
     list = buildSymbolTableListFromRoot(rootProg);
-    printf("check err sem : %d\n", check_sem_err);
+    if(!getTableInListByName("main", list)){
+        raiseError(-1, "No main function in this program\n");
+        check_sem_err = 1;
+    }
+    parseSemError(rootProg, list);
     if (check_sem_err || !list){
         return 2;
     }
-    sem_err_res = parseSemError(rootProg, list);
-    result = (sem_err_res) ? 0 : 2;
-    if(opt_asm && sem_err_res){
+    
+    if(opt_asm){
         DEBUG("Writing nasm file...\n");
         buildNasmFile(rootProg, list);
         if(make_exec){

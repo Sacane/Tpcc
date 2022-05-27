@@ -787,6 +787,10 @@ void nasmTranslateParsing(Node *root, Symbol_table *global_var_table, List list,
         nasmTranslateParsing(root->nextSibling, global_var_table, list, currentFunName);
         return;
     }
+    if(root->label == While){
+        //TODO while
+        return;
+    }
 
     nasmTranslateParsing(root->firstChild, global_var_table, list, currentFunName);
     nasmTranslateParsing(root->nextSibling, global_var_table, list, currentFunName);

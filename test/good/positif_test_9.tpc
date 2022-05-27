@@ -12,14 +12,14 @@ int main(void){
     switch(a){
         print('b');
         print('m');
-        default:
-            print('j');
         case 10:
             print('a');
             print('b');
             break;
         default:
             print('p');
+
+
     }
 
 }

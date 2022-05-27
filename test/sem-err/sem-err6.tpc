@@ -8,6 +8,7 @@ int print(int a){
 }
 
 int display(int to_display, char c){
+
     if(to_display != 0 || to_display < 0){
         print(to_display);
     }
@@ -20,6 +21,7 @@ int display(int to_display, char c){
 int main(void){
 
     int i, a, b, c;
+    char c;
     i = 0;
     while(i != 10){
         a = i;

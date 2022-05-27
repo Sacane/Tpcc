@@ -3,18 +3,21 @@ int a, b, c;
 int test(void){
     if (1) {
         return 0;
+    } else {
+        return 1;
     }
-
 }
 
 int main(int argc)
 {
 
+    int local;
+
     c = 1000;
-    a = 1;
-    b = 1;
-    putint(2039 + 10 + 9 + 50 - 102 - 2007);
-    if(b==0 || a==0 || a == 2 || a == 1){
+    a = 0;
+    b = 0;
+    putint(2039 + 10 + 9 + 50 - 102);
+    if(b==0 || a==0 || a == 2){
         
         putchar('s');
         putchar('t');
@@ -31,9 +34,6 @@ int main(int argc)
         return 0;
     } else {
         putint(c);
-
         return 1;
     }
-    
-
 }

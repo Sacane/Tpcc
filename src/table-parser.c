@@ -69,7 +69,7 @@ List buildSymbolTableListFromRoot(Node *root){
         PrimType param_types[MAX_ARGUMENT_FUNC];
         Node *function_type = header_function->firstChild;
 
-        is_void = (SECONDCHILD(header_function))->firstChild->label == Void ? 1 : 0; 
+        is_void = header_function->firstChild->label == Void ? 1 : 0; 
         function_t = stringOfTpcType(function_type->u.ident);
         Symbol_table *table = newSymbolTable(function_type->firstChild->u.ident);
         Node *params = function_type->nextSibling;

@@ -9,19 +9,20 @@ char called(int c){
 
 
 int main(void){
-
+    
     char p;
     int t1, t2;
+    t1 = 'a';
     t1 = 0;
     t2 = 3;
     p = 9;
     if(t1 != t2){
-        p = called(p, 10);
+        p = called(p);
     }
     else{
         p = 'c';
     }
-    called(10, 10);
+    t1 = called(10, 10);
     return 0;
 }
 
