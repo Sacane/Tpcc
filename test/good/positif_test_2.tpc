@@ -1,5 +1,11 @@
 int main(void)
 {
     int t;
+    t = foo();
     return 0;
 }
+
+int foo(void){
+    return 0;
+}
+

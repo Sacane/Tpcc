@@ -12,6 +12,10 @@ int print(int a){
     return 0;
 }
 
+void foo(void){
+    return;
+}
+
 
 void display(int to_display){
     if(to_display != 0 || to_display < 0){

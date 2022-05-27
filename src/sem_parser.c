@@ -258,8 +258,13 @@ int assignCheck(Node *assign, List tab, char *nameTable){
 
                 Symbol fun = getSymbolInTableByName(calledTable, rValue->u.ident);
 
-                if(lType != fun.u.f_type.return_type){
-                    raiseWarning(rValue->lineno, "Return type of function '%s' doesn't match with the assigned variable\n", rValue->u.ident);
+                if(fun.u.f_type.is_void){
+                    raiseError(rValue->lineno, "Attempt to assign to a variable a void-function\n");
+                    check_sem_err = 1;
+                }
+
+                if(lType == CHAR && fun.u.f_type.return_type == INT){
+                    raiseWarning(rValue->lineno, "Return type of function '%s' doesn't match with the assigned variable\n Expected char, got int\n", rValue->u.ident);
                 }
             }
         }
@@ -400,6 +405,55 @@ int isReturnComplete(List list, Node *node) {
 
 }
 
+static Node * hasReturnContent(Node *n){
+    for(Node *child = n->firstChild; child; child = child->nextSibling){
+        if(child->label == Return && child->firstChild){
+            return n;
+        }
+    }
+    return NULL;
+}
+
+void checkReturnsRec(Node *n, PrimType type){
+    if(!n){
+        return;
+    }
+    
+    if(n->label == Return){
+        if(!(n->firstChild)){
+            raiseError(n->lineno, "'return' with no value, in function returning non-void\n");
+            check_sem_err = 1;
+            goto end;
+        }
+        if(n->firstChild->label == Int && type == CHAR){
+            raiseWarning(n->lineno, "Attempt to return an int in a char-return function\n");
+            check_warn = 1;
+        }
+    }
+    end:
+    checkReturnsRec(n->firstChild, type);
+    checkReturnsRec(n->nextSibling, type);
+}
+
+/**
+ * @brief We suppose all functions return are return completed
+ * We suppose n -> body of function
+ * 
+ * @param n 
+ * @return int 
+ */
+void checkReturnsValue(Node *n, Symbol_table* table, Symbol sym){
+    //
+    if(sym.u.f_type.is_void){
+        if(hasReturnContent(n) != NULL){
+            raiseError(n->lineno, "'return' with a value, in function returning void\n");
+            check_sem_err = 1;
+        } 
+    } else {
+        PrimType type = sym.u.f_type.return_type;
+        checkReturnsRec(n, type);
+    }
+}
 
 /**
  * @brief parse the tree and check if there is a sem error or not
@@ -453,13 +507,13 @@ int parseSemError(Node *node, List table){
             char *nameFun = getFuncNameFromDecl(n);
             Symbol_table *sTable = getTableInListByName(nameFun, table);
             Symbol funS = getSymbolInTableByName(sTable, nameFun);
-            DEBUG("Function : %s\n", nameFun);
             if(!funS.u.f_type.is_void){
                 if(!isReturnComplete(table, n)){
                     raiseError(n->lineno, "Unreached end of non-void function\n");
                     check_sem_err = 1;
                 }
             }
+            checkReturnsValue(SECONDCHILD(n), sTable, funS);
             parseSemErrorAux(n, table, getFuncNameFromDecl(n));
         }
     }
