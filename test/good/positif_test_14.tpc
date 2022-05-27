@@ -15,15 +15,15 @@ int test2(void){
     return 1;
 }
 
-int main(int argc)
+int bar(int argc)
 {
 
     int local;
 
     c = 1000;
-    a = 0;
+    a = 0 + 2;
     b = 0;
-    putint(2039 + 10 + 9 + 50 - 102);
+    putint(2039);
     if(b==0 || a==0 || a == 2){
         
         putchar('s');
@@ -54,4 +54,13 @@ int main(int argc)
         return 1;
     }
     //No return here
+}
+
+
+int main(void){
+    if((1 && 2 && 3 && 20)){
+        putint(10);
+    }
+    putint(20);
+    return 0;
 }

@@ -1,21 +1,24 @@
 int a;
-
+int c;
 
 int foo(int bar){
-    int a;
     a = 2 + 0;
 
 
     return a;
 }
 
+void foo2(int bar){
+    return;
+}
+
 int main(void)
 {
     int p;
-    char c;
     
+    c = 1;
     a = 102;
-    if(c){
+    if(1 || 2){
         putchar('I');
         putchar('F');
         putchar('\n');
@@ -32,5 +35,6 @@ int main(void)
     putchar('\n');
     putint(a);
     putint(1029);
+    putint(105);
     return 0;
 }
