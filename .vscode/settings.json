@@ -2,6 +2,7 @@
     "files.associations": {
         "string.h": "c",
         "*.tpc": "c",
-        "symbols-table.h": "c"
+        "symbols-table.h": "c",
+        "random": "c"
     }
 }

@@ -30,6 +30,9 @@ typedef enum {
     JNE
 }NasmFunCall;
 
+#define FMTINT "formatIntIn"
+#define FMTCHAR "fmtChar"
+
 /**
  * @brief 
  * 

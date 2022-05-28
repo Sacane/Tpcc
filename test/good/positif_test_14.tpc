@@ -1,4 +1,5 @@
 int a, b, c;
+char z;
 
 int test(void){
     if (1) {
@@ -60,16 +61,35 @@ int bar(int argc)
 int main(void){
     int loc;
     int i;
+    char d;
     int m;
-    loc = 10 + 20 - 108;
-    m = 1029;
-    i = 0;
-    a = 10;
-    b = 0;
+
+    putchar('P');
+    putchar('R');
+    putchar('O');
+    putchar('M');
+    putchar('P');
+    putchar('T');
+    putchar(' ');
+    putchar(':');
+    putchar(' ');
+    d = getchar();
+    putchar('P');
+    putchar('R');
+    putchar('O');
+    putchar('M');
+    putchar('P');
+    putchar('T');
+    putchar(' ');
+    putchar(':');
+    putchar(' ');
+
+    loc = getint();
+
+    putchar(d);
     putint(loc);
-    putint(m);
-    putint(i);
-    if((a && b)){
+
+    if((loc==2 && d=='z')){
         putint(10);
     }
     putint(20);

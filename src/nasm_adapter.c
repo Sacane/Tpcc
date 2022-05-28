@@ -58,6 +58,7 @@ static void initBss(int globalBssSize, List listTable){
 
     fprintf(f, "section .bss\n");
     fprintf(f, "%s: resq %d\n", GLOBAL, globalBssSize);
+    fprintf(f, "number: resq 1\n");
 
 }
 
@@ -66,7 +67,9 @@ void writeNasmHeader(int globalBssSize, List listTable){
 
     fprintf(f, "section .data\n");
     fprintf(f, "\t formatInt: db \"%s\", 10, 0\n", "%d");
-
+    fprintf(f, "\t formatIntIn: db \"%s\", 0\n", "%d");
+    fprintf(f, "\t fmtChar: db \"%s\", 0\n", "%c");
+    fprintf(f, "\t integer1: times 8 db 0\n");
     initBss(globalBssSize, listTable);
     
 
@@ -76,7 +79,8 @@ void writeNasmHeader(int globalBssSize, List listTable){
     extern my_putchar\n \
     extern show_registers\n \
     extern my_getint\n \
-    extern printf\n");   
+    extern printf\n \
+    extern scanf\n");   
     
 }
 
@@ -339,7 +343,14 @@ void allocateLocalVar(Node *functionRoot, List lst, Symbol_table *funTable){
 
 }
 
+void callScanf(char *buf, char *format){
 
+    nasmCall(MOV, "rsi", buf);
+    nasmCall(MOV, "rdi", format);
+    nasmCall(MOV, "rax", "0");
+    nasmCall(CALL, "scanf", NULL);
+
+}
 
 /*=====================================================*/
 void assign_global_var(Symbol_table *symbolTable, FILE* in, Node *assign_node, List list){
@@ -389,10 +400,24 @@ void assign_global_var(Symbol_table *symbolTable, FILE* in, Node *assign_node, L
             nasmCall(MOV, "rax", "0");
             nasmCall(MOV, "rbx", "0");
             break;
+        case Getint:
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (isGlobalLayer) ? "+" : "", lVar.offset);
+            callScanf("number", FMTINT);
+            nasmCall(MOV, "rax", "qword [number]");
+            nasmCall(MOV, buf2, "rax");
+            nasmCall(MOV, "rax", "0");
+            
+            break;
+        case Getchar:
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (isGlobalLayer) ? "+" : "", lVar.offset);
+            callScanf("number", FMTCHAR);
+            nasmCall(MOV, "rax", "qword [number]");
+            nasmCall(MOV, buf2, "rax");
+            nasmCall(MOV, "rax", "0");
+            break;
         default:
             raiseWarning(rValue->lineno, "Assign from variable are Not available in this version of compilation\n");
             return;
-
     }
 }
 
@@ -817,7 +842,9 @@ void buildNasmFile(Node *root, List list){
 void makeExecutable(char *fname){
     char buf[BUFSIZ];
     sprintf(buf, "nasm -f elf64 _anonymous.asm");
+    DEBUG("%s\n", buf);
     system(buf);
     sprintf(buf, "gcc -o %s my_putchar.o _anonymous.o -nostartfiles -no-pie", fname);
+    DEBUG("%s\n", buf);
     system(buf);
 }

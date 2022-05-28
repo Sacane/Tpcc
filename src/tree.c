@@ -47,7 +47,9 @@ static const char *StringFromLabel[] = {
   "Default",
   "Break",
   "Putchar",
-  "Putint"
+  "Putint",
+  "Getint",
+  "Getchar"
   /* list all other node labels, if any */
   /* The list must coincide with the label_t enum in tree.h */
   /* To avoid listing them twice, see https://stackoverflow.com/a/10966395 */
@@ -128,6 +130,14 @@ void printTree(Node *node) {
     case Order:
     case Eq:
       printf(": %s", node->u.comp);
+      break;
+    case Putint:
+      break;
+    case Putchar:
+      break;
+    case Getint:
+      break;
+    case Getchar:
       break;
     default:
       break;
