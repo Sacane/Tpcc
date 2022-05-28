@@ -1,6 +1,22 @@
+void foo(void){
+    int a;
+    a = 0;
+    if(a == 1){
+        a = 4;
+        return;
+    } else {
+        a = 3;
+        putint(a);
+    }
+    putint(1);
+}
 
-void print_add(int a, int b){
-    putint(a + b);
+
+int add(int a, int b){
+    if(a > 0){
+        return 0;
+    }
+    return a + b;
 }
 
 void hello_world(int stop){
@@ -22,8 +38,9 @@ void hello_world(int stop){
 
 int main(void){
     int a;
-    a = 10;
-    print_add(a, 10);
     
+    a = add(0, 10);
+    putint(a);
+    foo();
     return 0;
 }
