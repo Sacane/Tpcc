@@ -53,7 +53,8 @@ List buildSymbolTableListFromRoot(Node *root){
     Node* functions_root;
     PrimType function_t;
     int i = 0, is_void, nb_args = 0, global_offset = 0;
-    int totalFuncOffset = 0, totalLocalVariable = 0;
+    int totalLocalVariable = 0;
+    int offsetLocalVar = 0, offsetParam = 0;
     Symbol_table *globals_table = buildGlobalVariableSymbolTable(root);
     list = newSymbolTableList(NULL);
     insertSymbolTableInList(list, globals_table);
@@ -63,6 +64,7 @@ List buildSymbolTableListFromRoot(Node *root){
     
         nb_args = 0;
         totalLocalVariable = 0;
+        
         // =============== Management of the functions's header ==================
 
         Node* header_function = function_root->firstChild;
@@ -74,21 +76,27 @@ List buildSymbolTableListFromRoot(Node *root){
         Symbol_table *table = newSymbolTable(function_type->firstChild->u.ident);
         Node *params = function_type->nextSibling;
         Symbol s;
-
+        
         if(params->firstChild->label != Void){
             
+            for (Node *paramType = params->firstChild; paramType; paramType = paramType->nextSibling){
+                table->nb_parameter += 1;
+
+            }
+            offsetParam = table->nb_parameter * 8 + 8;
             for (Node *paramType = params->firstChild; paramType; paramType = paramType->nextSibling){
                 //parametres
                 Kind k = PARAM;
                 PrimType type = stringOfTpcType(paramType->u.ident);
                 Node* id = paramType->firstChild;
-                s = newSymbol(id->u.ident, k, type, 0, id->lineno);
+                s = newSymbol(id->u.ident, k, type, offsetParam, id->lineno);
                 insertSymbol(s, table);
-                table->nb_parameter += 1;
+                
 
                 //symbol de structure de fonction
                 param_types[nb_args] = type;
                 nb_args += 1;
+                offsetParam -= 8;
             }
         }
         //=========================== Function's body ===========================
@@ -96,15 +104,15 @@ List buildSymbolTableListFromRoot(Node *root){
         Node* body = header_function->nextSibling;
         //Function's local variable :
         Node* local = body->firstChild;
-        totalFuncOffset = -8;
+        offsetLocalVar = -8;
         for(Node* localVarNode = local->firstChild; localVarNode; localVarNode = localVarNode->nextSibling){
             totalLocalVariable += 1;
             PrimType type = stringOfTpcType(localVarNode->u.ident); // type's variable
             Kind kind = VARIABLE;
             for(Node *id = localVarNode->firstChild; id; id = id->nextSibling){
-                s = newSymbol(id->u.ident, kind, type, totalFuncOffset, id->lineno);
+                s = newSymbol(id->u.ident, kind, type, offsetLocalVar, id->lineno);
                 insertSymbol(s, table);
-                totalFuncOffset -= 8;
+                offsetLocalVar -= 8;
             }
         }
         table->total_size = totalLocalVariable;

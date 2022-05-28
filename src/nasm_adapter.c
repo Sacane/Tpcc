@@ -49,6 +49,7 @@ static char* stringOfNasmFun(NasmFunCall nasmFunction){
         case JGE : return "jge";
         case JL: return "jl";
         case JNE: return "jne";
+        case LEAVE: return "leave";
 
     }
 }
@@ -111,15 +112,11 @@ static int nasmArityOf(NasmFunCall fc){
             return 2;
         case SYSCALL:
         case RET: 
+        case LEAVE:
             return 0;
     }
 }
 
-
-
-static char *varStaticAdress(){
-    char buf[BUFSIZ];
-}
 
 static int nasmFunArityCheck(NasmFunCall nasmFunCall, char *var1, char *var2){
     switch (nasmArityOf(nasmFunCall)){
@@ -201,6 +198,8 @@ int symbolPriority(List list, Symbol_table *functionTable, char *nameSymbol){
 
 }
 
+
+
 /* We suppose node parameter in the body of the main */
 /**
  * @brief 
@@ -208,7 +207,8 @@ int symbolPriority(List list, Symbol_table *functionTable, char *nameSymbol){
  * @param addSubNode 
  * @param symbolTable 
  */
-void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list, int stage){
+void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list, int stage, char *currentFunId){
+    DEBUG("function : %s\n", currentFunId);
     assert(addSubNode);
     char buf[BUFSIZ];
     char buf2[BUFSIZ];
@@ -218,9 +218,10 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list, int sta
     int offset;
     int priority;
     Symbol_table *globalTable = getTableInListByName(GLOBAL, list);
+    Symbol_table *currentFunTable;
     int isLeftInGlobal = 0, isRightInGlobal = 0;
     if(FIRSTCHILD(addSubNode)->label == Addsub || FIRSTCHILD(addSubNode)->label == divstar){
-        opTranslate(FIRSTCHILD(addSubNode), symbolTable, list, stage+1);
+        opTranslate(FIRSTCHILD(addSubNode), symbolTable, list, stage+1, currentFunId);
     } else {
         switch (FIRSTCHILD(addSubNode)->label){
             case Int:
@@ -231,12 +232,17 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list, int sta
                 break;
             case Variable:
                 if(((priority = symbolPriority(list, symbolTable, FIRSTCHILD(addSubNode)->u.ident)) == IN_FUNCTION)){
+                    
+                    DEBUG("Segfault ?\n");
+                    printSymbolTable(symbolTable);
                     s = getSymbolInTableByName(symbolTable, FIRSTCHILD(addSubNode)->u.ident);
+
+                    
                 } else {
                     s = getSymbolInTableByName(globalTable, FIRSTCHILD(addSubNode)->u.ident);
                 }
 
-                sprintf(buf, "qword [%s + %d]",(priority == IN_GLOBAL) ? GLOBAL : symbolTable->name_table, s.offset);
+                sprintf(buf, "qword [%s %s %d]",(priority == IN_GLOBAL) ? GLOBAL : "rbp", (s.offset > 0) ? "+" : "", s.offset);
 
                 
                 nasmCall(PUSH, buf, NULL);
@@ -247,7 +253,7 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list, int sta
         
     }
     if(SECONDCHILD(addSubNode)->label == Addsub || SECONDCHILD(addSubNode)->label == divstar){
-        opTranslate(SECONDCHILD(addSubNode), symbolTable, list, stage+1);
+        opTranslate(SECONDCHILD(addSubNode), symbolTable, list, stage+1, currentFunId);
     }
     if(addSubNode && (addSubNode->label == Addsub || addSubNode->label == divstar)){
 
@@ -269,13 +275,14 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list, int sta
                 break;
             case Variable:
                 if(((priority = symbolPriority(list, symbolTable, SECONDCHILD(addSubNode)->u.ident)) == IN_FUNCTION)){
+                    DEBUG("SUPPOSED TOBE HERE\n");
                     s = getSymbolInTableByName(symbolTable, SECONDCHILD(addSubNode)->u.ident);
                 } else {
                     s = getSymbolInTableByName(globalTable, SECONDCHILD(addSubNode)->u.ident);
 
                 }
 
-                sprintf(buf2, "qword [%s + %d]",(priority == IN_GLOBAL) ? GLOBAL : symbolTable->name_table, s.offset);
+                sprintf(buf2, "qword [%s %s %d]",(priority == IN_GLOBAL) ? GLOBAL : "rbp", (s.offset > 0) ? "+" : "", s.offset);
 
                 nasmCall(PUSH, buf2, NULL);
                 break;
@@ -383,25 +390,25 @@ void assign_global_var(Symbol_table *symbolTable, FILE* in, Node *assign_node, L
         case Character:
             c = rValue->u.byte;
             sprintf(buf, "'%c'", c);
-            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (isGlobalLayer) ? "+" : "", lVar.offset);
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset > 0) ? "+" : "", lVar.offset);
             nasmCall(MOV, buf2, buf);
             break;
         case Int:
             i = rValue->u.num;
             sprintf(buf, "%d", i);
-            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (isGlobalLayer) ? "+" : "", lVar.offset);
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset > 0) ? "+" : "", lVar.offset);
             nasmCall(MOV, buf2, buf);
             break;
         case Addsub:
         case divstar:
-            opTranslate(rValue, symbolTable, list, 0); // Put into r12 value of addition
-            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (isGlobalLayer) ? "+" : "", lVar.offset);
+            opTranslate(rValue, symbolTable, list, 0, symbolTable->name_table); // Put into r12 value of addition
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset > 0) ? "+" : "", lVar.offset);
             nasmCall(MOV, buf2, "rax");
             nasmCall(MOV, "rax", "0");
             nasmCall(MOV, "rbx", "0");
             break;
         case Getint:
-            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (isGlobalLayer) ? "+" : "", lVar.offset);
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset > 0) ? "+" : "", lVar.offset);
             callScanf("number", FMTINT);
             nasmCall(MOV, "rax", "qword [number]");
             nasmCall(MOV, buf2, "rax");
@@ -409,7 +416,7 @@ void assign_global_var(Symbol_table *symbolTable, FILE* in, Node *assign_node, L
             
             break;
         case Getchar:
-            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (isGlobalLayer) ? "+" : "", lVar.offset);
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset > 0) ? "+" : "", lVar.offset);
             callScanf("number", FMTCHAR);
             nasmCall(MOV, "rax", "qword [number]");
             nasmCall(MOV, buf2, "rax");
@@ -465,6 +472,7 @@ static void writePutint(Node *putIntNode, List list, Symbol_table *funTable){
     char buf[BUFSIZ];
     int n;
     Symbol s;
+    int priority;
     Symbol_table *globalTable = getTableInListByName(GLOBAL, list);
 
     switch(checkNodeContent(FIRSTCHILD(putIntNode))){
@@ -480,17 +488,24 @@ static void writePutint(Node *putIntNode, List list, Symbol_table *funTable){
                 return;
             } else {
                 s = getSymbolInTableByName(funTable, FIRSTCHILD(putIntNode)->u.ident);
-                sprintf(buf, "qword [rbp %d]", s.offset);
+                sprintf(buf, "qword [rbp %s %d]", (s.offset > 0) ? "+" : "", s.offset);
                 callPrintf(buf);
                 return;
             }
             break;
+        case OPERATOR:
+            opTranslate(FIRSTCHILD(putIntNode), funTable, list, 0, funTable->name_table);
+            callPrintf("rax");
+
+            return;
         default:
-            opTranslate(FIRSTCHILD(putIntNode), globalTable, list, 0);
+            
+            opTranslate(FIRSTCHILD(putIntNode), funTable, list, 0, funTable->name_table);
             callPrintf("rax");
             return;
     }
     sprintf(buf, "%d", n);
+    fprintf(f, ";SOMETHING \n");
     callPrintf(buf);
 }
 
@@ -526,7 +541,7 @@ static void writePutchar(Node *putcharNode, Symbol_table *funTable, List list){
                 contentLayer = IN_GLOBAL;
             }
             
-            sprintf(buf, "qword [%s %s %d]", (contentLayer == IN_GLOBAL) ? GLOBAL : "rbp", (contentLayer == IN_GLOBAL) ? "+" : "", variable.offset);
+            sprintf(buf, "qword [%s %s %d]", (contentLayer == IN_GLOBAL) ? GLOBAL : "rbp", (variable.offset > 0) ? "+" : "", variable.offset);
             break;
     }
 
@@ -552,7 +567,7 @@ int compareInstrAux(Node *condNode, List list, Symbol_table *funTable){
 
     switch(checkNodeContent(opLeft)){
         case OPERATOR: {
-            opTranslate(condNode, funTable, list, 0);  //rax
+            opTranslate(condNode, funTable, list, 0, funTable->name_table);  //rax
             nasmCall(MOV, "r14", "rax");
         }
         break;
@@ -587,7 +602,7 @@ int compareInstrAux(Node *condNode, List list, Symbol_table *funTable){
 
     switch(checkNodeContent(opRight)){
         case OPERATOR: {
-            opTranslate(condNode, funTable, list, 0);  //rax
+            opTranslate(condNode, funTable, list, 0, funTable->name_table);  //rax
             nasmCall(MOV, "r15", "rax");
 
         }
@@ -638,7 +653,7 @@ void treatExpr(Node *conditionNode, List list, Symbol_table *funTable, char *lab
             //Local
             if(isSymbolInTable(funTable, conditionNode->u.ident)){
                 s = getSymbolInTableByName(funTable, conditionNode->u.ident);
-                sprintf(buf, "qword [%s %d]", "rbp", s.offset);
+                sprintf(buf, "qword [%s %s %d]", "rbp", (s.offset > 0) ? "+" : "", s.offset);
             }
             nasmCall(MOV, "rbx", "0");
             nasmCall(ADD, "rbx", buf);
@@ -681,7 +696,7 @@ void treatExpr(Node *conditionNode, List list, Symbol_table *funTable, char *lab
             break;
         case Addsub:
         case divstar:
-            opTranslate(conditionNode, funTable, list, 0); //Resultat de l'opération dans rax
+            opTranslate(conditionNode, funTable, list, 0, funTable->name_table); //Resultat de l'opération dans rax
             nasmCall(ADD, "rbx", "rax");
             nasmCall(JG, labelIf, NULL);
 
@@ -763,6 +778,46 @@ void ifInstr(Node *ifInstr, List list, Symbol_table *funTable){
     fprintf(f, "%s%d:\n", LABEL_CODE, currentId);
 }
 
+void functionCallInstr(Node *fCallNode, char *calledId, char *callerId, List list){
+    Symbol paramSymbol;
+    int priority;
+    char buf[BUFSIZ];
+    Symbol_table *callerTable = getTableInListByName(callerId, list);
+    Symbol_table *calledTable = getTableInListByName(calledId, list);
+    Symbol_table *globalTable;
+    if(!(fCallNode->firstChild->label == Void)){  
+        for(Node *paramNode = fCallNode->firstChild; paramNode; paramNode = paramNode->nextSibling){
+            switch (paramNode->label)
+            {
+            case Variable:
+                globalTable = getTableInListByName(GLOBAL, list);
+                priority = symbolPriority(list, callerTable, paramNode->u.ident);
+                paramSymbol = getSymbolInTableByName((priority == IN_GLOBAL) ? globalTable : callerTable, paramNode->u.ident);
+                printSymbolTable(calledTable);
+                sprintf(buf, "qword [%s %s %d]", (priority == IN_GLOBAL) ? GLOBAL : "rbp", (paramSymbol.offset > 0) ? "+" : "", paramSymbol.offset);
+
+                nasmCall(PUSH, buf, NULL);
+
+                break;
+            case Int:
+                sprintf(buf, "%d", paramNode->u.num);
+                nasmCall(PUSH, buf, NULL);
+                break;
+            case Character:
+                sprintf(buf, "%c", paramNode->u.byte);
+                nasmCall(PUSH, buf, NULL);
+                break;
+            case FunctionCall:
+                //Recursivity
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    nasmCall(CALL, calledId, NULL);
+
+}
 
 //TODO : boolean operations
 void nasmTranslateParsing(Node *root, Symbol_table *global_var_table, List list, char *currentFunName){
@@ -770,34 +825,41 @@ void nasmTranslateParsing(Node *root, Symbol_table *global_var_table, List list,
     if(!root) {
         return;
     }
+    Symbol_table * curFunTable = getTableInListByName(currentFunName, list);
     switch(root->label){
         case Else:
             return;
         case Assign:
-            assign_global_var(getTableInListByName(currentFunName, list), f, root, list);
+            assign_global_var(curFunTable, f, root, list);
             break;
         case Putchar:
-            writePutchar(root, getTableInListByName(currentFunName, list), list);
+            writePutchar(root, curFunTable, list);
             break;
         case Putint:
-            writePutint(root, list, getTableInListByName(currentFunName, list));
+            writePutint(root, list, curFunTable);
             break;
         case If:
-        labelId += 1;
+            labelId += 1;
             fprintf(f, ";IF parsing started\n");
-            ifInstr(root, list, getTableInListByName(currentFunName, list));
+            ifInstr(root, list, curFunTable);
             nasmTranslateParsing(root->nextSibling, global_var_table, list, currentFunName);
             return;
         case While:
+            DEBUG("While are not available yet\n");
+            break;
+        case FunctionCall:
+            
+            functionCallInstr(root, root->u.ident,  currentFunName, list);
+            DEBUG("root -> ident : %s | currentFunName : %s\n", root->u.ident, currentFunName);
+            //functionCallInstr
             break;
     }
-
-
-
     nasmTranslateParsing(root->firstChild, global_var_table, list, currentFunName);
     nasmTranslateParsing(root->nextSibling, global_var_table, list, currentFunName);
 
 }
+
+
 
 void setFunctions(Node *fonctNode, List list){
     
@@ -822,6 +884,7 @@ static void translateMain(Node *root, Symbol_table *global, List list, Symbol_ta
         nasmCall(SUB, "rsp", numeric);
         //tree parsing
         nasmTranslateParsing(SECONDCHILD(n), global, list, nameFun);
+        sprintf(numeric, "%d", (sTable.u.f_type.nb_local + sTable.u.f_type.nb_args) * 8);
         nasmCall(ADD, "rsp", numeric);
         nasmCall(MOV, "rsp", "rbp");
         nasmCall(POP, "rbp", NULL);

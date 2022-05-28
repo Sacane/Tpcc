@@ -70,10 +70,10 @@ void print_symbol(Symbol s){
             }
             break;
         case VARIABLE:
-            fprintf(stderr, "variable | Location : %d\n", s.offset);
+            fprintf(stderr, "variable | offset : %d\n", s.offset);
             break;
         case PARAM:
-            fprintf(stderr, "parametre\n");
+            fprintf(stderr, "parametre | offset : %d\n", s.offset);
             break;
         default:
             fprintf(stderr, "Unknown\n");
