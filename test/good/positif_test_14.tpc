@@ -1,11 +1,12 @@
 int a, b, c;
 char z;
 
-int test(void){
+void test(void){
     if (1) {
-        return 0;
+        putint(0);
+        
     } else {
-        return 1;
+        putchar('A');
     }
 }
 
@@ -71,6 +72,11 @@ int main(void){
     putchar('P');
     putchar('T');
     putchar(' ');
+    putchar('C');
+    putchar('H');
+    putchar('A');
+    putchar('R');
+    putchar(' ');
     putchar(':');
     putchar(' ');
     d = getchar();
@@ -81,15 +87,18 @@ int main(void){
     putchar('P');
     putchar('T');
     putchar(' ');
+    putchar('I');
+    putchar('N');
+    putchar('T');
+    putchar(' ');
     putchar(':');
     putchar(' ');
-
-    loc = getint();
+    
+    i = getint();
 
     putchar(d);
-    putint(loc);
-
-    if((loc==2 && d=='z')){
+    putint(i);
+    if((i==2 && d=='z')){
         putint(10);
     }
     putint(20);

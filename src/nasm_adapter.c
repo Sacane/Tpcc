@@ -568,7 +568,7 @@ int compareInstrAux(Node *condNode, List list, Symbol_table *funTable){
                 isGlobalLayer = 1;
             }
 
-            sprintf(buf, "qword [%s + %d]", (isGlobalLayer) ? GLOBAL : funTable->name_table, s.offset);
+            sprintf(buf, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (isGlobalLayer) ? "+" : "", s.offset);
             nasmCall(MOV, "r14", buf);
         }
         break;
@@ -604,7 +604,7 @@ int compareInstrAux(Node *condNode, List list, Symbol_table *funTable){
                 isGlobalLayer = 1;
             }
 
-            sprintf(buf, "qword [%s + %d]", (isGlobalLayer) ? GLOBAL : funTable->name_table, s.offset);
+            sprintf(buf, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (isGlobalLayer) ? "+" : "", s.offset);
             nasmCall(MOV, "r15", buf);
         }
         break;
@@ -638,7 +638,7 @@ void treatExpr(Node *conditionNode, List list, Symbol_table *funTable, char *lab
             //Local
             if(isSymbolInTable(funTable, conditionNode->u.ident)){
                 s = getSymbolInTableByName(funTable, conditionNode->u.ident);
-                sprintf(buf, "qword [%s + %d]", funTable->name_table, s.offset);
+                sprintf(buf, "qword [%s %d]", "rbp", s.offset);
             }
             nasmCall(MOV, "rbx", "0");
             nasmCall(ADD, "rbx", buf);
@@ -766,31 +766,33 @@ void ifInstr(Node *ifInstr, List list, Symbol_table *funTable){
 
 //TODO : boolean operations
 void nasmTranslateParsing(Node *root, Symbol_table *global_var_table, List list, char *currentFunName){
-
-    if(!root || root->label == Else) {
+    
+    if(!root) {
         return;
     }
-    if(root->label == Assign){
-        assign_global_var(getTableInListByName(currentFunName, list), f, root, list);
-    }
-    if(root->label == Putchar){
-        writePutchar(root, getTableInListByName(currentFunName, list), list); 
-    }
-    if(root->label == Putint){
-        Symbol_table *funTable = getTableInListByName(currentFunName, list);
-        writePutint(root, list, funTable);
-    }
-    if(root->label == If){
+    switch(root->label){
+        case Else:
+            return;
+        case Assign:
+            assign_global_var(getTableInListByName(currentFunName, list), f, root, list);
+            break;
+        case Putchar:
+            writePutchar(root, getTableInListByName(currentFunName, list), list);
+            break;
+        case Putint:
+            writePutint(root, list, getTableInListByName(currentFunName, list));
+            break;
+        case If:
         labelId += 1;
-        fprintf(f, ";IF parsing started\n");
-        ifInstr(root, list, getTableInListByName(currentFunName, list));
-        nasmTranslateParsing(root->nextSibling, global_var_table, list, currentFunName);
-        return;
+            fprintf(f, ";IF parsing started\n");
+            ifInstr(root, list, getTableInListByName(currentFunName, list));
+            nasmTranslateParsing(root->nextSibling, global_var_table, list, currentFunName);
+            return;
+        case While:
+            break;
     }
-    if(root->label == While){
-        //TODO while
-        return;
-    }
+
+
 
     nasmTranslateParsing(root->firstChild, global_var_table, list, currentFunName);
     nasmTranslateParsing(root->nextSibling, global_var_table, list, currentFunName);
