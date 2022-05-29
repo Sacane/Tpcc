@@ -1,0 +1,87 @@
+int a;
+void rec(int a, int b){
+    int c;
+    c = 10;
+    if(a > 10){
+        return;
+    }
+    putint(a);
+    rec(a+1, b+1);
+}
+
+void print_find(void){
+        putchar('T');
+        putchar('R');
+        putchar('O');
+        putchar('U');
+        putchar('V');
+        putchar('E');
+        putchar('Z');
+        putchar(' ');
+        putchar('L');
+        putchar('E');
+        putchar(' ');
+        putchar('N');
+        putchar('O');
+        putchar('M');
+        putchar('B');
+        putchar('R');
+        putchar('E');
+        putchar(' ');
+        putchar('!');
+        putchar('\n');
+}
+
+void sayCongrat(void){
+        putchar('F');
+        putchar('E');
+        putchar('L');
+        putchar('I');
+        putchar('C');
+        putchar('I');
+        putchar('T');
+        putchar('A');
+        putchar('T');
+        putchar('I');
+        putchar('O');
+        putchar('N');
+        putchar('S');
+        putchar('\n');
+}
+
+void sayRetry(void){
+        putchar('R');
+        putchar('E');
+        putchar('T');
+        putchar('R');
+        putchar('Y');
+        putchar(' ');
+        putchar(':');
+        putchar(' ');
+}
+
+void find(int target, int nbCall){
+    int t;
+    if(nbCall == 0){
+        print_find();
+    }
+    t = getint();
+    
+    if(t == target){
+        putint(target);
+        sayCongrat();
+        return;
+    }
+    else {
+        sayRetry();
+        putint(target);
+        putint(nbCall);
+        find(target+1, nbCall+1);
+    }
+}
+
+
+int main(void){
+    find(15, 0);
+    return 0;
+}

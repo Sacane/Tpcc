@@ -1,8 +1,9 @@
 void foo(void){
     int a;
-    a = 0;
+    a = getint();
     if(a == 1){
         a = 4;
+        putint(a);
         return;
     } else {
         a = 3;

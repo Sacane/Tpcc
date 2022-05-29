@@ -156,6 +156,12 @@ int nasmCall(NasmFunCall nasmFunCall, char *var1, char *var2)
 
 }
 
+void call(char *content){
+    nasmCall(SUB, "rsp", "8");
+    nasmCall(CALL, content, NULL);
+    nasmCall(ADD, "rsp", "8");
+}
+
 void end_asm(){
     fprintf(f, "_start:\n");
 
@@ -168,7 +174,7 @@ void end_asm(){
 
 
 void writeTestRegisters(){
-    nasmCall(CALL, "show_registers", NULL);
+    call("show_registers");
 }
 
 void write_global_eval(Symbol_table *global_table, Node *assign_node){
@@ -242,7 +248,7 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list, int sta
                     s = getSymbolInTableByName(globalTable, FIRSTCHILD(addSubNode)->u.ident);
                 }
 
-                sprintf(buf, "qword [%s %s %d]",(priority == IN_GLOBAL) ? GLOBAL : "rbp", (s.offset > 0) ? "+" : "", s.offset);
+                sprintf(buf, "qword [%s %s %d]",(priority == IN_GLOBAL) ? GLOBAL : "rbp", (s.offset >= 0) ? "+" : "", s.offset);
 
                 
                 nasmCall(PUSH, buf, NULL);
@@ -282,7 +288,7 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list, int sta
 
                 }
 
-                sprintf(buf2, "qword [%s %s %d]",(priority == IN_GLOBAL) ? GLOBAL : "rbp", (s.offset > 0) ? "+" : "", s.offset);
+                sprintf(buf2, "qword [%s %s %d]",(priority == IN_GLOBAL) ? GLOBAL : "rbp", (s.offset >= 0) ? "+" : "", s.offset);
 
                 nasmCall(PUSH, buf2, NULL);
                 break;
@@ -355,7 +361,15 @@ void callScanf(char *buf, char *format){
     nasmCall(MOV, "rsi", buf);
     nasmCall(MOV, "rdi", format);
     nasmCall(MOV, "rax", "0");
-    nasmCall(CALL, "scanf", NULL);
+    call("scanf");
+
+}
+
+void callGetint(char *buf){
+    callScanf("number", FMTINT);
+    nasmCall(MOV, "rax", "qword [number]");
+    nasmCall(MOV, buf, "rax");
+    nasmCall(MOV, "rax", "0");
 
 }
 
@@ -390,41 +404,41 @@ void assign_global_var(Symbol_table *symbolTable, FILE* in, Node *assign_node, L
         case Character:
             c = rValue->u.byte;
             sprintf(buf, "'%c'", c);
-            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset > 0) ? "+" : "", lVar.offset);
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
             nasmCall(MOV, buf2, buf);
             break;
         case Int:
             i = rValue->u.num;
             sprintf(buf, "%d", i);
-            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset > 0) ? "+" : "", lVar.offset);
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
             nasmCall(MOV, buf2, buf);
             break;
         case Addsub:
         case divstar:
             opTranslate(rValue, symbolTable, list, 0, symbolTable->name_table); // Put into r12 value of addition
-            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset > 0) ? "+" : "", lVar.offset);
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
             nasmCall(MOV, buf2, "rax");
             nasmCall(MOV, "rax", "0");
             nasmCall(MOV, "rbx", "0");
             break;
         case Getint:
-            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset > 0) ? "+" : "", lVar.offset);
-            callScanf("number", FMTINT);
-            nasmCall(MOV, "rax", "qword [number]");
-            nasmCall(MOV, buf2, "rax");
-            nasmCall(MOV, "rax", "0");
-            
+            fprintf(f, ";getint\n");
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
+            callGetint(buf2);
+            fprintf(f, ";end getint\n");
             break;
         case Getchar:
-            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset > 0) ? "+" : "", lVar.offset);
+            fprintf(f, ";getchar\n");
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
             callScanf("number", FMTCHAR);
             nasmCall(MOV, "rax", "qword [number]");
             nasmCall(MOV, buf2, "rax");
             nasmCall(MOV, "rax", "0");
+            fprintf(f, ";end getint\n");
             break;
         case FunctionCall:
             functionCallInstr(rValue, rValue->u.ident,  symbolTable->name_table, list, 0, 0, NULL);
-            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset > 0) ? "+" : "", lVar.offset);
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
             nasmCall(MOV, buf2, "rax");
             break;
         default:
@@ -465,7 +479,7 @@ static void callPrintf(char *content){
     
     nasmCall(MOV, "rax", "0");
     nasmCall(MOV, "rdi", "formatInt");
-    nasmCall(CALL, "printf", NULL);
+    call("printf");
 }
 
 static void writeGetchar(Node *getcharNode, List list, Symbol_table *funTable){
@@ -493,7 +507,7 @@ static void writePutint(Node *putIntNode, List list, Symbol_table *funTable){
                 return;
             } else {
                 s = getSymbolInTableByName(funTable, FIRSTCHILD(putIntNode)->u.ident);
-                sprintf(buf, "qword [rbp %s %d]", (s.offset > 0) ? "+" : "", s.offset);
+                sprintf(buf, "qword [rbp %s %d]", (s.offset >= 0) ? "+" : "", s.offset);
                 callPrintf(buf);
                 return;
             }
@@ -546,7 +560,7 @@ static void writePutchar(Node *putcharNode, Symbol_table *funTable, List list){
                 contentLayer = IN_GLOBAL;
             }
             
-            sprintf(buf, "qword [%s %s %d]", (contentLayer == IN_GLOBAL) ? GLOBAL : "rbp", (variable.offset > 0) ? "+" : "", variable.offset);
+            sprintf(buf, "qword [%s %s %d]", (contentLayer == IN_GLOBAL) ? GLOBAL : "rbp", (variable.offset >= 0) ? "+" : "", variable.offset);
             break;
     }
 
@@ -588,7 +602,7 @@ int compareInstrAux(Node *condNode, List list, Symbol_table *funTable){
                 isGlobalLayer = 1;
             }
 
-            sprintf(buf, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (s.offset > 0) ? "+" : "", s.offset);
+            sprintf(buf, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (s.offset >= 0) ? "+" : "", s.offset);
             nasmCall(MOV, "r14", buf);
         }
         break;
@@ -624,7 +638,7 @@ int compareInstrAux(Node *condNode, List list, Symbol_table *funTable){
                 isGlobalLayer = 1;
             }
 
-            sprintf(buf, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (isGlobalLayer) ? "+" : "", s.offset);
+            sprintf(buf, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (s.offset >= 0) ? "+" : "", s.offset);
             nasmCall(MOV, "r15", buf);
         }
         break;
@@ -812,7 +826,7 @@ void returnInstr(Node *returnNode, List list, char *currentFunId){
         
         priority = symbolPriority(list, currentTable, valueNode->u.ident);
         valueSym = getSymbolInTableByName((priority == IN_GLOBAL) ? global : currentTable, valueNode->u.ident);
-        sprintf(buf, "qword [%s %s %d]", (priority == IN_GLOBAL) ? GLOBAL : "rbp", (valueSym.offset > 0) ? "+" : "", valueSym.offset);
+        sprintf(buf, "qword [%s %s %d]", (priority == IN_GLOBAL) ? GLOBAL : "rbp", (valueSym.offset >= 0) ? "+" : "", valueSym.offset);
         nasmCall(MOV, "rax", buf);
         break;
     case CONST:
@@ -833,6 +847,10 @@ void functionCallInstr(Node *fCallNode, char *calledId, char *callerId, List lis
     Symbol paramSymbol;
     int priority;
     char buf[BUFSIZ];
+    if(strcmp(calledId, callerId) == 0){
+//mov rsp, rbp
+        nasmCall(MOV, "rsp", "rbp");
+    }
     Symbol_table *callerTable = getTableInListByName(callerId, list);
     Symbol_table *calledTable = getTableInListByName(calledId, list);
     Symbol_table *globalTable;
@@ -845,7 +863,7 @@ void functionCallInstr(Node *fCallNode, char *calledId, char *callerId, List lis
                 priority = symbolPriority(list, callerTable, paramNode->u.ident);
                 paramSymbol = getSymbolInTableByName((priority == IN_GLOBAL) ? globalTable : callerTable, paramNode->u.ident);
                 printSymbolTable(calledTable);
-                sprintf(buf, "qword [%s %s %d]", (priority == IN_GLOBAL) ? GLOBAL : "rbp", (paramSymbol.offset > 0) ? "+" : "", paramSymbol.offset);
+                sprintf(buf, "qword [%s %s %d]", (priority == IN_GLOBAL) ? GLOBAL : "rbp", (paramSymbol.offset >= 0) ? "+" : "", paramSymbol.offset);
 
                 nasmCall(PUSH, buf, NULL);
 
@@ -859,14 +877,22 @@ void functionCallInstr(Node *fCallNode, char *calledId, char *callerId, List lis
                 nasmCall(PUSH, buf, NULL);
                 break;
             case FunctionCall:
-                //Recursivity
+                //functionCallInstr(paramNode, paramNode->u.ident, callerId, list, 0, 0, NULL);
+                break;
+            case Addsub:
+            case divstar:
+                opTranslate(paramNode, callerTable, list, 0, callerId);
+                nasmCall(PUSH, "rax", NULL);
                 break;
             default:
                 break;
             }
         }
     }
+
     nasmCall(CALL, calledId, NULL);
+    
+    
 
     if(toAssign && !stage){
         nasmCall(MOV, target, "rax");
