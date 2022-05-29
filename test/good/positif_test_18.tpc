@@ -10,23 +10,21 @@ void rec(int a, int b){
 }
 
 void print_find(void){
-        putchar('T');
-        putchar('R');
-        putchar('O');
-        putchar('U');
-        putchar('V');
-        putchar('E');
-        putchar('Z');
+        putchar('F');
+        putchar('I');
+        putchar('N');
+        putchar('D');
         putchar(' ');
-        putchar('L');
+        putchar('T');
+        putchar('H');
         putchar('E');
         putchar(' ');
         putchar('N');
-        putchar('O');
+        putchar('U');
         putchar('M');
         putchar('B');
-        putchar('R');
         putchar('E');
+        putchar('R');
         putchar(' ');
         putchar('!');
         putchar('\n');
@@ -62,11 +60,11 @@ void sayRetry(void){
 
 void find(int target, int nbCall){
     int t;
+    
     if(nbCall == 0){
         print_find();
     }
     t = getint();
-    
     if(t == target){
         putint(target);
         sayCongrat();
@@ -74,14 +72,26 @@ void find(int target, int nbCall){
     }
     else {
         sayRetry();
-        putint(target);
-        putint(nbCall);
-        find(target+1, nbCall+1);
+        find(target, nbCall+1);
     }
 }
 
+void get(void){
+    int a;
+    a = getint();
+    putint(a);
+}
+
+void tryWhile(void){
+    int a;
+    a = 0;
+    while(1 && 2 || (a > 0)){
+        a = 10;
+        
+    }
+}
 
 int main(void){
-    find(15, 0);
+    find(105, 0);
     return 0;
 }

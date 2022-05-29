@@ -1,0 +1,31 @@
+int a;
+void getC(void){
+    char c;
+    c = '1';
+    putchar(c);
+    putint(c);
+}
+
+int ten(void){
+    return 10;
+}
+
+void getN(void){
+    int n;
+    n = ten();
+    putint(n);
+    putchar(n);
+    putchar('\n');
+}
+
+void tmp(void){
+    int b;
+    b = getint();
+    getC();
+}
+
+int main(void)
+{
+    tmp();
+    return 0;
+}

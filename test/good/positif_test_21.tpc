@@ -1,0 +1,21 @@
+int main(void){
+    int b, a;
+    a = 0;
+    b = 100;
+    while(a < 10 || b > 50){
+        putint(a);
+        putint(b);
+        a = a + 1;
+        b = b - 10;
+    }
+    putchar('F');
+    putchar('I');
+    putchar('N');
+    putchar('A');
+    putchar('L');
+    putchar(' ');
+    putchar('\n');
+    putint(a);
+    putint(b);
+    return 0;
+}

@@ -2,6 +2,8 @@
 
 
 #define LABEL_IF "labelId_"
+#define LABEL_WHILE "labelWhile_"
+#define LABEL_COND "labelCond_"
 #define LABEL_ELSE "labelElse_"
 #define LABEL_CODE "labelCode_" 
 #define LABEL_EXPR "labelExpr_"
@@ -50,6 +52,7 @@ static char* stringOfNasmFun(NasmFunCall nasmFunction){
         case JL: return "jl";
         case JNE: return "jne";
         case LEAVE: return "leave";
+        case COMMENT: return ";";
 
     }
 }
@@ -101,6 +104,7 @@ static int nasmArityOf(NasmFunCall fc){
         case JGE:
         case JL:
         case JNE:
+        case COMMENT:
             return 1;
         case MOV:
         case ADD: 
@@ -391,6 +395,7 @@ void assign_global_var(Symbol_table *symbolTable, FILE* in, Node *assign_node, L
     }
     if(isSymbolInTable(globalTable, lValue->u.ident)){
         lVar = getSymbolInTableByName(globalTable, lValue->u.ident);
+        isGlobalLayer = 1;
     }
     //Local var
     if(isSymbolInTable(symbolTable, lValue->u.ident)){
@@ -434,7 +439,7 @@ void assign_global_var(Symbol_table *symbolTable, FILE* in, Node *assign_node, L
             nasmCall(MOV, "rax", "qword [number]");
             nasmCall(MOV, buf2, "rax");
             nasmCall(MOV, "rax", "0");
-            fprintf(f, ";end getint\n");
+            fprintf(f, ";end getchar\n");
             break;
         case FunctionCall:
             functionCallInstr(rValue, rValue->u.ident,  symbolTable->name_table, list, 0, 0, NULL);
@@ -499,19 +504,12 @@ static void writePutint(Node *putIntNode, List list, Symbol_table *funTable){
             n = FIRSTCHILD(putIntNode)->u.num;
             break;
         case VAR:
-            if(isSymbolInTable(globalTable, FIRSTCHILD(putIntNode)->u.ident)){
-                s = getSymbolInTableByName(globalTable, FIRSTCHILD(putIntNode)->u.ident);
-                
-                sprintf(buf, "qword [%s + %d]", GLOBAL, s.offset);
-                callPrintf(buf);
-                return;
-            } else {
-                s = getSymbolInTableByName(funTable, FIRSTCHILD(putIntNode)->u.ident);
-                sprintf(buf, "qword [rbp %s %d]", (s.offset >= 0) ? "+" : "", s.offset);
-                callPrintf(buf);
-                return;
-            }
-            break;
+            priority = symbolPriority(list, funTable, FIRSTCHILD(putIntNode)->u.ident);
+            s = getSymbolInTableByName((priority == IN_FUNCTION) ? funTable : globalTable, FIRSTCHILD(putIntNode)->u.ident);
+            sprintf(buf, "qword [%s %s %d]", (priority == IN_FUNCTION) ? "rbp" : GLOBAL, (s.offset >= 0) ? "+" : "", s.offset);
+            callPrintf(buf);
+            
+            return;
         case OPERATOR:
             opTranslate(FIRSTCHILD(putIntNode), funTable, list, 0, funTable->name_table);
             callPrintf("rax");
@@ -524,7 +522,6 @@ static void writePutint(Node *putIntNode, List list, Symbol_table *funTable){
             return;
     }
     sprintf(buf, "%d", n);
-    fprintf(f, ";SOMETHING \n");
     callPrintf(buf);
 }
 
@@ -754,7 +751,25 @@ void treatExpr(Node *conditionNode, List list, Symbol_table *funTable, char *lab
             break;
     }
 }
+void whileInstr(Node *whileNode, char *currentFunName, List list){
+    char bufWhile[BUFSIZ];
+    char bufCond[BUFSIZ];
+    char bufEnd[BUFSIZ];
+    int currentId = labelId;
+    Node *condNode = FIRSTCHILD(whileNode);
+    sprintf(bufWhile, "%s%d", LABEL_WHILE, labelId);
+    sprintf(bufCond, "%s%d", LABEL_COND, labelId);
+    sprintf(bufEnd, "%s%d", LABEL_CODE, currentId);
+    fprintf(f, "%s:", bufCond);
+    treatExpr(condNode, list, getTableInListByName(currentFunName, list), bufWhile, NULL, bufEnd, 0);
+    nasmCall(JMP, bufEnd, NULL);
+    fprintf(f, "%s:\n", bufWhile);
 
+    nasmTranslateParsing(SECONDCHILD(whileNode), getTableInListByName(GLOBAL, list), list, currentFunName);
+
+    nasmCall(JMP, bufCond, NULL);
+    fprintf(f, "%s:\n", bufEnd);
+}
 
 void ifInstr(Node *ifInstr, List list, Symbol_table *funTable){
     char buf[BUFSIZ];
@@ -780,9 +795,7 @@ void ifInstr(Node *ifInstr, List list, Symbol_table *funTable){
     sprintf(bufLabel, "%s%d", LABEL_IF, labelId);
     sprintf(bufCode, "%s%d", LABEL_CODE, currentId);
     if(hasElse) sprintf(bufElse, "%s%d", LABEL_ELSE, labelId);
-    fprintf(f, ";test\n");
     treatExpr(cond, list, funTable, bufLabel, bufElse, bufCode, hasElse);
-    fprintf(f, ";test2\n");
     if(hasElse) {
         nasmCall(JMP, bufElse, NULL);
     } else {
@@ -889,17 +902,12 @@ void functionCallInstr(Node *fCallNode, char *calledId, char *callerId, List lis
             }
         }
     }
-
+    
     nasmCall(CALL, calledId, NULL);
-    
-    
-
-    if(toAssign && !stage){
-        nasmCall(MOV, target, "rax");
-    }
 }
 
-//TODO : boolean operations
+
+
 void nasmTranslateParsing(Node *root, Symbol_table *global_var_table, List list, char *currentFunName){
     
     if(!root) {
@@ -920,13 +928,15 @@ void nasmTranslateParsing(Node *root, Symbol_table *global_var_table, List list,
             break;
         case If:
             labelId += 1;
-            fprintf(f, ";IF parsing started\n");
             ifInstr(root, list, curFunTable);
             nasmTranslateParsing(root->nextSibling, global_var_table, list, currentFunName);
             return;
         case While:
-            DEBUG("While are not available yet\n");
-            break;
+            nasmCall(COMMENT, "While started", NULL);
+            whileInstr(root, currentFunName, list);
+            nasmCall(COMMENT, "end while", NULL);
+            nasmTranslateParsing(root->nextSibling, global_var_table, list, currentFunName);
+            return;
         case Return:
             returnInstr(root, list, currentFunName);
             break;

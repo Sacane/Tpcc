@@ -169,6 +169,16 @@ static int functionCallCheck(Node *fc_node, List table, char *callerFunctionName
     Symbol_table *tableCalledFunction = getTableInListByName(calledFunctionName, table);
 
     if(isPrimaryFunctions(calledFunctionName)){
+        switch(fc_node->label){
+            case Putint:
+                break;
+            case Putchar:
+                break;
+            case Getint:
+                break;
+            case Getchar:
+                break;
+        }
         return 1;
     }
 
@@ -250,7 +260,7 @@ int assignCheck(Node *assign, List tab, char *nameTable){
             } 
             if (rValue->label == FunctionCall){
                 if(!functionCallCheck(rValue, tab, nameTable, rValue->u.ident)){
-                    raiseError(rValue->lineno, "Function call failed : \n");
+                    raiseError(rValue->lineno, "Function call failed\n");
                     check_sem_err = 1;
                     return 0;
                 }
@@ -398,10 +408,6 @@ int isReturnComplete(List list, Node *node) {
             }
         }
     }
-    /*if(parseCpt){
-        raiseError(node->lineno, "Reached end of control flow in non-void function\n");
-        check_sem_err = 1;
-    }*/
 
 }
 
@@ -484,6 +490,15 @@ static int parseSemErrorAux(Node *n, List table, char *name_table){
             break;
         case Switch:
             switchCheck(table, name_table, n);
+            break;
+        case Getint:
+            
+            break;
+        case Getchar:
+            break;
+        case Putint:
+            break;
+        case Putchar:
             break;
         default:
             parseSemErrorAux(n->nextSibling, table, name_table);

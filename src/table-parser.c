@@ -106,10 +106,11 @@ List buildSymbolTableListFromRoot(Node *root){
         Node* local = body->firstChild;
         offsetLocalVar = -8;
         for(Node* localVarNode = local->firstChild; localVarNode; localVarNode = localVarNode->nextSibling){
-            totalLocalVariable += 1;
+            
             PrimType type = stringOfTpcType(localVarNode->u.ident); // type's variable
             Kind kind = VARIABLE;
             for(Node *id = localVarNode->firstChild; id; id = id->nextSibling){
+                totalLocalVariable += 1;
                 s = newSymbol(id->u.ident, kind, type, offsetLocalVar, id->lineno);
                 insertSymbol(s, table);
                 offsetLocalVar -= 8;
