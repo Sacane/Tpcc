@@ -149,7 +149,7 @@ static int nasmFunArityCheck(NasmFunCall nasmFunCall, char *var1, char *var2){
 int nasmCall(NasmFunCall nasmFunCall, char *var1, char *var2)
 {  
     if(!nasmFunArityCheck(nasmFunCall, var1, var2)){
-        DEBUG("Fail to write into the nasm generator file : Incorrect usage of writer fun\n");
+        DEBUG("Fail to write nasm function : incorrect usage\n");
         return 0;
     }
 
@@ -228,7 +228,6 @@ int symbolPriority(List list, Symbol_table *functionTable, char *nameSymbol){
  * @param symbolTable 
  */
 void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list, int stage, char *currentFunId){
-    DEBUG("function : %s\n", currentFunId);
     assert(addSubNode);
     char buf[BUFSIZ];
     char buf2[BUFSIZ];
@@ -252,9 +251,6 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list, int sta
                 break;
             case Variable:
                 if(((priority = symbolPriority(list, symbolTable, FIRSTCHILD(addSubNode)->u.ident)) == IN_FUNCTION)){
-                    
-                    DEBUG("Segfault ?\n");
-                    printSymbolTable(symbolTable);
                     s = getSymbolInTableByName(symbolTable, FIRSTCHILD(addSubNode)->u.ident);
 
                     
@@ -295,7 +291,6 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, List list, int sta
                 break;
             case Variable:
                 if(((priority = symbolPriority(list, symbolTable, SECONDCHILD(addSubNode)->u.ident)) == IN_FUNCTION)){
-                    DEBUG("SUPPOSED TOBE HERE\n");
                     s = getSymbolInTableByName(symbolTable, SECONDCHILD(addSubNode)->u.ident);
                 } else {
                     s = getSymbolInTableByName(globalTable, SECONDCHILD(addSubNode)->u.ident);
@@ -686,18 +681,15 @@ void treatExpr(Node *conditionNode, List list, Symbol_table *funTable, char *lab
     char buf[BUFSIZ];
     switch(conditionNode->label){
         case Variable:
-            fprintf(f, ";variable\n");
             globalTable = getTableInListByName(GLOBAL, list);
             //Global
             if(isSymbolInTable(globalTable, conditionNode->u.ident)){
-                fprintf(f, ";debug\n");
                 s = getSymbolInTableByName(globalTable, conditionNode->u.ident);
                 sprintf(buf, "qword [%s + %d]", GLOBAL, s.offset);
             }
             //Local
             if(isSymbolInTable(funTable, conditionNode->u.ident)){
                 s = getSymbolInTableByName(funTable, conditionNode->u.ident);
-                fprintf(f, ";debug\n");
                 sprintf(buf, "qword [%s %s %d]", "rbp", (s.offset >= 0) ? "+" : "", s.offset);
             }
             nasmCall(MOV, "rbx", "0");
@@ -845,7 +837,6 @@ void returnInstr(Node *returnNode, List list, char *currentFunId){
 
     if(!returnNode->firstChild){
         sprintf(buf, "end%s", currentFunId);
-        DEBUG("%s\n", buf);
         nasmCall(JMP, buf, NULL);
         return;
     }
@@ -881,7 +872,6 @@ void returnInstr(Node *returnNode, List list, char *currentFunId){
     }
 
     sprintf(buf, "end%s", currentFunId);
-    DEBUG("%s\n", buf);
     nasmCall(JMP, buf, NULL);
 
 }
@@ -1010,7 +1000,6 @@ void switchInstr(Node *switchNode, char *currentFunId, List list){
     }
     nasmCall(MOV, "r14", "0");
     fprintf(f, "%s:\n", bufCode);
-    DEBUG("End switch\n");
 }
 
 void functionCallInstr(Node *fCallNode, char *calledId, char *callerId, List list, int toAssign, int stage, char *target){
@@ -1032,11 +1021,8 @@ void functionCallInstr(Node *fCallNode, char *calledId, char *callerId, List lis
                 globalTable = getTableInListByName(GLOBAL, list);
                 priority = symbolPriority(list, callerTable, paramNode->u.ident);
                 paramSymbol = getSymbolInTableByName((priority == IN_GLOBAL) ? globalTable : callerTable, paramNode->u.ident);
-                printSymbolTable(calledTable);
                 sprintf(buf, "qword [%s %s %d]", (priority == IN_GLOBAL) ? GLOBAL : "rbp", (paramSymbol.offset >= 0) ? "+" : "", paramSymbol.offset);
-
                 nasmCall(PUSH, buf, NULL);
-
                 break;
             case Int:
                 sprintf(buf, "%d", paramNode->u.num);
@@ -1167,9 +1153,7 @@ void buildNasmFile(Node *root, List list){
 void makeExecutable(char *fname){
     char buf[BUFSIZ];
     sprintf(buf, "nasm -f elf64 _anonymous.asm");
-    DEBUG("%s\n", buf);
     system(buf);
     sprintf(buf, "gcc -o %s my_putchar.o _anonymous.o -nostartfiles -no-pie", fname);
-    DEBUG("%s\n", buf);
     system(buf);
 }

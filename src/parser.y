@@ -169,7 +169,6 @@ int main(int argc, char **argv){
 
     int opt = 0;
     int option_index = 0;
-    int opt_semantic = 0;
     int opt_asm = 0;
     int make_exec = 0;
     int sem_err_res = 0;
@@ -180,28 +179,23 @@ int main(int argc, char **argv){
 
         {"help", no_argument,0,'h'},
         {"tree", no_argument,0,'t'},
-        {"sem", no_argument,0,'s'},
         {"asm", no_argument,0,'a'},
-        {"table", no_argument,0,'l'},
+        {"symbols", no_argument,0,'s'},
         {0,0,0,0}
     };
-    while((opt = getopt_long(argc, argv,"t h s a e", long_option, &option_index)) !=-1 ){
+    while((opt = getopt_long(argc, argv,"t h a e s", long_option, &option_index)) !=-1 ){
 
         switch(opt){
 
             case 'h' : print_help();
                        break;
-
             case 't' : showTree = 1;
-                       break;
-
-            case 's' : opt_semantic = 1;
                        break;
             case 'a' : opt_asm = 1;
                         break;
             case 'e' : make_exec = 1;
                         break;
-            case 'l' : showTable = 1;
+            case 's' : showTable = 1;
                         break;
 
             default : result = 3; break;
@@ -210,7 +204,7 @@ int main(int argc, char **argv){
     if(result == 3){
         return 3;
     }
-    while((option = getopt(argc, argv, ":thsael")) != - 1){
+    while((option = getopt(argc, argv, ":thsaels")) != - 1){
         switch(option){
             case 't':
                 showTree = 1;
@@ -218,13 +212,11 @@ int main(int argc, char **argv){
             case 'h':
                 print_help();
                 break;
-            case 's' : opt_semantic = 1;
-                        break;
             case 'a' : opt_asm = 1;
                        break;
             case 'e' : make_exec = 1;
                         break;
-            case 'l' : showTable = 1; break;
+            case 's' : showTable = 1;
             case '?':
                 printf("unknown option\n");
                 break;
@@ -242,24 +234,24 @@ int main(int argc, char **argv){
     if(showTable){
         printSymbolTableList(list);
     }
-    
     if(!getTableInListByName("main", list)){
         raiseError(-1, "No main function in this program\n");
         check_sem_err = 1;
     }
     parseSemError(rootProg, list);
     if (check_sem_err || !list){
+        DEBUG("Aborted\n");
         return 2;
     }
-    
-    if(opt_asm){
-        DEBUG("Writing nasm file...\n");
+    if(!check_sem_err){
+        DEBUG("=== START COMPILING ===\n");
         buildNasmFile(rootProg, list);
         if(make_exec){
-            DEBUG("Make executable...\n");
+            DEBUG("Generate executable...\n");
             makeExecutable("out"); // make ./out
         }
     }
+
 
     deleteTree(rootProg);
     return result;
