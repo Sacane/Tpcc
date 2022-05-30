@@ -136,10 +136,10 @@ static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *
             check_sem_err = 1;
             return 0;
         }
-
-        if(s.u.p_type != params.u.f_type.args_types[i]){
+        PrimType t = (s.kind == FUNCTION) ? s.u.f_type.return_type : s.u.p_type;
+        if(t != params.u.f_type.args_types[i]){
             if(params.u.f_type.args_types[i] == INT){
-                if(s.u.p_type == CHAR){
+                if(t == CHAR){
                     raiseWarning(fc_root->lineno, "Variable '%s' is type char but function '%s' expected type int\n", s.symbol_name, params.symbol_name);
                 }
             }

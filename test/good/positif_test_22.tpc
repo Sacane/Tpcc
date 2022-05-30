@@ -6,6 +6,7 @@ int choose(int a){
         c = 'M';
         case 10:
             c = 'T';
+            putchar(c);
         case 20:
             c = 'P';
             if(c == 'P'){
@@ -17,7 +18,11 @@ int choose(int a){
                     putchar('\n');
                 }
             }
-            break;
+            
+        case 90:
+            putchar('W');
+            putchar('\n');
+            
         default:
             c = 'N';
             break;

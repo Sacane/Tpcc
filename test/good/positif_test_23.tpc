@@ -1,0 +1,25 @@
+int rec(int a){
+  int i;
+  i = getint();
+  return i+a;
+}
+int main(void){
+    int a;
+    a = rec(rec(10));
+
+
+    if(a > 100){
+        putchar('>');
+        putchar('\n');
+    }
+    if(a < 100){
+        putchar('<');
+        putchar('\n');
+    }
+    if(a == 100){
+        putchar('=');
+        putchar('=');
+        putchar('\n');
+    }
+    return 0;
+}

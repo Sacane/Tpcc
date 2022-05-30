@@ -5,7 +5,7 @@
 #define LABEL_WHILE "labelWhile_"
 #define LABEL_COND "labelCond_"
 #define LABEL_ELSE "labelElse_"
-#define LABEL_CODE "labelCode_" 
+#define LABEL_CODE "ENDINSTR" 
 #define LABEL_EXPR "labelExpr_"
 #define LABEL_TRUE "TRUE"
 #define LABEL_FALSE "FALSE"
@@ -14,11 +14,12 @@
 #define LABEL_CASE "labelCase_"
 #define LABEL_DEFAULT "label_default:"
 #define SWITCH_CHECK ".CHECK_"
-#define LABEL_CODE_SWITCH "labelCodeSwitch_"
+#define LABEL_CODE_SWITCH "ENDWITCH"
 
 #define OPERATOR 0
 #define VAR 1
 #define CONST 2
+#define FUNCTION 3
 
 #define IN_GLOBAL 0
 #define IN_FUNCTION 1
@@ -50,7 +51,7 @@ static char* stringOfNasmFun(NasmFunCall nasmFunction){
         case JG:    return "jg";
         case JE:    return "je";
         case RET:   return "ret";
-        case N_AND: return "add";
+        case N_AND: return "and";
         case N_OR:  return "or";
         case CALL:  return "call";
         case CMP :  return "cmp";
@@ -60,6 +61,7 @@ static char* stringOfNasmFun(NasmFunCall nasmFunction){
         case JNE: return "jne";
         case LEAVE: return "leave";
         case COMMENT: return ";";
+        case AND_N: return "and";
 
     }
 }
@@ -120,6 +122,7 @@ static int nasmArityOf(NasmFunCall fc){
         case N_AND: 
         case N_OR:  
         case CMP:
+        case AND_N:
             return 2;
         case SYSCALL:
         case RET: 
@@ -368,7 +371,10 @@ void allocateLocalVar(Node *functionRoot, List lst, Symbol_table *funTable){
 }
 
 void callScanf(char *buf, char *format){
-
+    nasmCall(MOV, "r9", "rsp");
+    nasmCall(AND_N, "spl", "240");
+    nasmCall(SUB, "rsp", "16");
+    nasmCall(PUSH, "r9", NULL);
     nasmCall(MOV, "rsi", buf);
     nasmCall(MOV, "rdi", format);
     nasmCall(MOV, "rax", "0");
@@ -450,9 +456,11 @@ void assign_global_var(Symbol_table *symbolTable, FILE* in, Node *assign_node, L
             fprintf(f, ";end getchar\n");
             break;
         case FunctionCall:
+            nasmCall(COMMENT, "[START] Assign to a function call", NULL);
             functionCallInstr(rValue, rValue->u.ident,  symbolTable->name_table, list, 0, 0, NULL);
             sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
             nasmCall(MOV, buf2, "rax");
+            nasmCall(COMMENT, "[END] Assign to a function call", NULL);
             break;
         case Variable:
             nasmCall(COMMENT, "assign variable", NULL);
@@ -484,6 +492,8 @@ int checkNodeContent(Node *n){
         case Int:
         case Character:
             return CONST;
+        case FunctionCall:
+            return FUNCTION;
         default:
             return -1;
     }
@@ -853,7 +863,6 @@ void returnInstr(Node *returnNode, List list, char *currentFunId){
         sprintf(buf, "%d", (valueNode->label == Int) ? valueNode->u.num : valueNode->u.byte);
         break;
     case VAR:
-        
         priority = symbolPriority(list, currentTable, valueNode->u.ident);
         valueSym = getSymbolInTableByName((priority == IN_GLOBAL) ? global : currentTable, valueNode->u.ident);
         sprintf(buf, "qword [%s %s %d]", (priority == IN_GLOBAL) ? GLOBAL : "rbp", (valueSym.offset >= 0) ? "+" : "", valueSym.offset);
@@ -862,6 +871,10 @@ void returnInstr(Node *returnNode, List list, char *currentFunId){
     case CONST:
         sprintf(buf, "%d", (valueNode->label == Int) ? valueNode->u.num : valueNode->u.byte);
         nasmCall(MOV, "rax", buf);
+        break;
+    case FUNCTION:
+        functionCallInstr(valueNode, valueNode->u.ident, currentFunId, list, 0, 0, NULL);
+        nasmCall(POP, "rax", NULL);
         break;
     default:
         break;
@@ -1034,7 +1047,8 @@ void functionCallInstr(Node *fCallNode, char *calledId, char *callerId, List lis
                 nasmCall(PUSH, buf, NULL);
                 break;
             case FunctionCall:
-                //functionCallInstr(paramNode, paramNode->u.ident, callerId, list, 0, 0, NULL);
+                functionCallInstr(paramNode, paramNode->u.ident, callerId, list, 0, 0, NULL);
+                nasmCall(PUSH, "rax", NULL);
                 break;
             case Addsub:
             case divstar:
@@ -1064,10 +1078,9 @@ void nasmTranslateParsing(Node *root, Symbol_table *global_var_table, List list,
         case Else:
             return;
         case Assign:
-            DEBUG("Before assign\n");
             assign_global_var(curFunTable, f, root, list);
-            DEBUG("After assign\n");
-            break;
+            nasmTranslateParsing(root->nextSibling, global_var_table, list, currentFunName);
+            return;
         case Putchar:
             writePutchar(root, curFunTable, list);
             break;
