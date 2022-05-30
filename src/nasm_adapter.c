@@ -391,8 +391,9 @@ void assign_global_var(Symbol_table *symbolTable, FILE* in, Node *assign_node, L
     int pos;
     char buf[BUFSIZ];
     char buf2[BUFSIZ];
+    int priority;
     int isGlobalLayer = 0;
-    Symbol lVar;
+    Symbol lVar, rVal;
     Node *lValue = FIRSTCHILD(assign_node);
     Node *rValue = SECONDCHILD(assign_node);
     Symbol_table *globalTable = getTableInListByName(GLOBAL, list);
@@ -453,8 +454,16 @@ void assign_global_var(Symbol_table *symbolTable, FILE* in, Node *assign_node, L
             sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
             nasmCall(MOV, buf2, "rax");
             break;
+        case Variable:
+            nasmCall(COMMENT, "assign variable", NULL);
+            priority = symbolPriority(list, symbolTable, rValue->u.ident);
+            rVal = getSymbolInTableByName((priority == IN_GLOBAL) ? globalTable : symbolTable, rValue->u.ident);
+            sprintf(buf, "qword [%s %s %d]", (priority == IN_FUNCTION) ? "rbp" : GLOBAL, (rVal.offset >= 0) ? "+" : "", rVal.offset);
+            nasmCall(MOV, "rax", buf);
+            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
+            nasmCall(MOV, buf2, "rax");
+            break;
         default:
-            raiseWarning(rValue->lineno, "Assign from variable are Not available in this version of compilation\n");
             return;
     }
 }

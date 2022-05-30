@@ -9,11 +9,12 @@ int choose(int a){
         case 20:
             c = 'P';
             if(c == 'P'){
-                while(a < 30){
-                    a = a+1;
+                while(a < 100){
+                    a = a+20;
                     putint(a);
                     c = a;
                     putchar(c);
+                    putchar('\n');
                 }
             }
             break;
