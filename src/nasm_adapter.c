@@ -1,11 +1,11 @@
 #include "nasm_adapter.h"
 
 
-#define LABEL_IF "labelId_"
-#define LABEL_WHILE "labelWhile_"
+#define LABEL_IF "startIF_"
+#define LABEL_WHILE "startWHILE_"
 #define LABEL_COND "labelCond_"
 #define LABEL_ELSE "labelElse_"
-#define LABEL_CODE "ENDINSTR" 
+#define LABEL_CODE "endIF_" 
 #define LABEL_EXPR "labelExpr_"
 #define LABEL_TRUE "TRUE"
 #define LABEL_FALSE "FALSE"

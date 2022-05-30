@@ -373,9 +373,10 @@ int switchCheck(List listTable, char * tableName, Node *switchNode){
 int isReturnComplete(List list, Node *node) {
     Node *elseNode;
     Node *ifNode;
-    //Vérifier si la fonction a une return value
+
 
     if(node->label == DeclFonct){
+        //There, the function is return complete if there is a return in this scope
         if(hasLabel(node->firstChild->nextSibling, Return)){
             return 1;
         }
@@ -384,7 +385,7 @@ int isReturnComplete(List list, Node *node) {
             if(ifNode && (elseNode = hasLabel(ifNode, Else))){
                 return isReturnComplete(list, ifNode) && isReturnComplete(list, elseNode);
             } else {
-                return 0;
+                return 1;
             }
         }
     }
