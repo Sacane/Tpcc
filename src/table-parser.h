@@ -57,6 +57,9 @@ void printSymbolTableList(List lst);
  */
 List buildSymbolTableListFromRoot(Node *root);
 
+Node * hasLabel(Node *root, label_t label);
+
+
 /**
  * @brief Get the Table In List By its Name object
  * 

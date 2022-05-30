@@ -2,15 +2,10 @@
 #include <stdlib.h>
 
 int main(void){
-    
-    int a;
-    //
-    a = 0;
-    printf("%d\n", a);
-    printf("Marillee est la plus belle du monde\n");
-    
-    //
+    char c;
 
+    c = 90;
+    printf("%c\n", c);
     return 0;
 }
 

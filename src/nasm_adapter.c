@@ -9,6 +9,13 @@
 #define LABEL_EXPR "labelExpr_"
 #define LABEL_TRUE "TRUE"
 #define LABEL_FALSE "FALSE"
+
+#define LABEL_SWITCH_COND "labelCondSwitch_"
+#define LABEL_CASE "labelCase_"
+#define LABEL_DEFAULT "label_default:"
+#define SWITCH_CHECK ".CHECK_"
+#define LABEL_CODE_SWITCH "labelCodeSwitch_"
+
 #define OPERATOR 0
 #define VAR 1
 #define CONST 2
@@ -755,6 +762,7 @@ void whileInstr(Node *whileNode, char *currentFunName, List list){
     char bufWhile[BUFSIZ];
     char bufCond[BUFSIZ];
     char bufEnd[BUFSIZ];
+    labelId += 1;
     int currentId = labelId;
     Node *condNode = FIRSTCHILD(whileNode);
     sprintf(bufWhile, "%s%d", LABEL_WHILE, labelId);
@@ -856,6 +864,133 @@ void returnInstr(Node *returnNode, List list, char *currentFunId){
 
 }
 
+
+int isLastCase(Node *caseNode){
+    for(Node *sibling = caseNode->nextSibling; sibling; sibling = sibling->nextSibling){
+        if(!sibling || sibling->label == Case){
+            return 0;
+        }
+    }
+    return 1;
+}
+
+void switchInstr(Node *switchNode, char *currentFunId, List list){
+    char bufCond[BUFSIZ];
+    char bufCode[BUFSIZ];
+    char buf[BUFSIZ];
+    char bufCase[BUFSIZ];
+    char bufCheck[BUFSIZ];
+    int hasDefault = (hasLabel(switchNode, Default)) ? 1 : 0;
+    int priority;
+    int tmp;
+    int cpt = 0;
+    labelId += 1;
+    int saveLabelId = labelId;
+    Symbol_table *funTable = getTableInListByName(currentFunId, list);
+    Symbol_table *globalTable = getTableInListByName(GLOBAL, list);
+
+    nasmCall(MOV, "r13", "0"); //Notre boolean
+
+    sprintf(bufCheck, "%s%d%d", SWITCH_CHECK, saveLabelId, cpt); //.CHECK_XY
+    sprintf(bufCond, "%s%d%d", LABEL_SWITCH_COND, saveLabelId, cpt);
+    sprintf(bufCode, "%s%d", LABEL_CODE_SWITCH, saveLabelId);
+    sprintf(bufCase, "%s%d%d", LABEL_CASE, saveLabelId, cpt);
+    fprintf(f, "%s%d:\n", LABEL_SWITCH_COND, saveLabelId);
+    
+    //récupérer l'endroit où est stocker la fils du switch,  on fout le resultat dans r14
+    switch(checkNodeContent(switchNode->firstChild)){
+        case OPERATOR:
+            opTranslate(switchNode->firstChild, funTable, list, 0, currentFunId);
+            nasmCall(MOV, "r14", "rax");
+            break;
+        case VAR:   
+            priority = symbolPriority(list, funTable, switchNode->firstChild->u.ident);
+            Symbol s = getSymbolInTableByName((priority == IN_FUNCTION) ? funTable : globalTable, switchNode->firstChild->u.ident);
+            sprintf(buf, "qword [%s %s %d]", (priority == IN_GLOBAL) ? GLOBAL : "rbp", (s.offset >= 0) ? "+" : "", s.offset);
+            nasmCall(MOV, "r14", buf);
+            break;
+        case CONST:
+            if(switchNode->firstChild->label == Int){
+                sprintf(buf, "%d", switchNode->firstChild->u.num);
+            } else {
+                sprintf(buf, "%c", switchNode->firstChild->u.byte);
+            }
+            nasmCall(MOV, "r14", buf);
+
+            break;
+        default:
+            raiseError(switchNode->lineno, "can't evaluate orders in switch\n");
+            check_sem_err = 1;
+            break;
+    }
+    
+    for(Node *child = THIRDCHILD(switchNode); child; child = child->nextSibling){
+        /*if(child->label == Break){
+            nasmCall(JMP, bufCode, NULL);
+        }*/
+        //Pour chaque case qu'on rencontre
+        if(child->label == Case){
+
+            //on récupère le caseValue on le met dans r12
+            Node *caseValue = child->firstChild;
+            if(caseValue->label == Int){
+                sprintf(buf, "%d", caseValue->u.num);
+            } 
+            if(caseValue->label == Character){
+                sprintf(buf, "%c", caseValue->u.byte);
+            }
+
+            cpt += 1;
+            tmp = cpt+1;
+            sprintf(bufCase, "%s%d%d", LABEL_CASE, saveLabelId, cpt);
+            sprintf(bufCheck, "%s%d%d", SWITCH_CHECK, saveLabelId, cpt);
+            sprintf(bufCond, "%s%d%d", LABEL_SWITCH_COND, saveLabelId, cpt);
+            fprintf(f,"%s:", bufCond);
+            nasmCall(MOV, "r12", buf);
+            nasmCall(CMP, "r12", "r14"); // On compare r14 et r12
+            if(isLastCase(child)){
+                if(hasDefault){
+                    nasmCall(JNE, "label_default", NULL);
+                } else {
+                    nasmCall(JNE, bufCode, NULL);
+                }
+            } else {
+                
+                sprintf(buf, "%s%d%d", LABEL_SWITCH_COND, saveLabelId, tmp);
+                nasmCall(JNE, buf, NULL);
+            }
+            nasmCall(JE, bufCase, NULL);
+            
+
+            fprintf(f, "%s:\n", bufCase);
+            nasmCall(MOV, "r13", "1");
+            //Parsing du case
+            nasmTranslateParsing(SECONDCHILD(child), globalTable, list, currentFunId);
+            nasmCall(COMMENT, "End parsing case", NULL);
+            if(child->nextSibling->label == Break){
+                nasmCall(JMP, bufCode, NULL);
+            } 
+            else {
+                if(!isLastCase(child)){
+                    sprintf(buf, "%s%d%d", LABEL_CASE, saveLabelId, tmp);
+                    nasmCall(JMP, buf, NULL);
+                }
+            }
+
+            
+            nasmCall(COMMENT, "Here you're supposed to have smth", NULL);
+        }
+        if(child->label == Default){
+            fprintf(f, "%s\n", LABEL_DEFAULT);
+            nasmTranslateParsing(child->firstChild, globalTable, list, currentFunId);
+        }
+
+    }
+    nasmCall(MOV, "r14", "0");
+    fprintf(f, "%s:\n", bufCode);
+    DEBUG("End switch\n");
+}
+
 void functionCallInstr(Node *fCallNode, char *calledId, char *callerId, List list, int toAssign, int stage, char *target){
     Symbol paramSymbol;
     int priority;
@@ -909,16 +1044,20 @@ void functionCallInstr(Node *fCallNode, char *calledId, char *callerId, List lis
 
 
 void nasmTranslateParsing(Node *root, Symbol_table *global_var_table, List list, char *currentFunName){
-    
+
     if(!root) {
         return;
     }
+    
     Symbol_table * curFunTable = getTableInListByName(currentFunName, list);
+    
     switch(root->label){
         case Else:
             return;
         case Assign:
+            DEBUG("Before assign\n");
             assign_global_var(curFunTable, f, root, list);
+            DEBUG("After assign\n");
             break;
         case Putchar:
             writePutchar(root, curFunTable, list);
@@ -943,6 +1082,12 @@ void nasmTranslateParsing(Node *root, Symbol_table *global_var_table, List list,
         case FunctionCall:
             functionCallInstr(root, root->u.ident, currentFunName, list, 0, 0, NULL);
             break;
+        case Switch:
+            nasmCall(COMMENT, "Switch start", NULL);
+            switchInstr(root, currentFunName, list);
+            nasmCall(COMMENT, "Switch end", NULL);
+            nasmTranslateParsing(root->nextSibling, global_var_table, list, currentFunName);
+            return;
         default:
             break;
     }

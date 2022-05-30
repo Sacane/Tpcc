@@ -368,14 +368,7 @@ int switchCheck(List listTable, char * tableName, Node *switchNode){
     }
 }
 
-Node * hasLabel(Node *root, label_t label){
-    for(Node *child = root->firstChild; child; child = child->nextSibling){
-        if(label == child->label){
-            return child;   
-        }
-    }
-    return NULL;
-}
+
 
 int isReturnComplete(List list, Node *node) {
     Node *elseNode;

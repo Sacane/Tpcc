@@ -12,6 +12,9 @@ int main(void)  {
    letter='c';
    digit='0';
    uppercase=letter+('A'-'a');
-
+   putint(somme);
+   putint(uppercase);
+   putchar(letter);
+   putchar(uppercase);
    return 0;
 }

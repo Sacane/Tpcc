@@ -1,0 +1,35 @@
+int choose(int a){
+
+    char c;
+    putint(a);
+    switch(a){
+        c = 'M';
+        case 10:
+            c = 'T';
+        case 20:
+            c = 'P';
+            if(c == 'P'){
+                while(a < 30){
+                    a = a+1;
+                    putint(a);
+                    c = a;
+                    putchar(c);
+                }
+            }
+            break;
+        default:
+            c = 'N';
+            break;
+    }
+    putchar(c);
+    putchar('\n');
+    return 0;
+}
+
+int main(void)
+{
+    int a;
+    a = 10;
+    choose(a);
+    return 0;
+}

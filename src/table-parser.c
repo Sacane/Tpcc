@@ -124,6 +124,15 @@ List buildSymbolTableListFromRoot(Node *root){
     return list;
 }
 
+Node * hasLabel(Node *root, label_t label){
+    for(Node *child = root->firstChild; child; child = child->nextSibling){
+        if(label == child->label){
+            return child;   
+        }
+    }
+    return NULL;
+}
+
 /**
  * @brief To get the symbol table stored in the StList
  * @warning may return null if the table doesn't exist
