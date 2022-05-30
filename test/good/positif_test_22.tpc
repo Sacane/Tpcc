@@ -13,7 +13,7 @@ int choose(int a){
                 while(a < 100){
                     a = a+20;
                     putint(a);
-                    c = a;
+                    c = 'M';
                     putchar(c);
                     putchar('\n');
                 }
@@ -30,6 +30,24 @@ int choose(int a){
     putchar(c);
     putchar('\n');
     return 0;
+}
+
+void character(char c){
+    switch(c){
+        case 'M':
+            putchar('c');
+            putchar('\n');
+            break;
+        case 'P':   
+            putchar('P');
+            putchar('\n');
+            break;
+        case ' ':
+            break;
+    }
+    putchar('E');
+    putchar('\n');
+
 }
 
 int main(void)

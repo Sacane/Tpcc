@@ -9,10 +9,7 @@ int r1, r2;
 int max;
 
 
-void foo(int a){
-    
-    a = 0;
-}
+
 
 int main(void) {
    
@@ -20,12 +17,12 @@ int main(void) {
    int b, c ;
    char cha;
    r1 = 0;
-   b=-1;
+   b=1;
    while (b<=1) {
-       c=-1;
+       c=1;
        while (c<=1) {
            if (trinome(max,b,c)) {
-               if (0<=r1 && r1<=max && 0>=r2 && r2>=-max)
+               if (0<=r1 && r1<=max && 0>=r2 && r2>=max)
                    return 0;
            }
            c=c+1;
@@ -41,8 +38,8 @@ int trinome(int a,int b, int c) {
     d=b*b-4*a*c;
     if (d>=0) {
 
-        r1=(-b+s)/(2*a);
-        r2=(-b-s)/(2*a);
+        r1=(b+s)/(2*a);
+        r2=(b-s)/(2*a);
         return 1;
     }
 

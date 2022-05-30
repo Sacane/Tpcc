@@ -68,9 +68,6 @@ static int variableExistCheck(Node *varcall_node, List table, char *name){
     Symbol_table *globals = getTableInListByName(GLOBAL, table);
     Symbol_table *func = getTableInListByName(name, table);
     int ret_val = isSymbolInTable(globals, varcall_node->u.ident) || isSymbolInTable(func, varcall_node->u.ident);
-    if(!ret_val) {
-        check_sem_err = 1;
-    }
     
     return ret_val == 1;
 }
@@ -85,7 +82,7 @@ static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *
     if(function_table->nb_parameter == 0 && fc_root->firstChild->label != Void){
         DEBUG("Label fc_root : %d\n", fc_root->firstChild->label);
         raiseError(fc_root->lineno, "Function '%s' does not expect parameters\n", params.symbol_name);
-        check_sem_err = 1;
+        
         return 0;
     } 
     if (function_table->nb_parameter == 0 && fc_root->firstChild->label == Void){
@@ -95,14 +92,13 @@ static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *
 
     if(!fc_root->firstChild){
         raiseError(fc_root->lineno, "This function '%s' expect %d arguments but no argument were find\n", function_table->name_table, function_table->nb_parameter);
-        check_sem_err = 1;
+        
         return 0;
     }
 
     for(Node *n = fc_root->firstChild; n; n = n->nextSibling){
         if(i >= params.u.f_type.nb_args){
             raiseError(n->lineno, "Too much parameters while trying to call function '%s'\n", fc_root->u.ident);
-            check_sem_err = 1;
             break;
         }
         if(isPrimLabelNode(n)){
@@ -133,7 +129,7 @@ static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *
         } 
         else {
             raiseError(fc_root->lineno, "Too many parameters given in function '%s'", fun_caller_table->name_table);
-            check_sem_err = 1;
+            
             return 0;
         }
         PrimType t = (s.kind == FUNCTION) ? s.u.f_type.return_type : s.u.p_type;
@@ -150,7 +146,7 @@ static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *
     }
     if(i != params.u.f_type.nb_args){
         raiseError(fc_root->lineno, "Expected %d argument but %d were given\n", params.u.f_type.nb_args, i);
-        check_sem_err = 1;
+        
         return 0;
     }
     return 1;
@@ -184,7 +180,7 @@ static int functionCallCheck(Node *fc_node, List table, char *callerFunctionName
 
     if(!tableCalledFunction){
         raiseError(fc_node->lineno, "Trying to call a non-existing function : '%s'\n", calledFunctionName);
-        check_sem_err = 1;
+        
         return 0;
     }
 
@@ -207,7 +203,7 @@ static int equalCompareCheck(Node *eq, List tab, char *name_tab){
         strcpy(id1, var1->u.ident);
         if(!(isSymbolInTable(global_tab,id1)) && !(isSymbolInTable(function_tab,id1))){
             raiseError(var1->lineno, "variable '%s' neither declared as local in function %s or as globals\n", id1, name_tab);
-            check_sem_err = 1;
+            
             return 0;
         }
     }
@@ -216,12 +212,12 @@ static int equalCompareCheck(Node *eq, List tab, char *name_tab){
         char* id2 = var2->u.ident;
         if(!(isSymbolInTable(global_tab,id2)) && !(isSymbolInTable(function_tab,id2))){
             raiseError(var2->lineno, "Variable '%s' undeclared neither as global or local\n", id2);
-            check_sem_err = 1;
+            
             return 0;
         }
         if(isSymbolInGlobalAndFunc(id2, function_tab, global_tab)){
             raiseError(var2->lineno, "symbol %s in both table function and global var\n", id2);
-            check_sem_err = 1;
+            
             return 0;
         }
     }
@@ -261,7 +257,7 @@ int assignCheck(Node *assign, List tab, char *nameTable){
             if (rValue->label == FunctionCall){
                 if(!functionCallCheck(rValue, tab, nameTable, rValue->u.ident)){
                     raiseError(rValue->lineno, "Function call failed\n");
-                    check_sem_err = 1;
+                    
                     return 0;
                 }
                 calledTable = getTableInListByName(rValue->u.ident, tab);
@@ -270,7 +266,7 @@ int assignCheck(Node *assign, List tab, char *nameTable){
 
                 if(fun.u.f_type.is_void){
                     raiseError(rValue->lineno, "Attempt to assign to a variable a void-function\n");
-                    check_sem_err = 1;
+                    
                 }
 
                 if(lType == CHAR && fun.u.f_type.return_type == INT){
@@ -280,7 +276,7 @@ int assignCheck(Node *assign, List tab, char *nameTable){
         }
         if(!check){
             raiseError(lValue->lineno, "Trying to assign a non-existing value : '%s'.\n", lValue->u.ident);
-            check_sem_err = 1;
+            
             return 0;
         }
         return check == 1 || check == 2;
@@ -336,7 +332,7 @@ void checkBinaryCase(List listTable, char *tableName, Node *node){
     }
     if(checkCaseContent){
         raiseError(node->lineno, "There is doublons in cases content\n");
-        check_sem_err = 1;
+        
     }
 }
 
@@ -364,7 +360,7 @@ int switchCheck(List listTable, char * tableName, Node *switchNode){
     checkNumberDefault(&cptDefault, switchNode->firstChild);
     if(cptDefault > 1){
         raiseError(switchNode->lineno, "switch has more than 1 default\n");
-        check_sem_err = 1;
+        
     }
 }
 
@@ -422,7 +418,7 @@ void checkReturnsRec(Node *n, PrimType type){
     if(n->label == Return){
         if(!(n->firstChild)){
             raiseError(n->lineno, "'return' with no value, in function returning non-void\n");
-            check_sem_err = 1;
+            
             goto end;
         }
         if(n->firstChild->label == Int && type == CHAR){
@@ -447,7 +443,7 @@ void checkReturnsValue(Node *n, Symbol_table* table, Symbol sym){
     if(sym.u.f_type.is_void){
         if(hasReturnContent(n) != NULL){
             raiseError(n->lineno, "'return' with a value, in function returning void\n");
-            check_sem_err = 1;
+            
         } 
     } else {
         PrimType type = sym.u.f_type.return_type;
@@ -519,7 +515,7 @@ int parseSemError(Node *node, List table){
             if(!funS.u.f_type.is_void){
                 if(!isReturnComplete(table, n)){
                     raiseError(n->lineno, "Unreached end of non-void function\n");
-                    check_sem_err = 1;
+                    
                 }
             }
             checkReturnsValue(SECONDCHILD(n), sTable, funS);

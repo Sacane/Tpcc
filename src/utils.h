@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <signal.h>
+
 
 #define GLOBAL_ID "global_vars"
 

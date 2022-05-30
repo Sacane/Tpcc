@@ -24,6 +24,7 @@ void raiseError(int lineno, char *format, ...){
         DEBUG(">>> ");
     }
     
+    raise(SIGUSR1);
     va_list args;
     va_start(args, format);
     vfprintf(stderr, format, args);

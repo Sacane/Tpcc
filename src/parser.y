@@ -18,6 +18,7 @@ extern int check_warn;
 %code requires {
 #include "nasm_adapter.h"
 #include "sem_parser.h"
+#include <signal.h>
 Node* root;
 }
 %expect 1
@@ -162,18 +163,24 @@ void print_help(){
     printf("(You can use both options)\n");
 }
 
+void handler(int sig){
+    if (sig == SIGUSR1){
+        DEBUG("sigsur sended\n");
+        check_sem_err = 1;
+    }
+}
+
 int main(int argc, char **argv){
     int option;
     int showTree = 0;
     int result;
-
     int opt = 0;
     int option_index = 0;
     int opt_asm = 0;
     int make_exec = 0;
     int sem_err_res = 0;
     int showTable = 0;
-    
+    int hasPath = 0;
     
     static struct option long_option[] = {
 
@@ -226,6 +233,8 @@ int main(int argc, char **argv){
     if(result){
         return result;
     }
+    signal(SIGUSR1, handler);
+
     if(showTree){
         printTree(rootProg);
     }
