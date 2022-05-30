@@ -18,11 +18,11 @@ int choose(int a){
                     putchar('\n');
                 }
             }
-            
+            break;
         case 90:
             putchar('W');
             putchar('\n');
-            
+            break;
         default:
             c = 'N';
             break;

@@ -19,7 +19,7 @@ char* current_line = NULL;
 <LONG_COMMENT,SHORT_COMMENT>.        {linecharno += yyleng;}
 <LONG_COMMENT>\n        {lineno++;linecharno=0;}
 <SHORT_COMMENT>\n        {BEGIN INITIAL; lineno++;linecharno=0;}
-'='|"=="|"!="	   {strncpy(yylval.comp, yytext, 3); linecharno = linecharno + yyleng; return EQ;}
+"=="|"!="	   {strncpy(yylval.comp, yytext, 3); linecharno = linecharno + yyleng; return EQ;}
 "<"|">"|"<="|">="	{strncpy(yylval.comp, yytext, 3); linecharno = linecharno + yyleng; return ORDER;}
 "+"|"-" 	        {yylval.byte = yytext[0]; linecharno = linecharno + yyleng; return ADDSUB;}
 "/"|"*"|"%" 	    {yylval.byte = yytext[0]; linecharno = linecharno + yyleng; return DIVSTAR;}
@@ -39,7 +39,7 @@ getchar     {linecharno = linecharno + yyleng; return GETCHAR;}
 [0-9]+  	{yylval.num = atoi(yytext); linecharno = linecharno + yyleng; return NUM;}
 "||"        {linecharno = linecharno + yyleng; return OR;}
 "&&"        {linecharno = linecharno + yyleng; return AND;}
-\'.\'|\'[ ]*\'|\'\\t\'|\'\\n\'|\'\\r\'|\'\\b\'|\'\\0\'|\'\\\'	    {
+'\\?.'	    {
     if(yytext[1] == '\\'){
         switch(yytext[2]){
             case 'n':

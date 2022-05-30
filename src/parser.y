@@ -82,8 +82,8 @@ Instr:
     |  SWITCH '(' Exp ')' '{' SuiteInstr BeginSwitchExpr '}' {$$ = makeNode(Switch); addChild($$,$3); Node* instrNode = makeNode(SuiteInstr); addChild(instrNode, $6); addChild($$, instrNode); addChild($$,$7);}
     |  RETURN Exp ';'                       {$$ = makeNode(Return); addChild($$, $2);}
     |  RETURN ';'                            {$$ = makeNode(Return);}
-    |  PUTCHAR '(' Arguments ')' ';'         {$$ = makeNode(Putchar); addChild($$,$3);}
-    |  PUTINT '(' Arguments ')' ';'          {$$ = makeNode(Putint); addChild($$, $3);}
+    |  PUTCHAR '(' Arguments ')' ';'         {$$ = makeNode(Putchar); addChild($$, $3);}
+    |  PUTINT '(' Exp ')' ';'          {$$ = makeNode(Putint); addChild($$, $3);}
     |  '{' SuiteInstr '}'                   {$$ = $2;}
     |  ';'                                   {$$ = makeNode(EmptyInstr);}
     ;

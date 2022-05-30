@@ -5,9 +5,9 @@ int rec(int a){
 }
 int main(void){
     int a;
+    char c;
+    c = '=';
     a = rec(rec(10));
-
-
     if(a > 100){
         putchar('>');
         putchar('\n');
