@@ -30,7 +30,7 @@ void retVoid(void){
 
 int main(void){
     int a;
-    a = addTen(negativeTen());
+    a = addTen(addTen(10));
     putint(a);
     return 0;
 }

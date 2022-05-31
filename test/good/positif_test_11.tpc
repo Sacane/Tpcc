@@ -1,5 +1,5 @@
-int print(int a){
-    return a;
+void print(int a){
+    putint(a);
 }
 
 int main(int argc){

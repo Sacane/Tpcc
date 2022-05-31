@@ -1,26 +1,27 @@
 int daioj;
 
-void print(char c){
-    return;
-}
 
 int main(void){
-    char df;
+    char d;
     int a;
-    a = 45;
-    
-    switch(a){
-        print('b');
+    a = 10;
+    d = 'c';
+    switch(d){
+
         putchar('m');
+
+        default:
+            putchar('p');
+            break;
         case 10:
             putchar('a');
             putchar('b');
-            break;
-        default:
-            putchar('p');
-
-
+            
+        case 20:
+            putchar('P');
+            
     }
+
     putchar('\n');
     return 0;
 }

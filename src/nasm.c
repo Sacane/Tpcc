@@ -27,10 +27,8 @@
 
 FILE *f;
 static int firstCall = 1;
-
-
 static int labelId;
-
+static int defaultId;
 
 
 void nasmTranslateParsing(ListTable list, Node *root, Symbol_table *global_var_table, Symbol_table *localTable);
@@ -792,6 +790,14 @@ void returnInstr(Node *returnNode, ListTable list, Symbol_table *globalTable, Sy
 
 }
 
+int hasSibling(Node *n, label_t label){
+    for(Node *sibling = n->nextSibling; sibling; sibling = sibling->nextSibling){
+        if(sibling->label == label){
+            return 1;
+        }
+    }
+    return 0;
+}
 
 int isLastCase(Node *caseNode){
     for(Node *sibling = caseNode->nextSibling; sibling; sibling = sibling->nextSibling){
@@ -808,14 +814,18 @@ void switchInstr(Node *switchNode, Symbol_table *globalTable, Symbol_table *loca
     char buf[BUFSIZ];
     char bufCase[BUFSIZ];
     char bufCheck[BUFSIZ];
-    int hasDefault = (hasLabel(switchNode, Default)) ? 1 : 0;
+    int alreadyInDefault;
+    Node * hasDefault;
     int priority;
-    int tmp;
-    int cpt = 0;
+    int tmp, tmp2;
+    int cpt = 0, cpt2 = 0;
     labelId += 1;
     int saveLabelId = labelId;
-
-
+    defaultId += 1;
+    int saveDefaultId = defaultId;
+    int isFirstCondition = 0;
+    int i = 0;
+    hasDefault = hasLabel(switchNode, Default);
 
     MOV("r13", "0"); //Notre boolean
 
@@ -853,21 +863,62 @@ void switchInstr(Node *switchNode, Symbol_table *globalTable, Symbol_table *loca
     }
     
     nasmTranslateParsing(list, FIRSTCHILD(SECONDCHILD(switchNode)), globalTable, localTable);
-
+    int whichSwitch[BUFSIZ];
+    i = 0;
+    //premier parsing
     for(Node *child = THIRDCHILD(switchNode); child; child = child->nextSibling){
-        /*if(child->label == Break){
-            nasmCall(JMP, bufCode, NULL);
-        }*/
+        
+        if(child->label == Case){
+            cpt2 += 1;
+            int res = saveLabelId * 10 + cpt2;
+            whichSwitch[i] = res;
+            //sprintf(buf, "");
+            sprintf(bufCase, "%s%d", LABEL_CASE, res);
+            Node *caseValue = child->firstChild;
+            if(caseValue->label == Int){
+                sprintf(buf, "%d", caseValue->u.num);
+            } 
+            if(caseValue->label == Character){
+                sprintf(buf, "%d", caseValue->u.byte);
+            }
+            //TODO case Operator
+            CMP("r14", buf);
+            JE(bufCase);
+            i++;
+        }
+    }
+    if(hasDefault){
+        sprintf(buf, "%s%d%d\n", "label_default", saveLabelId, saveDefaultId);
+        JMP(buf);
+    } else {
+        JMP(bufCode);
+    }
+
+    i = 0;
+    //deuxieme parsing
+    for(Node *child = THIRDCHILD(switchNode); child; child = child->nextSibling){
+        
+        isFirstCondition = (i == 1);
         //Pour chaque case qu'on rencontre
         if(child->label == Case){
 
+            //======
+
+            sprintf(bufCase, "%s%d", LABEL_CASE, whichSwitch[i]);
+            LABEL(bufCase);
+            i++;
+            //======
+
+
+
+            /*hasDefault = hasSibling(child, Default);
             //on récupère le caseValue on le met dans r12
             Node *caseValue = child->firstChild;
             if(caseValue->label == Int){
                 sprintf(buf, "%d", caseValue->u.num);
             } 
             if(caseValue->label == Character){
-                sprintf(buf, "'%c'", caseValue->u.byte);
+                sprintf(buf, "%d", caseValue->u.byte);
             }
 
             cpt += 1;
@@ -880,12 +931,12 @@ void switchInstr(Node *switchNode, Symbol_table *globalTable, Symbol_table *loca
             CMP("r12", "r14"); // On compare r14 et r12
             if(isLastCase(child)){
                 if(hasDefault){
-                    JNE("label_default");
+                    sprintf(buf, "label_default%d%d", saveLabelId, saveDefaultId);
+                    JNE(buf);
                 } else {
                     JNE(bufCode);
                 }
             } else {
-                
                 sprintf(buf, "%s%d%d", LABEL_SWITCH_COND, saveLabelId, tmp);
                 JNE(buf);
             }
@@ -902,18 +953,45 @@ void switchInstr(Node *switchNode, Symbol_table *globalTable, Symbol_table *loca
             } 
             else {
                 if(!isLastCase(child)){
-                    sprintf(buf, "%s%d%d", LABEL_CASE, saveLabelId, tmp);
+                    sprintf(buf, "%s%d%d", LABEL_CASE, saveLabelId, defaultId);
                     JMP(buf);
                 }
-            }
+            }*/
+            
         }
         if(child->label == Default){
-            fprintf(f, "%s\n", LABEL_DEFAULT);
-            nasmTranslateParsing(list, child->firstChild, globalTable, localTable);
+            sprintf(buf, "%s%d%d", "label_default", saveLabelId, saveDefaultId);
+            LABEL(buf);
+            alreadyInDefault = 1;
+            /*cpt += 1;
+            tmp = cpt+1;
+            sprintf(bufCase, "%s%d%d", LABEL_CASE, saveLabelId, cpt);
+            sprintf(bufCheck, "%s%d%d", SWITCH_CHECK, saveLabelId, cpt);
+            sprintf(bufCond, "%s%d%d", LABEL_SWITCH_COND, saveLabelId, tmp);
+            if(!(isLastCase(child))){
+                if(child->nextSibling && child->nextSibling->label != Break){
+                    JMP(bufCond);
+                } else {
+                    JMP(bufCode);
+                }
+            } else {
+                JMP(bufCode);
+            }*/
+
+
         }
+        if(child->label == Break){
+            if(hasDefault && !alreadyInDefault){
+                sprintf(buf, "%s%d%d\n", "label_default", saveLabelId, saveDefaultId);
+                JMP(buf);
+            } else {
+                JMP(bufCode);
+            }
+        }
+        nasmTranslateParsing(list, child->firstChild, globalTable, localTable);
     }
     MOV("r14", "0");
-    fprintf(f, "%s:\n", bufCode);
+    LABEL(bufCode);
 }
 
 

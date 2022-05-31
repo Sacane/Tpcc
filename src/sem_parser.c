@@ -138,8 +138,7 @@ static int functionCallParamCheck(ListTable list, Symbol_table *fun_caller_table
             s = getSymbolInTableByName(fun_caller_table, n->u.ident);
         }
         else {
-            raiseError(fc_root->lineno, "Too many parameters given in function '%s'", function_table->name_table);
-            DEBUG("Variable : %s\n", n->u.ident);
+            raiseError(fc_root->lineno, "Not enough arguments given in function %s\n", function_table->name_table);
             return 0;
         }
         PrimType t = (s.kind == FUNCTION) ? s.u.f_type.return_type : s.u.p_type;
@@ -265,11 +264,11 @@ int assignCheck(Node *assign, ListTable tab, char *nameTable){
                 check += 1;
             } 
             if (rValue->label == FunctionCall){
-                if(!functionCallCheck(rValue, tab, nameTable, rValue->u.ident)){
+                /*if(!functionCallCheck(rValue, tab, nameTable, rValue->u.ident)){
                     raiseError(rValue->lineno, "Function call failed\n");
                     
                     return 0;
-                }
+                }*/
                 calledTable = getTableInListByName(rValue->u.ident, tab);
 
                 Symbol fun = getSymbolInTableByName(calledTable, rValue->u.ident);

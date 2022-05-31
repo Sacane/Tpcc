@@ -35,7 +35,7 @@ Node* root;
 %token <ident> IDENT TYPE
 %token <byte>  DIVSTAR ADDSUB CHARACTER
 %token <comp> EQ ORDER
-%type <node> DeclVars Prog DeclFoncts Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar SuiteInstr Instr LValue Exp TB FB M E T F Arguments ListExp BeginSwitchExpr SwitchExpr EndSwitchExpr
+%type <node> DeclVars Prog DeclFoncts Declarateurs DeclFonct EnTeteFonct Corps Parametres ListTypVar SuiteInstr Instr LValue Exp TB FB M E T F Arguments ListExp BeginSwitchExpr SwitchExpr 
 
 
 %%
@@ -124,12 +124,9 @@ BeginSwitchExpr:
     |   %empty                     {$$ = NULL;}
     ;
 SwitchExpr: 
-        CASE Exp ':' EndSwitchExpr  {$$ = makeNode(Case); addChild($$, $2); addChild($$, $4);}
-    |   DEFAULT ':' EndSwitchExpr  {$$ = makeNode(Default); addChild($$, $3);}
-    |   BREAK ';'   EndSwitchExpr  {$$ = makeNode(Break); addSibling($$, $3);}
-    ;
-EndSwitchExpr:
-       SuiteInstr         {$$ = $1;}
+        CASE Exp ':' SuiteInstr  {$$ = makeNode(Case); addChild($$, $2); addChild($$, $4);}
+    |   DEFAULT ':' SuiteInstr  {$$ = makeNode(Default); addChild($$, $3);}
+    |   BREAK ';'   SuiteInstr  {$$ = makeNode(Break); addSibling($$, $3);}
     ;
 Arguments:
        ListExp              {$$ = $1;}
@@ -248,7 +245,6 @@ int main(int argc, char **argv){
     }
     parseSemError(rootProg, list);
     if (check_sem_err || !list){
-        DEBUG("Aborted\n");
         return 2;
     }
     if(!check_sem_err){

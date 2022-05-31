@@ -134,7 +134,7 @@ Node * hasLabel(Node *root, label_t label){
 }
 
 /**
- * @brief To get the symbol table stored in the StListTable
+ * @brief To get the symbol table stored in the ListTable
  * @warning may return null if the table doesn't exist
  * @param name_table 
  * @param SymbolTableListTable 
