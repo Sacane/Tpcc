@@ -4,6 +4,7 @@
         "*.tpc": "c",
         "symbols-table.h": "c",
         "random": "c",
-        "functional": "c"
+        "functional": "c",
+        "table-parser.h": "c"
     }
 }

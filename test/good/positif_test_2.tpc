@@ -1,7 +1,8 @@
 int main(void)
 {
     int t;
-    t = foo();
+    t = foo() + 10;
+    putint(t);
     return 0;
 }
 
