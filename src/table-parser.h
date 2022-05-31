@@ -24,14 +24,14 @@ typedef struct list_table{
     Symbol_table *table;
     struct list_table *next;
 
-}Table, *List;
+}Table, *ListTable;
 
 /**
  * @brief 
  * 
  * @return List 
  */
-List newSymbolTableList();
+ListTable newSymbolTableList();
 
 /**
  * @brief 
@@ -40,14 +40,14 @@ List newSymbolTableList();
  * @param symbolTableList 
  * @return int 
  */
-int insertSymbolTableInList(List list, Symbol_table *symbolTableList);
+int insertSymbolTableInList(ListTable list, Symbol_table *symbolTableList);
 
 /**
  * @brief 
  * 
  * @param lst 
  */
-void printSymbolTableList(List lst);
+void printSymbolTableList(ListTable lst);
 
 /**
  * @brief 
@@ -55,7 +55,7 @@ void printSymbolTableList(List lst);
  * @param root 
  * @return List 
  */
-List buildSymbolTableListFromRoot(Node *root);
+ListTable buildSymbolListTableFromRoot(Node *root);
 
 Node * hasLabel(Node *root, label_t label);
 
@@ -67,7 +67,7 @@ Node * hasLabel(Node *root, label_t label);
  * @param symbolTableList 
  * @return Symbol_table* 
  */
-Symbol_table *getTableInListByName(char *nameTable, List symbolTableList);
+Symbol_table *getTableInListByName(char *nameTable, ListTable symbolTableList);
 
 
 /**

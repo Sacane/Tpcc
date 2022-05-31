@@ -64,7 +64,7 @@ int isSymbolInGlobalAndFunc(char * symbol_name, Symbol_table *funTable, Symbol_t
     return isSymbolInTable(globalTable, symbol_name) && isSymbolInTable(funTable, symbol_name);
 }
 
-static int variableExistCheck(Node *varcall_node, List table, char *name){
+static int variableExistCheck(Node *varcall_node, ListTable table, char *name){
     Symbol_table *globals = getTableInListByName(GLOBAL, table);
     Symbol_table *func = getTableInListByName(name, table);
     int ret_val = isSymbolInTable(globals, varcall_node->u.ident) || isSymbolInTable(func, varcall_node->u.ident);
@@ -72,7 +72,7 @@ static int variableExistCheck(Node *varcall_node, List table, char *name){
     return ret_val == 1;
 }
 
-static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *function_table, Symbol_table *global_var_table, Node *fc_root){
+static int functionCallParamCheck(ListTable list, Symbol_table *fun_caller_table, Symbol_table *function_table, Symbol_table *global_var_table, Node *fc_root){
 
     int i;
     i = 0;
@@ -80,9 +80,7 @@ static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *
     Symbol s;
     //D'abord on check si la fonction ne retourne pas void
     if(function_table->nb_parameter == 0 && fc_root->firstChild->label != Void){
-        DEBUG("Label fc_root : %d\n", fc_root->firstChild->label);
         raiseError(fc_root->lineno, "Function '%s' does not expect parameters\n", params.symbol_name);
-        
         return 0;
     } 
     if (function_table->nb_parameter == 0 && fc_root->firstChild->label == Void){
@@ -90,7 +88,7 @@ static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *
     }
     
 
-    if(!fc_root->firstChild){
+    if(function_table->nb_parameter == 0 && !fc_root->firstChild){
         raiseError(fc_root->lineno, "This function '%s' expect %d arguments but no argument were find\n", function_table->name_table, function_table->nb_parameter);
         
         return 0;
@@ -112,6 +110,18 @@ static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *
                 continue;
             }
         }   
+        if(n->label == FunctionCall){
+            Symbol_table *paramFunTable = getTableInListByName(n->u.ident, list);
+            Symbol symParamFun = getSymbolInTableByName(paramFunTable, n->u.ident);
+            if(symParamFun.u.f_type.is_void){
+                raiseError(n->lineno, "Attempt to add a void-function as parameter\n");
+                return 0;
+            }
+            i++;
+            continue;
+
+            
+        }
         if(n->label == Addsub){
             
             i++;
@@ -126,10 +136,10 @@ static int functionCallParamCheck(Symbol_table *fun_caller_table, Symbol_table *
         }  
         else if (isSymbolInTable(fun_caller_table, n->u.ident)){
             s = getSymbolInTableByName(fun_caller_table, n->u.ident);
-        } 
+        }
         else {
-            raiseError(fc_root->lineno, "Too many parameters given in function '%s'", fun_caller_table->name_table);
-            
+            raiseError(fc_root->lineno, "Too many parameters given in function '%s'", function_table->name_table);
+            DEBUG("Variable : %s\n", n->u.ident);
             return 0;
         }
         PrimType t = (s.kind == FUNCTION) ? s.u.f_type.return_type : s.u.p_type;
@@ -158,7 +168,7 @@ static int isPrimaryFunctions(char *calledFunctionName){
     strcmp(calledFunctionName, "putint") == 0 || strcmp(calledFunctionName, "putchar") == 0;
 }
 
-static int functionCallCheck(Node *fc_node, List table, char *callerFunctionName, char *calledFunctionName){
+static int functionCallCheck(Node *fc_node, ListTable table, char *callerFunctionName, char *calledFunctionName){
 
     Symbol_table *tableGlobal = getTableInListByName(GLOBAL, table);
     Symbol_table *tableCallerFunction = getTableInListByName(callerFunctionName, table);
@@ -184,11 +194,11 @@ static int functionCallCheck(Node *fc_node, List table, char *callerFunctionName
         return 0;
     }
 
-    return functionCallParamCheck(tableCallerFunction, tableCalledFunction, tableGlobal, fc_node);
+    return functionCallParamCheck(table, tableCallerFunction, tableCalledFunction, tableGlobal, fc_node);
 }
 
 
-static int equalCompareCheck(Node *eq, List tab, char *name_tab){
+static int equalCompareCheck(Node *eq, ListTable tab, char *name_tab){
 
     Symbol_table* global_tab;
     Symbol_table* function_tab;
@@ -226,7 +236,7 @@ static int equalCompareCheck(Node *eq, List tab, char *name_tab){
 }
 
 
-int assignCheck(Node *assign, List tab, char *nameTable){
+int assignCheck(Node *assign, ListTable tab, char *nameTable){
     
     Symbol_table *global_tab;
     Symbol_table *function_tab;
@@ -285,7 +295,7 @@ int assignCheck(Node *assign, List tab, char *nameTable){
 }
 
 
-void checkBinaryCaseAux(List listTable, char *tableName, Node *node, int *tab, int *index){
+void checkPairCase(ListTable listTable, char *tableName, Node *node, int *tab, int *index){
     int value;
     if(!node){
         return;
@@ -311,16 +321,16 @@ void checkBinaryCaseAux(List listTable, char *tableName, Node *node, int *tab, i
         }
         (*index)++;
     }
-    checkBinaryCaseAux(listTable, tableName, node->nextSibling, tab, index);
+    checkPairCase(listTable, tableName, node->nextSibling, tab, index);
 }
 
 
-void checkBinaryCase(List listTable, char *tableName, Node *node){
+void checkBinaryCase(ListTable listTable, char *tableName, Node *node){
     int tab[BUFSIZ];
     int index = 0;
     int checkCaseContent = 0;
 
-    checkBinaryCaseAux(listTable, tableName, node->firstChild->nextSibling->nextSibling, tab, &index);
+    checkPairCase(listTable, tableName, node->firstChild->nextSibling->nextSibling, tab, &index);
     for(int i = 0; i < index - 1; i++){
         for(int j = i+1; j < index; j++){
 
@@ -354,19 +364,18 @@ void checkNumberDefault(int *cpt, Node *node){
  * @param tab 
  * @return int 
  */
-int switchCheck(List listTable, char * tableName, Node *switchNode){
+int switchCheck(ListTable listTable, char * tableName, Node *switchNode){
     int cptDefault = 0;
     checkBinaryCase(listTable, tableName, switchNode);
     checkNumberDefault(&cptDefault, switchNode->firstChild);
     if(cptDefault > 1){
         raiseError(switchNode->lineno, "switch has more than 1 default\n");
-        
     }
 }
 
 
 
-int isReturnComplete(List list, Node *node) {
+int isReturnComplete(ListTable list, Node *node) {
     Node *elseNode;
     Node *ifNode;
 
@@ -460,7 +469,7 @@ void checkReturnsValue(Node *n, Symbol_table* table, Symbol sym){
  * @param table 
  * @return int 1 if the parse returned no error, 0 if there is at least 1 sem error
  */
-static int parseSemErrorAux(Node *n, List table, char *name_table){
+static int parseSemErrorAux(Node *n, ListTable table, char *name_table){
     if (!n){
         return 1;
     }
@@ -501,7 +510,7 @@ static int parseSemErrorAux(Node *n, List table, char *name_table){
     parseSemErrorAux(n->firstChild, table, name_table);
 }
 
-int parseSemError(Node *node, List table){
+int parseSemError(Node *node, ListTable table){
     if(!node){
         return 1;
     }

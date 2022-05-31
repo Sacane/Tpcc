@@ -237,8 +237,8 @@ int main(int argc, char **argv){
     if(showTree){
         printTree(rootProg);
     }
-    List list;
-    list = buildSymbolTableListFromRoot(rootProg);
+    ListTable list;
+    list = buildSymbolListTableFromRoot(rootProg);
     if(showTable){
         printSymbolTableList(list);
     }

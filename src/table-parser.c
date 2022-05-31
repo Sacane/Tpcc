@@ -1,11 +1,11 @@
 #include "table-parser.h"
 
 
-List newSymbolTableList(Symbol_table *table){
-    List ls_table;
+ListTable newSymbolTableListTable(Symbol_table *table){
+    ListTable ls_table;
     
-    if(!(ls_table = (List)malloc(sizeof(Table)))){
-        fprintf(stderr, "Error while allocating list of symbol table");
+    if(!(ls_table = (ListTable)malloc(sizeof(Table)))){
+        fprintf(stderr, "Error while allocating ListTable of symbol table");
         return NULL; 
     }
 
@@ -16,17 +16,17 @@ List newSymbolTableList(Symbol_table *table){
 
 }
 
-int insertSymbolTableInList(List list, Symbol_table *table){
+int insertSymbolTableInListTable(ListTable listTable, Symbol_table *table){
 
-    List tmp;
-    tmp = list;
+    ListTable tmp;
+    tmp = listTable;
 
     if(tmp->table == NULL){
-        list->table = table;
+        listTable->table = table;
         return 1;
     }
     for(tmp; tmp->next; tmp = tmp->next){}
-    tmp->next = newSymbolTableList(table);
+    tmp->next = newSymbolTableListTable(table);
     if(!tmp->next){
         raiseError(-1, "Error while insert the table\n");
         return 0;
@@ -35,9 +35,9 @@ int insertSymbolTableInList(List list, Symbol_table *table){
     return 1;
 }
 
-void printSymbolTableList(List lst){
+void printSymbolTableList(ListTable lst){
 
-    List tmp = lst;
+    ListTable tmp = lst;
     if(!lst){
         return;
     }
@@ -47,17 +47,17 @@ void printSymbolTableList(List lst){
     }
 }
 
-List buildSymbolTableListFromRoot(Node *root){
+ListTable buildSymbolListTableFromRoot(Node *root){
 
-    List list;
+    ListTable ListTable;
     Node* functions_root;
     PrimType function_t;
     int i = 0, is_void, nb_args = 0, global_offset = 0;
     int totalLocalVariable = 0;
     int offsetLocalVar = 0, offsetParam = 0;
     Symbol_table *globals_table = buildGlobalVariableSymbolTable(root);
-    list = newSymbolTableList(NULL);
-    insertSymbolTableInList(list, globals_table);
+    ListTable = newSymbolTableListTable(NULL);
+    insertSymbolTableInListTable(ListTable, globals_table);
     functions_root = root->firstChild->nextSibling; //On DeclFoncts
     //parse of the DeclFonct
     for(Node* function_root = functions_root->firstChild; function_root; function_root = function_root->nextSibling){
@@ -119,9 +119,9 @@ List buildSymbolTableListFromRoot(Node *root){
         table->total_size = totalLocalVariable;
         Symbol params_sym = newFunctionSymbol(function_type->firstChild->u.ident, function_t, param_types, nb_args, is_void, totalLocalVariable);
         insertSymbol(params_sym, table);
-        insertSymbolTableInList(list, table);
+        insertSymbolTableInListTable(ListTable, table);
     }
-    return list;
+    return ListTable;
 }
 
 Node * hasLabel(Node *root, label_t label){
@@ -134,16 +134,16 @@ Node * hasLabel(Node *root, label_t label){
 }
 
 /**
- * @brief To get the symbol table stored in the StList
+ * @brief To get the symbol table stored in the StListTable
  * @warning may return null if the table doesn't exist
  * @param name_table 
- * @param SymbolTableList 
+ * @param SymbolTableListTable 
  * @return Symbol_table* 
  */
-Symbol_table *getTableInListByName(char *name_table, List SymbolTableList){
+Symbol_table *getTableInListByName(char *name_table, ListTable SymbolTableListTable){
     
-    List tmp = SymbolTableList;
-    if(!SymbolTableList){
+    ListTable tmp = SymbolTableListTable;
+    if(!SymbolTableListTable){
         return NULL;
     }
     

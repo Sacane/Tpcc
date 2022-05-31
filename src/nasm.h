@@ -3,20 +3,21 @@
 
 #include "nasmProvider.h"
 
+
 #define FMTINT "formatIntIn"
 #define FMTCHAR "fmtChar"
 
 
 /**
- * @brief 
- * 
- * @param root 
+ * @brief Generate the translator as a file.asm
+ * Beware, we suppose the file.tpc is semanticly correct 
+ * @param root root of the tree which begin the parsing to translate
  * @param list 
  */
-void buildNasmFile(Node *root, List list);
+void buildNasmFile(Node *root, ListTable list);
 
 /**
- * @brief 
+ * @brief compile the asm file to an executor file
  * 
  * @param fname 
  */

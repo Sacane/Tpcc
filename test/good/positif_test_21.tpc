@@ -16,35 +16,21 @@ int ten(void){
     return 10;
 }
 
-int negative(void){
-    int a;
-    a = 2;
-    putint(-a);
+int negativeTen(void){
+    putint(-ten()); 
+    return -ten();
+}
+int addTen(int var){
+    return var + 10;
+}
 
-    
-    putint(-ten()); //foo : function returning an integer
-    return 0;
+void retVoid(void){
+    return;
 }
 
 int main(void){
-    /*int b, a;
-    a = 0;
-    b = 100;
-    while(a < 10 || b > 50){
-        putint(a);
-        putint(b);
-        a = a + 1;
-        b = b - 10;
-    }
-    putchar('F');
-    putchar('I');
-    putchar('N');
-    putchar('A');
-    putchar('L');
-    putchar(' ');
-    putchar('\n');
+    int a;
+    a = addTen(negativeTen());
     putint(a);
-    putint(b);*/
-    negative();
     return 0;
 }

@@ -1,6 +1,6 @@
 int gob1, gob2;
 
-int foo(void){
+void foo(void){
     char c;
     c = '\n';
     putchar('W');
@@ -17,16 +17,20 @@ int foo(void){
     putchar('h');
     putchar('a');
     putchar('r');
-    putchar('\n');
+    putchar(c);
 
-    return 0;
 }
 
 
 int main(void){
+    int a;
     putchar('P');
     putchar('\n');
     putint('n');
+
+    a = bar();
+    putint(a);
+    foo();
     return 1;
 }
 
