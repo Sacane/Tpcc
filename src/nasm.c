@@ -199,7 +199,7 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, ListTable list, in
         switch (FIRSTCHILD(addSubNode)->label){
             case Int:
             case Character: 
-                a = addSubNode->firstChild->u.num;
+                a = (addSubNode->firstChild->label == Character) ? addSubNode->firstChild->u.byte : addSubNode->firstChild->u.num;
                 sprintf(buf, "%d", a);
                 PUSH(buf);
                 break;
@@ -228,14 +228,12 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, ListTable list, in
         switch (SECONDCHILD(addSubNode)->label){
             case Int:
             case Character:
-                a = SECONDCHILD(addSubNode)->u.num;
+                a = (SECONDCHILD(addSubNode)->label == Character) ? SECONDCHILD(addSubNode)->u.byte : SECONDCHILD(addSubNode)->u.num;
                 if((addSubNode->u.byte == '/' || addSubNode->u.byte == '%')){
                     if(a == 0){
                         raiseError(addSubNode->lineno, "Trying to divide by 0\n");
                         exit(EXIT_FAILURE);
-                    } else {
-                        PUSH("0");
-                    }
+                    } 
                 }
                 sprintf(buf2, "%d", a);
                 PUSH(buf2);
@@ -301,7 +299,7 @@ void opTranslate(Node* addSubNode, Symbol_table *symbolTable, ListTable list, in
 
 void callScanf(char *buf, char *format){
     MOV("r9", "rsp");
-    AND("spl", "240");
+    AND("spl", "241");
     SUB("rsp", "16");
     PUSH("r9");
     MOV("rsi", buf);

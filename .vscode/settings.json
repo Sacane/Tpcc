@@ -5,6 +5,8 @@
         "symbols-table.h": "c",
         "random": "c",
         "functional": "c",
-        "table-parser.h": "c"
+        "table-parser.h": "c",
+        "*.tcc": "c",
+        "cmath": "c"
     }
 }

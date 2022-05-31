@@ -18,6 +18,26 @@ void getN(void){
     putchar('\n');
 }
 
+void testWhile(void){
+    int i, j;
+    char c;
+    i = 0;
+    j = 10;
+    while(i < j){
+        putint(i);
+        c = getchar();
+        switch(j){
+            case 1:
+                break;
+            case 2:
+                break;
+            default:
+                break;
+        }
+        i = i+1;
+    }
+}
+
 void tmp(void){
     int b;
     b = getint();
@@ -26,6 +46,6 @@ void tmp(void){
 
 int main(void)
 {
-    tmp();
+    testWhile();
     return 0;
 }

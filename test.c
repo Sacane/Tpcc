@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <unistd.h>
 int daioj;
 
 void print(char c){
@@ -8,23 +8,15 @@ void print(char c){
 }
 
 int main(void){
-    char df;
-    int a;
-    a = 45;
-    
-    switch(a){
-
-        default:
-            print('p');
-            
-
-        case 10:
-            print('a');
-            print('b');
-            break;
-        case 20:
-            print('A');
+    char c;
+    int i, j;
+    i = 0;
+    while(i < 10){
+        c = getchar();
+        c = getchar();
+        printf("i : %d\n", i);
+        i+= 1;
     }
-    return 0;
+    return 1;
 }
 

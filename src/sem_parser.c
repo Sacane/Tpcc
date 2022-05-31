@@ -270,6 +270,11 @@ int assignCheck(Node *assign, ListTable tab, char *nameTable){
                     return 0;
                 }*/
                 calledTable = getTableInListByName(rValue->u.ident, tab);
+                if(!calledTable){
+                    raiseError(rValue->lineno, "Trying to call a non-existing function : '%s'\n", rValue->u.ident);
+                    return 0;
+                }
+
 
                 Symbol fun = getSymbolInTableByName(calledTable, rValue->u.ident);
 
@@ -352,7 +357,7 @@ void checkNumberDefault(int *cpt, Node *node){
     if(node->label == Default){
         (*cpt)++;
     }
-    checkNumberDefault(cpt, node->firstChild);
+
     checkNumberDefault(cpt, node->nextSibling);
 }
 
@@ -484,7 +489,8 @@ static int parseSemErrorAux(Node *n, ListTable table, char *name_table){
             return 1;
         case Assign:
             assignCheck(n, table, name_table);
-            break;
+            parseSemErrorAux(n->nextSibling, table, name_table);
+            return 1;
         case Eq:
             equalCompareCheck(n, table, name_table);
             break;
