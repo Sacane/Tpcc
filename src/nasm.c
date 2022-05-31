@@ -131,16 +131,16 @@ static void callPrintf(char *content){
     call_safe("printf");
 }
 
-int isNegVar(Node *negNode){
-    return (negNode->label == Addsub && negNode->u.byte == '-' && (NULL == SECONDCHILD(negNode)));
+int isArityOne(Node *negNode){
+    return (negNode->label == Addsub && (NULL == SECONDCHILD(negNode)));
 }
 
-int negInstr(Node *negNode, Symbol_table *globalTable, Symbol_table *funTable, ListTable list){
+int negInstr(Node *node, Symbol_table *globalTable, Symbol_table *funTable, ListTable list){
     char buf[BUFSIZ];
-    if(!isNegVar(negNode)){
+    if(!isArityOne(node)){
         return 0;
     }
-    Node *child = FIRSTCHILD(negNode);
+    Node *child = FIRSTCHILD(node);
     Symbol varSym = getSymbolInTableByName(funTable, child->u.ident);
     int priority; 
     switch (child->label){
@@ -155,19 +155,19 @@ int negInstr(Node *negNode, Symbol_table *globalTable, Symbol_table *funTable, L
             sprintf(buf, "%d", (child->u.byte));
             break;
         case FunctionCall:
-            COMMENT("functionCallNeg");
+
 
             functionCallInstr(child, child->u.ident, funTable->name_table, list);
+            if(node->u.byte == '-') NEG("rax");
+            
 
-            NEG("rax");
-            COMMENT("[END] functionCallNeg");
 
             return 1;
         default:
             break;
     }
     MOV("rax", buf);
-    NEG("rax");
+    if(node->u.byte == '-') NEG("rax");
     return 1;
 }
 
