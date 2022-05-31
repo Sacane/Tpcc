@@ -370,9 +370,8 @@ int isReturnComplete(List list, Node *node) {
     Node *elseNode;
     Node *ifNode;
 
-
     if(node->label == DeclFonct){
-        //There, the function is return complete if there is a return in this scope
+        //There, the function is return complete if there is a return in the main scope
         if(hasLabel(node->firstChild->nextSibling, Return)){
             return 1;
         }
@@ -380,11 +379,14 @@ int isReturnComplete(List list, Node *node) {
             ifNode = hasLabel(node->firstChild->nextSibling, If);
             if(ifNode && (elseNode = hasLabel(ifNode, Else))){
                 return isReturnComplete(list, ifNode) && isReturnComplete(list, elseNode);
-            } else {
-                return 1;
             }
+            if(ifNode && (!elseNode)){
+                goto next;
+            }
+            return 0;
         }
     }
+    next:
     if(node->label == If || node->label == Else){
         if(hasLabel(node, Return)){
             return 1;

@@ -6,6 +6,7 @@ int main(void){
 
     c = 90;
     printf("%c\n", c);
+    printf("%d\n", -c);
     return 0;
 }
 

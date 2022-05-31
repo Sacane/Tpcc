@@ -30,7 +30,8 @@ typedef enum {
     JNE,
     LEAVE,
     COMMENT,
-    AND_N
+    AND_N,
+    NEG
 }NasmFunCall;
 
 #define FMTINT "formatIntIn"

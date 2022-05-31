@@ -3,10 +3,6 @@ int returnComplete(void)
     int a;
     a = getint();
 
-    if(a == 5){
-        
-    }
-
     if(a == 2){
         return 3;
     }
@@ -14,11 +10,24 @@ int returnComplete(void)
         a = 5;
         return 1;
     }
+}
 
+int ten(void){
+    return 10;
+}
+
+int negative(void){
+    int a;
+    a = 2;
+    putint(-a);
+
+    
+    putint(-ten()); //foo : function returning an integer
+    return 0;
 }
 
 int main(void){
-    int b, a;
+    /*int b, a;
     a = 0;
     b = 100;
     while(a < 10 || b > 50){
@@ -35,6 +44,7 @@ int main(void){
     putchar(' ');
     putchar('\n');
     putint(a);
-    putint(b);
+    putint(b);*/
+    negative();
     return 0;
 }

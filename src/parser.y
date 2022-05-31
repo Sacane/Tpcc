@@ -16,7 +16,7 @@ extern int check_warn;
 
 %}
 %code requires {
-#include "nasm_adapter.h"
+#include "nasm.h"
 #include "sem_parser.h"
 #include <signal.h>
 Node* root;
@@ -165,7 +165,6 @@ void print_help(){
 
 void handler(int sig){
     if (sig == SIGUSR1){
-        DEBUG("sigsur sended\n");
         check_sem_err = 1;
     }
 }
@@ -253,12 +252,11 @@ int main(int argc, char **argv){
         return 2;
     }
     if(!check_sem_err){
-        DEBUG("=== START COMPILING ===\n");
+        DEBUG("=== NO SEM-ERRORS DETECTED : START COMPILING ===\n");
         buildNasmFile(rootProg, list);
-        if(make_exec){
-            DEBUG("Generate executable...\n");
-            makeExecutable("out"); // make ./out
-        }
+        DEBUG("Generate executable...\n");
+        makeExecutable("out"); // make ./out
+        
     }
 
 

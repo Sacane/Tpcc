@@ -11,16 +11,17 @@ int main(void){
     
     switch(a){
         print('b');
-        print('m');
+        putchar('m');
         case 10:
-            print('a');
-            print('b');
+            putchar('a');
+            putchar('b');
             break;
         default:
-            print('p');
+            putchar('p');
 
 
     }
+    putchar('\n');
     return 0;
 }
 
