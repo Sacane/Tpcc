@@ -46,6 +46,10 @@ void tmp(void){
 
 int main(void)
 {
+    int c;
     testWhile();
+    putint(-1);
+    c = getint();
+    putint(c);
     return 0;
 }

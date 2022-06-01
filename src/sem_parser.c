@@ -264,11 +264,11 @@ int assignCheck(Node *assign, ListTable tab, char *nameTable){
                 check += 1;
             } 
             if (rValue->label == FunctionCall){
-                /*if(!functionCallCheck(rValue, tab, nameTable, rValue->u.ident)){
+                if(!functionCallCheck(rValue, tab, nameTable, rValue->u.ident)){
                     raiseError(rValue->lineno, "Function call failed\n");
                     
                     return 0;
-                }*/
+                }
                 calledTable = getTableInListByName(rValue->u.ident, tab);
                 if(!calledTable){
                     raiseError(rValue->lineno, "Trying to call a non-existing function : '%s'\n", rValue->u.ident);
@@ -530,7 +530,7 @@ int parseSemError(Node *node, ListTable table){
             Symbol funS = getSymbolInTableByName(sTable, nameFun);
             if(!funS.u.f_type.is_void){
                 if(!isReturnComplete(table, n)){
-                    raiseError(n->lineno, "Unreached end of non-void function\n");
+                    raiseWarning(n->lineno, "control reaches end of non-void function\n");
                     
                 }
             }

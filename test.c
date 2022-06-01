@@ -7,6 +7,13 @@ void print(char c){
     printf("%c\n", c);
 }
 
+
+int reached(void){
+
+
+    printf("ah\n");
+}
+
 int main(void){
     char c;
     int i, j;

@@ -398,11 +398,7 @@ void assignInstr(ListTable list, Node *assign_node, Symbol_table *globalTable, S
     }
 }
 
-static void orderTranslate(Node *orderNode){
-    Node *leftExpr = FIRSTCHILD(orderNode);
-    Node *rightExpr = SECONDCHILD(orderNode);
-    
-}
+
 
 int checkNodeContent(Node *n){
     switch(n->label){
@@ -735,14 +731,14 @@ void ifInstr(Node *ifInstr, ListTable list, Symbol_table *globalTable, Symbol_ta
         JMP(bufCode);
     }
     
-    fprintf(f, "%s:\n", bufLabel);
+    LABEL(bufLabel);
     nasmTranslateParsing(list, SECONDCHILD(ifInstr), globalTable, funTable); //Parsing du IF
     JMP(bufCode);
     if(hasElse){
         fprintf(f, "%s:\n", bufElse);
         nasmTranslateParsing(list, FIRSTCHILD(elseNode), globalTable, funTable);
     }
-    fprintf(f, "%s%d:\n", LABEL_CODE, currentId);
+    LABEL(bufCode);
 }
 
 void returnInstr(Node *returnNode, ListTable list, Symbol_table *globalTable, Symbol_table *localTable){
@@ -899,84 +895,14 @@ void switchInstr(Node *switchNode, Symbol_table *globalTable, Symbol_table *loca
         isFirstCondition = (i == 1);
         //Pour chaque case qu'on rencontre
         if(child->label == Case){
-
-            //======
-
             sprintf(bufCase, "%s%d", LABEL_CASE, whichSwitch[i]);
             LABEL(bufCase);
             i++;
-            //======
-
-
-
-            /*hasDefault = hasSibling(child, Default);
-            //on récupère le caseValue on le met dans r12
-            Node *caseValue = child->firstChild;
-            if(caseValue->label == Int){
-                sprintf(buf, "%d", caseValue->u.num);
-            } 
-            if(caseValue->label == Character){
-                sprintf(buf, "%d", caseValue->u.byte);
-            }
-
-            cpt += 1;
-            tmp = cpt+1;
-            sprintf(bufCase, "%s%d%d", LABEL_CASE, saveLabelId, cpt);
-            sprintf(bufCheck, "%s%d%d", SWITCH_CHECK, saveLabelId, cpt);
-            sprintf(bufCond, "%s%d%d", LABEL_SWITCH_COND, saveLabelId, cpt);
-            fprintf(f,"%s:\n", bufCond);
-            MOV("r12", buf);
-            CMP("r12", "r14"); // On compare r14 et r12
-            if(isLastCase(child)){
-                if(hasDefault){
-                    sprintf(buf, "label_default%d%d", saveLabelId, saveDefaultId);
-                    JNE(buf);
-                } else {
-                    JNE(bufCode);
-                }
-            } else {
-                sprintf(buf, "%s%d%d", LABEL_SWITCH_COND, saveLabelId, tmp);
-                JNE(buf);
-            }
-            JE(bufCase);
-            
-
-            fprintf(f, "%s:\n", bufCase);
-            MOV("r13", "1");
-            //Parsing du case
-            nasmTranslateParsing(list, SECONDCHILD(child), globalTable, localTable);
-            COMMENT("End parsing case");
-            if(child->nextSibling->label == Break){
-                JMP(bufCode);
-            } 
-            else {
-                if(!isLastCase(child)){
-                    sprintf(buf, "%s%d%d", LABEL_CASE, saveLabelId, defaultId);
-                    JMP(buf);
-                }
-            }*/
-            
         }
         if(child->label == Default){
             sprintf(buf, "%s%d%d", "label_default", saveLabelId, saveDefaultId);
             LABEL(buf);
             alreadyInDefault = 1;
-            /*cpt += 1;
-            tmp = cpt+1;
-            sprintf(bufCase, "%s%d%d", LABEL_CASE, saveLabelId, cpt);
-            sprintf(bufCheck, "%s%d%d", SWITCH_CHECK, saveLabelId, cpt);
-            sprintf(bufCond, "%s%d%d", LABEL_SWITCH_COND, saveLabelId, tmp);
-            if(!(isLastCase(child))){
-                if(child->nextSibling && child->nextSibling->label != Break){
-                    JMP(bufCond);
-                } else {
-                    JMP(bufCode);
-                }
-            } else {
-                JMP(bufCode);
-            }*/
-
-
         }
         if(child->label == Break){
             if(hasDefault && !alreadyInDefault){
@@ -1058,7 +984,9 @@ void nasmTranslateParsing(ListTable list, Node *root, Symbol_table *global_var_t
         case Else:
             return;
         case Assign:
+            COMMENT("Start assignement");
             assignInstr(list, root, global_var_table, localTable);
+            COMMENT("End assignement");
             nasmTranslateParsing(list, root->nextSibling, global_var_table, localTable);
             return;
         case Putchar:
@@ -1070,20 +998,25 @@ void nasmTranslateParsing(ListTable list, Node *root, Symbol_table *global_var_t
             return;
         case If:
             labelId += 1;
+
             ifInstr(root, list, global_var_table, localTable);
             nasmTranslateParsing(list, root->nextSibling, global_var_table, localTable);
             return;
         case While:
-            COMMENT("While started");
+            COMMENT("While instr start");
             whileInstr(list, root, global_var_table, localTable);
-            COMMENT("end while");
+            COMMENT("While instr end");
             nasmTranslateParsing(list, root->nextSibling, global_var_table, localTable);
             return;
         case Return:
+            COMMENT("Return instr start");
             returnInstr(root, list, global_var_table, localTable);
+            COMMENT("Return instr end");
             break;
         case FunctionCall:
+            COMMENT("Function call start");
             functionCallInstr(root, root->u.ident, localTable->name_table, list);
+            COMMENT("End function call");
             break;
         case Switch:
             COMMENT("Switch start");

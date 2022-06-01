@@ -8,29 +8,6 @@ void putNewLine(void){
     putchar(newLine);
 }
 
-void askNumber(void){
-    newLine = '\n';
-    putchar('N');
-    putchar('u');
-    putchar('m');
-    putchar('b');
-    putchar('e');
-    putchar('r');
-    putchar(' ');
-    putchar('t');
-    putchar('o');
-    putchar(' ');
-    putchar('s');
-    putchar('e');
-    putchar('a');
-    putchar('r');
-    putchar('c');
-    putchar('h');
-    putchar(' ');
-    putchar(':');
-    putchar(' ');
-}
-
 void askSeed(void){
         putchar('S');
         putchar('E');
@@ -67,6 +44,23 @@ void sayCongrat(void){
         putchar('N');
         putchar('S');
         putNewLine();
+}
+
+void for_round(void){
+    putchar(' ');
+    putchar('T');
+    putchar('H');
+    putchar('I');
+    putchar('S');
+    putchar(' ');
+    putchar('R');
+    putchar('O');
+    putchar('U');
+    putchar('N');
+    putchar('D');
+    putchar(' ');
+    putchar('!');
+    putNewLine();
 }
 
 void sayYouWin(void){
@@ -108,7 +102,7 @@ void sayEqual(void){
 }
 
 
-int generate_number(int seed){
+int iaRandomShot(int seed){
     return (seed * 150 + 2 + 8 + (seed *5 + 1) * 1000) % 3;
 }
 
@@ -137,7 +131,7 @@ int main(void)
     seed = getint();
 
     while(curRound < maxRound){
-        generatedNumber = generate_number(seed);
+        generatedNumber = iaRandomShot(seed);
         putint(curRound);
         switch(generatedNumber){
             case 0:
@@ -202,7 +196,7 @@ int main(void)
                 break;
         }
         curRound = curRound + 1;
-        seed = seed + 15;
+        seed = seed + 1;
     }   
     if(scorePlayer == scoreIA){
         sayEqual();
