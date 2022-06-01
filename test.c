@@ -18,8 +18,8 @@ void tmp(void){
 int trinome(int a,int b, int c) {
     int d;
     int s;
-    d=b*b-4*a*c;
-
+    d=b*b-4*a;
+        printf("%d\n", (d));
 
         r1=(b+s)/(2*a);
         r2=(b-s)/(2*a);
@@ -27,6 +27,19 @@ int trinome(int a,int b, int c) {
     
 
     return 0;
+}
+
+int switchret(void){
+        int a;
+        a = getint();
+        switch(a){
+                case 0:
+                        return 1;
+                case 1:
+                        return 2;
+                default:
+                        return 2;
+        }
 }
 
 int main(void){

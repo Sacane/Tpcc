@@ -580,7 +580,7 @@ int compareInstrAux(Node *condNode, ListTable list, Symbol_table *funTable){
     }
 }
 
-void treatExpr(Node *conditionNode, ListTable list, Symbol_table *funTable, char *labelIf, char *labelElse, char *labelCode, int hasElse){
+void logicalInstr(Node *conditionNode, ListTable list, Symbol_table *funTable, char *labelIf, char *labelElse, char *labelCode, int hasElse){
     Symbol s;
     NasmFunCall compFun;
     Symbol_table* globalTable;
@@ -661,22 +661,22 @@ void treatExpr(Node *conditionNode, ListTable list, Symbol_table *funTable, char
             }
             labelId += 1;
             sprintf(buf, "%s%d:\n", LABEL_EXPR, labelId);
-            treatExpr(conditionNode->firstChild, list, funTable, labelIf, buf, labelCode, hasElse);
+            logicalInstr(conditionNode->firstChild, list, funTable, labelIf, buf, labelCode, hasElse);
             sprintf(buf, "%s%d:\n", LABEL_EXPR, labelId);
             labelId += 1;
             fprintf(f, "%s", buf);
-            treatExpr(conditionNode->firstChild->nextSibling, list, funTable, labelIf, labelElse, labelCode, hasElse);
+            logicalInstr(conditionNode->firstChild->nextSibling, list, funTable, labelIf, labelElse, labelCode, hasElse);
             break;
         case And:
             sprintf(buf, "%s%d", LABEL_EXPR, labelId);
             labelId += 1;
             fprintf(f, "%s:\n", buf);
             sprintf(buf, "%s%d", LABEL_EXPR, labelId);
-            treatExpr(conditionNode->firstChild->nextSibling, list, funTable, buf, labelElse, labelCode, hasElse);
+            logicalInstr(conditionNode->firstChild->nextSibling, list, funTable, buf, labelElse, labelCode, hasElse);
             JMP(labelCode);
             fprintf(f, "%s:\n", buf);
             labelId += 1;
-            treatExpr(conditionNode->firstChild, list, funTable, labelIf, labelElse, labelCode, hasElse);
+            logicalInstr(conditionNode->firstChild, list, funTable, labelIf, labelElse, labelCode, hasElse);
             break;
         default:
             break;
@@ -693,7 +693,7 @@ void whileInstr(ListTable list, Node *whileNode, Symbol_table *globalTable, Symb
     sprintf(bufCond, "%s%d", LABEL_COND, labelId);
     sprintf(bufEnd, "%s%d", LABEL_CODE, currentId);
     fprintf(f, "%s:\n", bufCond);
-    treatExpr(condNode, list, localTable, bufWhile, NULL, bufEnd, 0);
+    logicalInstr(condNode, list, localTable, bufWhile, NULL, bufEnd, 0);
     JMP(bufEnd);
     fprintf(f, "%s:\n", bufWhile);
     nasmTranslateParsing(list, SECONDCHILD(whileNode), globalTable, localTable);
@@ -724,7 +724,7 @@ void ifInstr(Node *ifInstr, ListTable list, Symbol_table *globalTable, Symbol_ta
     sprintf(bufLabel, "%s%d", LABEL_IF, labelId);
     sprintf(bufCode, "%s%d", LABEL_CODE, currentId);
     if(hasElse) sprintf(bufElse, "%s%d", LABEL_ELSE, labelId);
-    treatExpr(cond, list, funTable, bufLabel, bufElse, bufCode, hasElse);
+    logicalInstr(cond, list, funTable, bufLabel, bufElse, bufCode, hasElse);
     if(hasElse) {
         JMP(bufElse);
     } else {
@@ -819,7 +819,7 @@ void switchInstr(Node *switchNode, Symbol_table *globalTable, Symbol_table *loca
     int saveDefaultId = defaultId;
     int isFirstCondition = 0;
     int i = 0;
-    hasDefault = hasLabel(switchNode, Default);
+    hasDefault = hasChildLabel(switchNode, Default);
 
     MOV("r13", "0"); //Notre boolean
 

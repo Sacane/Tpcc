@@ -52,7 +52,6 @@ static PrimType getTypeOfNode(Node *node, Symbol_table *funTable, Symbol_table *
                 return NONE;
             }
             return var.u.p_type;
-        //TODO case functionCall
         default:
             return NONE;
     }
@@ -296,7 +295,7 @@ int assignCheck(Node *assign, ListTable tab, char *nameTable){
 }
 
 
-void checkPairCase(ListTable listTable, char *tableName, Node *node, int *tab, int *index){
+void checkDuplicatedCaseContentAux(ListTable listTable, char *tableName, Node *node, int *tab, int *index){
     int value;
     if(!node){
         return;
@@ -310,7 +309,6 @@ void checkPairCase(ListTable listTable, char *tableName, Node *node, int *tab, i
                 tab[*index] = inCase->u.num;
                 break;
             case Character:
-                printf("%d\n", inCase->u.byte);
                 tab[*index] = inCase->u.byte;
                 break;
             case Addsub:
@@ -322,16 +320,16 @@ void checkPairCase(ListTable listTable, char *tableName, Node *node, int *tab, i
         }
         (*index)++;
     }
-    checkPairCase(listTable, tableName, node->nextSibling, tab, index);
+    checkDuplicatedCaseContentAux(listTable, tableName, node->nextSibling, tab, index);
 }
 
 
-void checkBinaryCase(ListTable listTable, char *tableName, Node *node){
+void checkDuplicatedCaseContent(ListTable listTable, char *tableName, Node *node){
     int tab[BUFSIZ];
     int index = 0;
     int checkCaseContent = 0;
 
-    checkPairCase(listTable, tableName, node->firstChild->nextSibling->nextSibling, tab, &index);
+    checkDuplicatedCaseContentAux(listTable, tableName, node->firstChild->nextSibling->nextSibling, tab, &index);
     for(int i = 0; i < index - 1; i++){
         for(int j = i+1; j < index; j++){
 
@@ -347,7 +345,7 @@ void checkBinaryCase(ListTable listTable, char *tableName, Node *node){
     }
 }
 
-void checkNumberDefault(int *cpt, Node *node){
+void nbDefault(int *cpt, Node *node){
     if(!node){
         return;
     }
@@ -355,7 +353,7 @@ void checkNumberDefault(int *cpt, Node *node){
         (*cpt)++;
     }
 
-    checkNumberDefault(cpt, node->nextSibling);
+    nbDefault(cpt, node->nextSibling);
 }
 
 /**
@@ -367,30 +365,43 @@ void checkNumberDefault(int *cpt, Node *node){
  */
 int switchCheck(ListTable listTable, char * tableName, Node *switchNode){
     int cptDefault = 0;
-    checkBinaryCase(listTable, tableName, switchNode);
-    checkNumberDefault(&cptDefault, switchNode->firstChild);
+    checkDuplicatedCaseContent(listTable, tableName, switchNode);
+    nbDefault(&cptDefault, switchNode->firstChild);
     if(cptDefault > 1){
         raiseError(switchNode->lineno, "switch has more than 1 default\n");
     }
 }
 
 
-
+/**
+ * @brief check if the scope starting in node is return complete or not
+ * 
+ * @param list 
+ * @param node 
+ * @return int 
+ */
 int isReturnComplete(ListTable list, Node *node) {
     Node *elseNode;
     Node *ifNode;
-
+    Node *switchNode;
+    if(node->label == Switch){
+        goto next;
+    }
     if(node->label == DeclFonct){
         //There, the function is return complete if there is a return in the main scope
-        if(hasLabel(node->firstChild->nextSibling, Return)){
+        if(hasChildLabel(node->firstChild->nextSibling, Return)){
             return 1;
         }
         else {
-            ifNode = hasLabel(node->firstChild->nextSibling, If);
-            if(ifNode && (elseNode = hasLabel(ifNode, Else))){
+            //Case if
+            ifNode = hasChildLabel(node->firstChild->nextSibling, If);
+            if(ifNode && (elseNode = hasChildLabel(ifNode, Else))){
                 return isReturnComplete(list, ifNode) && isReturnComplete(list, elseNode);
             }
-            if(ifNode && (!elseNode)){
+            if((switchNode = hasChildLabel(node->firstChild->nextSibling, Switch))){
+                return isReturnComplete(list, switchNode);
+            }
+            if((ifNode && (!elseNode))){
                 goto next;
             }
             return 0;
@@ -398,19 +409,47 @@ int isReturnComplete(ListTable list, Node *node) {
     }
     next:
     if(node->label == If || node->label == Else){
-        if(hasLabel(node, Return)){
+        if(hasChildLabel(node, Return)){
             return 1;
         }
         else {
-            ifNode = hasLabel(node, If);
-            if(ifNode && (elseNode = hasLabel(ifNode, Else))){
+            ifNode = hasChildLabel(node, If);
+            if(ifNode && (elseNode = hasChildLabel(ifNode, Else))){
                 return isReturnComplete(list, ifNode) && isReturnComplete(list, elseNode);
             } else {
                 return 0;
             }
         }
     }
-
+    if(node->label == Switch){
+        int checkReturn = 0;
+        for(Node *child = node->firstChild; child; child =child->nextSibling){
+            if(child->label == Case || child->label == Default){
+                if(hasChildLabel(node, Return)){
+                    checkReturn = 1;
+                } 
+                else {
+                    checkReturn = isReturnComplete(list, child);
+                }
+            }
+        }
+        return checkReturn;
+    }
+    if(node->label == Case || node->label == Default){
+        if(hasChildLabel(node, Return)){
+            return 1;
+        }
+        else {
+            for(Node *childCase = node->firstChild; childCase; childCase = childCase->nextSibling){
+                if (childCase->label == Switch || childCase->label == If || childCase->label== Else){
+                    return isReturnComplete(list, childCase);
+                }
+            }
+            if(!hasChildLabel(node, Return)){
+                return 0;
+            }
+        }
+    }
 }
 
 static int hasReturnContent(Node *n){
@@ -554,9 +593,7 @@ void checkVariableState(Node *curNode, int *isUsed, int *isInitialized, char *sy
     }
 }
 
-void warnUseVar(Node *root, Node *currentNode, char *symbolId, int baseLineno, int *isInitialized, int *isUsed){
-    //==================
-
+void parseVariableUsage(Node *root, Node *currentNode, char *symbolId, int baseLineno, int *isInitialized, int *isUsed){
     if((*isInitialized) > 0 && (*isUsed) > 0){
         return;
     }
@@ -565,26 +602,26 @@ void warnUseVar(Node *root, Node *currentNode, char *symbolId, int baseLineno, i
         switch(child->label){
             case Switch:
                 checkVariableState(child->firstChild, isUsed, isInitialized, symbolId, baseLineno);
-                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                parseVariableUsage(root, child, symbolId, baseLineno, isInitialized, isUsed);
                 break;
             case SuiteInstr:
-                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                parseVariableUsage(root, child, symbolId, baseLineno, isInitialized, isUsed);
                 break;
             case If:
                 checkVariableState(child->firstChild, isUsed, isInitialized, symbolId, baseLineno);
             case Else:
             case While:
                 checkVariableState(child->firstChild, isUsed, isInitialized, symbolId, baseLineno);
-                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                parseVariableUsage(root, child, symbolId, baseLineno, isInitialized, isUsed);
                 break;
             case Addsub:
             case divstar:
                 if(child->firstChild && (child->firstChild->label == Addsub || child->firstChild->label == divstar)){
-                    warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                    parseVariableUsage(root, child, symbolId, baseLineno, isInitialized, isUsed);
                 }
                 checkVariableState(child->firstChild, isUsed, isInitialized, symbolId, baseLineno);
                 if(SECONDCHILD(child) && (SECONDCHILD(child)->label == Addsub || SECONDCHILD(child)->label == divstar)){
-                    warnUseVar(root, SECONDCHILD(child), symbolId, baseLineno, isInitialized, isUsed);
+                    parseVariableUsage(root, SECONDCHILD(child), symbolId, baseLineno, isInitialized, isUsed);
                 }
                 checkVariableState(SECONDCHILD(child), isUsed, isInitialized, symbolId, baseLineno);
                 break;
@@ -600,11 +637,11 @@ void warnUseVar(Node *root, Node *currentNode, char *symbolId, int baseLineno, i
                     checkVariableState(param, isUsed, isInitialized, symbolId, baseLineno);
                 }
                 
-                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                parseVariableUsage(root, child, symbolId, baseLineno, isInitialized, isUsed);
                 break;
             case Or:
             case And:
-                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                parseVariableUsage(root, child, symbolId, baseLineno, isInitialized, isUsed);
 
                 checkVariableState(FIRSTCHILD(child), isUsed, isInitialized, symbolId, baseLineno);
                 checkVariableState(SECONDCHILD(child), isUsed, isInitialized, symbolId, baseLineno);
@@ -617,17 +654,17 @@ void warnUseVar(Node *root, Node *currentNode, char *symbolId, int baseLineno, i
                 
                 //right Value
                 if(SECONDCHILD(child)->label == Addsub || SECONDCHILD(child)->label == divstar || SECONDCHILD(child)->label == FunctionCall){
-                    warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
-                    warnUseVar(root, SECONDCHILD(child), symbolId, baseLineno, isInitialized, isUsed);
+                    parseVariableUsage(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                    parseVariableUsage(root, SECONDCHILD(child), symbolId, baseLineno, isInitialized, isUsed);
                 }
                 checkVariableState(SECONDCHILD(child), isUsed, isInitialized, symbolId, baseLineno);
                 break;
             case Return:
                 checkVariableState(FIRSTCHILD(child), isUsed, isInitialized, symbolId, baseLineno);
-                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                parseVariableUsage(root, child, symbolId, baseLineno, isInitialized, isUsed);
                 break;
             case Case:
-                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                parseVariableUsage(root, child, symbolId, baseLineno, isInitialized, isUsed);
                 break;
         }
     }
@@ -642,7 +679,7 @@ int checkVariable(Node *prog){
             for(Node *types = vars->firstChild; types; types = types->nextSibling){
                 for(Node *var = types->firstChild; var; var = var->nextSibling){
                     int isInitialized = 0, isUsed = 0;
-                    warnUseVar(prog, SECONDCHILD(fonct), var->u.ident, var->lineno, &isInitialized, &isUsed);
+                    parseVariableUsage(prog, SECONDCHILD(fonct), var->u.ident, var->lineno, &isInitialized, &isUsed);
                     if(isInitialized && !isUsed){
                         raiseWarning(var->lineno, "variable '%s' set but not used\n", var->u.ident);
                     }

@@ -106,15 +106,6 @@ int iaRandomShot(int seed){
     return (seed * 150 + 2 + 8 + (seed *5 + 1) * 1000) % 3;
 }
 
-void getch(void){
-    char c;
-    c = getchar();
-}
-void getin(void){
-    int i;
-    i = getint();
-}
-
 
 int main(void)
 {

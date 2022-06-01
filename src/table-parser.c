@@ -124,7 +124,7 @@ ListTable buildSymbolListTableFromRoot(Node *root){
     return ListTable;
 }
 
-Node * hasLabel(Node *root, label_t label){
+Node * hasChildLabel(Node *root, label_t label){
     for(Node *child = root->firstChild; child; child = child->nextSibling){
         if(label == child->label){
             return child;   

@@ -57,7 +57,7 @@ void printSymbolTableList(ListTable lst);
  */
 ListTable buildSymbolListTableFromRoot(Node *root);
 
-Node * hasLabel(Node *root, label_t label);
+Node * hasChildLabel(Node *root, label_t label);
 
 
 /**

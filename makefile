@@ -33,4 +33,7 @@ obj/%.o: src/%.c src/%.h
 	$(CC) -c $< -o $@ $(CFLAGS) 
 
 clean:
-	rm -f src/lex.yy.* src/$(PARSER).tab.* obj/* bin/* ./test/feedback.txt ./_anonymous.* ./out 
+	rm -f src/lex.yy.* src/$(PARSER).tab.* obj/* bin/* ./_anonymous.* ./out 
+
+mrproper: clean
+	rm -f ./test/feedback.txt

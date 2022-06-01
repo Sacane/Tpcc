@@ -22,11 +22,11 @@ test(){
     done
     
     if [ $passed -eq ${#files[@]} ]; then
-        echo -e "\033[0;32m$passed tests out of ${#files[@]} passed! \033[0;37m"
+        echo -e "\033[0;32m$passed tests out of ${#files[@]} passed! \033[0;37m" 
     elif [ $passed = "0" ]; then
-        echo -e "\033[0;31m$passed tests out of ${#files[@]} passed! \033[0;37m"
+        echo -e "\033[0;31m$passed tests out of ${#files[@]} passed! \033[0;37m" 
     else
-        echo -e "\033[0;33m$passed tests out of ${#files[@]} passed! \033[0;37m"
+        echo -e "\033[0;33m$passed tests out of ${#files[@]} passed! \033[0;37m" 
     fi
 }
 

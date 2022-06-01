@@ -1,8 +1,22 @@
 int main(void){
     char c;
-    c = 93; //Should be warning
+    c = 93; 
 
     
 
     return 0;
+}
+
+int switchret(void){
+        int a;
+        a = getint();
+        switch(a){
+                case 0:
+                        return 1;
+                case 1:
+                        return 1;
+                default:
+
+                        break;
+        }
 }

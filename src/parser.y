@@ -167,7 +167,7 @@ void handler(int sig){
 }
 
 int main(int argc, char **argv){
-    int option;
+    int option, hasArgument;
     int showTree = 0;
     int result;
     int opt = 0;
@@ -177,7 +177,8 @@ int main(int argc, char **argv){
     int sem_err_res = 0;
     int showTable = 0;
     int hasPath = 0;
-    
+    int hasFile = 0;
+
     static struct option long_option[] = {
 
         {"help", no_argument,0,'h'},
@@ -203,6 +204,9 @@ int main(int argc, char **argv){
 
             default : result = 3; break;
         }
+    }
+    if(argc == 2 && optind == 1){
+        hasFile = 1;
     }
     if(result == 3){
         return 3;
