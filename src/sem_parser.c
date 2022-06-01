@@ -100,8 +100,8 @@ static int functionCallParamCheck(ListTable list, Symbol_table *fun_caller_table
             break;
         }
         if(isPrimLabelNode(n)){
-            if (labelToPrim(n->label) != params.u.f_type.args_types[i]){
-                raiseWarning(n->lineno, "When trying to call '%s' -> Expected type '%s' but the given type was '%s'\n", fc_root->u.ident, stringOfType(params.u.f_type.args_types[i]), stringOfType(labelToPrim(n->label)));
+            if (labelToPrim(n->label) == INT && params.u.f_type.args_types[i] == CHAR){
+                raiseWarning(n->lineno, "When trying to call '%s' : Expected type '%s' but the given type was '%s'\n", fc_root->u.ident, stringOfType(params.u.f_type.args_types[i]), stringOfType(labelToPrim(n->label)));
                 i++;
                 continue;
             }
@@ -142,20 +142,14 @@ static int functionCallParamCheck(ListTable list, Symbol_table *fun_caller_table
             return 0;
         }
         PrimType t = (s.kind == FUNCTION) ? s.u.f_type.return_type : s.u.p_type;
-        if(t != params.u.f_type.args_types[i]){
-            if(params.u.f_type.args_types[i] == INT){
-                if(t == CHAR){
-                    raiseWarning(fc_root->lineno, "Variable '%s' is type char but function '%s' expected type int\n", s.symbol_name, params.symbol_name);
-                }
-            }
-            raiseError(fc_root->lineno, "symbol name parameters n°%d : %s type : %s -> type expected : %s \n", i, s.symbol_name, stringOfType(s.u.p_type), stringOfType(params.u.f_type.args_types[i]));
+        if(t == CHAR && params.u.f_type.args_types[i] == Int){
+            raiseWarning(fc_root->lineno, "parameter '%s' has type : %s but type expected was %s \n", i, s.symbol_name, stringOfType(s.u.p_type), stringOfType(params.u.f_type.args_types[i]));
             return 0;
         }
         i++;
     }
     if(i != params.u.f_type.nb_args){
         raiseError(fc_root->lineno, "Expected %d argument but %d were given\n", params.u.f_type.nb_args, i);
-        
         return 0;
     }
     return 1;
@@ -233,6 +227,9 @@ static int equalCompareCheck(Node *eq, ListTable tab, char *name_tab){
 
     return 1;
 }
+
+
+
 
 
 int assignCheck(Node *assign, ListTable tab, char *nameTable){
@@ -416,13 +413,15 @@ int isReturnComplete(ListTable list, Node *node) {
 
 }
 
-static Node * hasReturnContent(Node *n){
-    for(Node *child = n->firstChild; child; child = child->nextSibling){
-        if(child->label == Return && child->firstChild){
-            return n;
-        }
+static int hasReturnContent(Node *n){
+    if(!n){
+        return 0;
     }
-    return NULL;
+    if(n->label == Return && n->firstChild){
+        return 1;
+    }
+
+    return hasReturnContent(n->firstChild) || hasReturnContent(n->nextSibling);
 }
 
 void checkReturnsRec(Node *n, PrimType type){
@@ -432,7 +431,7 @@ void checkReturnsRec(Node *n, PrimType type){
     
     if(n->label == Return){
         if(!(n->firstChild)){
-            raiseError(n->lineno, "'return' with no value, in function returning non-void\n");
+            raiseError(n->lineno, "'return' with no value, in non-void return function\n");
             
             goto end;
         }
@@ -456,9 +455,8 @@ void checkReturnsRec(Node *n, PrimType type){
 void checkReturnsValue(Node *n, Symbol_table* table, Symbol sym){
     //
     if(sym.u.f_type.is_void){
-        if(hasReturnContent(n) != NULL){
-            raiseError(n->lineno, "'return' with a value, in function returning void\n");
-            
+        if(hasReturnContent(n)){
+            raiseError(n->lineno, "'return' with a value, in void-return function\n");
         } 
     } else {
         PrimType type = sym.u.f_type.return_type;
@@ -515,6 +513,148 @@ static int parseSemErrorAux(Node *n, ListTable table, char *name_table){
     parseSemErrorAux(n->firstChild, table, name_table);
 }
 
+int warnCheckAssign(Node *body, char *symbolId){
+    int isAssign = 0;
+    if(!body){
+        return 0;
+    }
+    if((body->label == Assign) && strcmp(symbolId, FIRSTCHILD(body)->u.ident) == 0){
+        return 1;
+    }
+    return warnCheckAssign(body->nextSibling, symbolId) || warnCheckAssign(body->firstChild, symbolId);
+}
+
+int checkUsedVar(Node *root, Node *body, char *symbolId, int lineno){
+    if(!body){
+        return 0;
+    }
+    if(body->label == Addsub || body->label == divstar){
+        if(body->firstChild->label == Addsub || body->firstChild->label == divstar){
+            checkUsedVar(root, body->firstChild, symbolId, lineno);
+        }
+        if(SECONDCHILD(body) && (SECONDCHILD(body)->label == Addsub || SECONDCHILD(body)->label == divstar)){
+            checkUsedVar(root, body->firstChild, symbolId, lineno);
+        }
+        if(strcmp(symbolId, body->u.ident) == 0){
+            if(!warnCheckAssign(root, symbolId)){
+                raiseWarning(lineno, "'%s' is used uninitialized in this function\n", symbolId);
+            }
+            return 1;
+        }
+    }
+    return checkUsedVar(root, body->firstChild, symbolId, lineno) || checkUsedVar(root, body->nextSibling, symbolId, lineno);
+}
+
+void checkVariableState(Node *curNode, int *isUsed, int *isInitialized, char *symbolId, int baseLineno){
+    if(curNode && curNode->label == Variable && strcmp(curNode->u.ident, symbolId) == 0){
+        (*isUsed) = 1;
+        if(!(*isInitialized)){
+            raiseWarning(baseLineno, "'%s' is used uninitialized in this function\n", symbolId);
+        }
+    }
+}
+
+void warnUseVar(Node *root, Node *currentNode, char *symbolId, int baseLineno, int *isInitialized, int *isUsed){
+    //==================
+
+    if((*isInitialized) > 0 && (*isUsed) > 0){
+        return;
+    }
+
+    for(Node *child = currentNode->firstChild; child; child = child->nextSibling){
+        switch(child->label){
+            case Switch:
+                checkVariableState(child->firstChild, isUsed, isInitialized, symbolId, baseLineno);
+                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                break;
+            case SuiteInstr:
+                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                break;
+            case If:
+                checkVariableState(child->firstChild, isUsed, isInitialized, symbolId, baseLineno);
+            case Else:
+            case While:
+                checkVariableState(child->firstChild, isUsed, isInitialized, symbolId, baseLineno);
+                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                break;
+            case Addsub:
+            case divstar:
+                if(child->firstChild && (child->firstChild->label == Addsub || child->firstChild->label == divstar)){
+                    warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                }
+                checkVariableState(child->firstChild, isUsed, isInitialized, symbolId, baseLineno);
+                if(SECONDCHILD(child) && (SECONDCHILD(child)->label == Addsub || SECONDCHILD(child)->label == divstar)){
+                    warnUseVar(root, SECONDCHILD(child), symbolId, baseLineno, isInitialized, isUsed);
+                }
+                checkVariableState(SECONDCHILD(child), isUsed, isInitialized, symbolId, baseLineno);
+                break;
+            case Order:
+            case Eq:
+                checkVariableState(child->firstChild, isUsed, isInitialized, symbolId, baseLineno);
+                checkVariableState(SECONDCHILD(child), isUsed, isInitialized, symbolId, baseLineno);
+                break;
+            case FunctionCall:
+            case Putint:
+            case Putchar:   
+                for(Node *param = child->firstChild; param; param = param->nextSibling){
+                    checkVariableState(param, isUsed, isInitialized, symbolId, baseLineno);
+                }
+                
+                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                break;
+            case Or:
+            case And:
+                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+
+                checkVariableState(FIRSTCHILD(child), isUsed, isInitialized, symbolId, baseLineno);
+                checkVariableState(SECONDCHILD(child), isUsed, isInitialized, symbolId, baseLineno);
+                break;
+            case Assign:
+                //left value
+                if(strcmp(symbolId, FIRSTCHILD(child)->u.ident) == 0){
+                    (*isInitialized) = 1;
+                }
+                
+                //right Value
+                if(SECONDCHILD(child)->label == Addsub || SECONDCHILD(child)->label == divstar || SECONDCHILD(child)->label == FunctionCall){
+                    warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                    warnUseVar(root, SECONDCHILD(child), symbolId, baseLineno, isInitialized, isUsed);
+                }
+                checkVariableState(SECONDCHILD(child), isUsed, isInitialized, symbolId, baseLineno);
+                break;
+            case Return:
+                checkVariableState(FIRSTCHILD(child), isUsed, isInitialized, symbolId, baseLineno);
+                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                break;
+            case Case:
+                warnUseVar(root, child, symbolId, baseLineno, isInitialized, isUsed);
+                break;
+        }
+    }
+
+}
+
+int checkVariable(Node *prog){
+    Node *declFoncts = SECONDCHILD(prog);
+    for(Node *fonct = declFoncts->firstChild; fonct; fonct = fonct->nextSibling){
+        Node *vars = FIRSTCHILD(SECONDCHILD(fonct));
+        if(vars != NULL && vars->label == DeclVars){
+            for(Node *types = vars->firstChild; types; types = types->nextSibling){
+                for(Node *var = types->firstChild; var; var = var->nextSibling){
+                    int isInitialized = 0, isUsed = 0;
+                    warnUseVar(prog, SECONDCHILD(fonct), var->u.ident, var->lineno, &isInitialized, &isUsed);
+                    if(isInitialized && !isUsed){
+                        raiseWarning(var->lineno, "variable '%s' set but not used\n", var->u.ident);
+                    }
+                    if(!isInitialized && !isUsed){
+                        raiseWarning(var->lineno, "unused variable '%s'\n", var->u.ident);
+                    }
+                }
+            }
+        }
+    }
+}
+
 int parseSemError(Node *node, ListTable table){
     if(!node){
         return 1;
@@ -531,7 +671,6 @@ int parseSemError(Node *node, ListTable table){
             if(!funS.u.f_type.is_void){
                 if(!isReturnComplete(table, n)){
                     raiseWarning(n->lineno, "control reaches end of non-void function\n");
-                    
                 }
             }
             checkReturnsValue(SECONDCHILD(n), sTable, funS);

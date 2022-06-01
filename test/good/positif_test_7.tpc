@@ -1,9 +1,11 @@
 int a, b;
 
 char called(int c){
+    int a;
     b = 10;
     a = 8;
     a = a + 7 - b;
+    putint(a);
     return c;
 }
 
@@ -21,7 +23,8 @@ int main(void){
     else{
         p = 'c';
     }
-
+    putint(a);
+    putchar(p);
     return 0;
 }
 
@@ -34,5 +37,6 @@ int caller(int flag){
     else{
         c = 3;
     }
+    putint(c);
     return 0;
 }

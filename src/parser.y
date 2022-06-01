@@ -244,16 +244,19 @@ int main(int argc, char **argv){
         check_sem_err = 1;
     }
     parseSemError(rootProg, list);
+    checkVariable(rootProg);
     if (check_sem_err || !list){
         return 2;
     }
-    if(!check_sem_err){
-        DEBUG("=== NO SEM-ERRORS DETECTED : START COMPILING ===\n");
-        buildNasmFile(rootProg, list);
-        DEBUG("Generate executable...\n");
-        makeExecutable("out"); // make ./out
+
+    
         
-    }
+    DEBUG("=== NO SEM-ERRORS DETECTED : START COMPILING ===\n");
+    buildNasmFile(rootProg, list);
+    DEBUG("Generate executable...\n");
+    makeExecutable("out"); // make ./out
+        
+
 
 
     deleteTree(rootProg);

@@ -13,6 +13,6 @@
  */
 int parseSemError(Node *node, ListTable table);
 int computeOpNode(Node *opNode);
-
+int checkVariable(Node *prog);
 
 #endif

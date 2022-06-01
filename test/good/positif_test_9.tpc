@@ -9,7 +9,7 @@ int main(void){
     switch(d){
 
         putchar('m');
-
+        putint(a);
         default:
             putchar('p');
             break;

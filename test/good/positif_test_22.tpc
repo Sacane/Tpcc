@@ -4,6 +4,7 @@ int choose(int a){
     putint(a);
     switch(a){
         c = 'M';
+        putint(c);
         case 10:
             c = 'T';
             putchar(c);

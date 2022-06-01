@@ -18,6 +18,14 @@ void getN(void){
     putchar('\n');
 }
 
+int useParam(char a){
+    putchar(a);
+    return 1;
+}
+int useint(int a){
+    return 1;
+}
+
 void testWhile(void){
     int i, j;
     char c;
@@ -30,8 +38,10 @@ void testWhile(void){
             case 1:
                 break;
             case 2:
-                break;
+                putchar(c);
+                return;
             default:
+                
                 break;
         }
         i = i+1;
@@ -40,13 +50,23 @@ void testWhile(void){
 
 void tmp(void){
     int b;
+    char c;
     b = getint();
-    getC();
+    c = 'o';
+    useint(c);
+    useint('c');
+    useParam(b);
 }
+
+
 
 int main(void)
 {
     int c;
+    int i;
+    i = 1;
+    
+    c = 1 + i;    
     testWhile();
     putint(-1);
     c = getint();

@@ -30,7 +30,6 @@ void display(int to_display){
 int main(void){
 
     int i, a, b, c;
-    char ch;
     i = 0;
     while(i != 10){
         a = i;

@@ -14,7 +14,6 @@ void foo2(int bar){
 
 int main(void)
 {
-    int p;
     
     c = 1;
     a = 102;

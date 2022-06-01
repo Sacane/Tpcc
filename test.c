@@ -1,29 +1,34 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-int daioj;
+int r1, r2;
 
-void print(char c){
-    printf("%c\n", c);
-}
-
-
-int reached(void){
-
-
-    printf("ah\n");
-}
-
-int main(void){
-    char c;
-    int i, j;
-    i = 0;
-    while(i < 10){
-        c = getchar();
-        c = getchar();
-        printf("i : %d\n", i);
-        i+= 1;
-    }
+int useParam(char a){
+    putchar(a);
     return 1;
 }
 
+void tmp(void){
+    int b;
+    b = 2;
+
+    useParam(b);
+}
+
+
+int trinome(int a,int b, int c) {
+    int d;
+    int s;
+    d=b*b-4*a*c;
+
+
+        r1=(b+s)/(2*a);
+        r2=(b-s)/(2*a);
+        return 1;
+    
+
+    return 0;
+}
+
+int main(void){
+        return 0;
+}

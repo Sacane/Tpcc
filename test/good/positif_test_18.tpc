@@ -6,7 +6,7 @@ void rec(int a, int b){
         return;
     }
     putint(a);
-    rec(a+1, b+1);
+    rec(a+1, c+1+b);
 }
 
 void print_find(void){

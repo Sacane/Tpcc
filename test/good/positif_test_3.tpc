@@ -15,7 +15,6 @@ int main(void) {
    
    
    int b, c ;
-   char cha;
    r1 = 0;
    b=1;
    max = 2;
@@ -49,6 +48,7 @@ int trinome(int a,int b, int c) {
     int d;
     int s;
     d=b*b-4*a*c;
+    s = 1;
     if (d>=0) {
 
         r1=(b+s)/(2*a);

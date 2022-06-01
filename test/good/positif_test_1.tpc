@@ -9,12 +9,15 @@ int ppcm(int a, int b){
 	c=a;
 	d=b;
     while (a!=b){   
-        if(a>b)
-          b=d+b;
-        else if(a<b)
+        if(a>b){
+            b=d+b;
+        }
+        else{
             a=c+a;
+        }
     }
-    
+    putchar('P');
+    putchar(p);
     return a;
 }
 

@@ -19,7 +19,8 @@ int test2(void){
     int k;
     k = 0;
     res = add(k, 2);
-    if(1){
+    
+    if(res){
         return 0;
     }
     return 1;
@@ -33,7 +34,7 @@ int bar(int argc)
     c = 1000;
     a = 0 + 2;
     b = 0;
-    putint(2039);
+    putint(local);
     if(b==0 || a==0 || a == 2){
         
         putchar('s');
@@ -68,10 +69,8 @@ int bar(int argc)
 
 
 int main(void){
-    int loc;
     int i;
     char d;
-    int m;
 
     putchar('P');
     putchar('R');
