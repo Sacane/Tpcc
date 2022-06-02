@@ -1,10 +1,14 @@
-int main;
+int maint;
 void foo(void){
     putint(1);
+    return 2;
 }
 
+int tmp(int a){
+    return a;
+}
 
-char foochar(void){
+char retchar(void){
     return;
 }
 
@@ -13,12 +17,12 @@ void tmp(void){
     b = 2;
 
     useParam(b);
-    return tmp();
+    return foo();
 }
 
 
 
-int main(void){
+int maint(void){
     
     int a;
     char c;
@@ -26,7 +30,8 @@ int main(void){
     c = 10;
     a = 'c';
     c = a;
-    fooint(foo());
+    e = 5;
+    tmp(foo());
     switch(d){
         case 1:
 
@@ -42,5 +47,5 @@ int main(void){
             break;
     }
 
-    return 1;
 }
+void main(void){}

@@ -61,18 +61,21 @@ ListTable buildSymbolListTableFromRoot(Node *root){
     functions_root = root->firstChild->nextSibling; //On DeclFoncts
     //parse of the DeclFonct
     for(Node* function_root = functions_root->firstChild; function_root; function_root = function_root->nextSibling){
-    
+        
         nb_args = 0;
         totalLocalVariable = 0;
         
         // =============== Management of the functions's header ==================
-
+        
         Node* header_function = function_root->firstChild;
         PrimType param_types[MAX_ARGUMENT_FUNC];
         Node *function_type = header_function->firstChild;
-
+        if(getTableInListByName(function_type->firstChild->u.ident, ListTable)){
+            raiseError(function_type->lineno, "Function already defined\n");
+        }
         is_void = header_function->firstChild->label == Void ? 1 : 0; 
         function_t = stringOfTpcType(function_type->u.ident);
+
         Symbol_table *table = newSymbolTable(function_type->firstChild->u.ident);
         Node *params = function_type->nextSibling;
         Symbol s;
