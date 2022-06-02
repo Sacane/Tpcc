@@ -167,6 +167,7 @@ void handler(int sig){
 }
 
 int main(int argc, char **argv){
+    char fileName[256];
     int option, hasArgument;
     int showTree = 0;
     int result;
@@ -178,16 +179,16 @@ int main(int argc, char **argv){
     int showTable = 0;
     int hasPath = 0;
     int hasFile = 0;
+    
 
     static struct option long_option[] = {
 
         {"help", no_argument,0,'h'},
         {"tree", no_argument,0,'t'},
-        {"asm", no_argument,0,'a'},
-        {"symbols", no_argument,0,'s'},
+        {"symtabs", no_argument,0,'s'},
         {0,0,0,0}
     };
-    while((opt = getopt_long(argc, argv,"t h a e s", long_option, &option_index)) !=-1 ){
+    while((opt = getopt_long(argc, argv,"t h s", long_option, &option_index)) !=-1 ){
 
         switch(opt){
 
@@ -195,10 +196,6 @@ int main(int argc, char **argv){
                        break;
             case 't' : showTree = 1;
                        break;
-            case 'a' : opt_asm = 1;
-                        break;
-            case 'e' : make_exec = 1;
-                        break;
             case 's' : showTable = 1;
                         break;
 
@@ -207,11 +204,13 @@ int main(int argc, char **argv){
     }
     if(argc == 2 && optind == 1){
         hasFile = 1;
+        DEBUG("Unimplemented functionnality: exit(3)\n");
+        return 3;
     }
     if(result == 3){
         return 3;
     }
-    while((option = getopt(argc, argv, ":thsaels")) != - 1){
+    while((option = getopt(argc, argv, ":thsls")) != - 1){
         switch(option){
             case 't':
                 showTree = 1;
@@ -219,16 +218,15 @@ int main(int argc, char **argv){
             case 'h':
                 print_help();
                 break;
-            case 'a' : opt_asm = 1;
-                       break;
-            case 'e' : make_exec = 1;
-                        break;
             case 's' : showTable = 1;
             case '?':
-                printf("unknown option\n");
-                break;
+                printf("unknown option, exit(3)\n");
+                return 3;
         }
     }
+
+
+
     result = yyparse();
     if(result){
         return result;
@@ -243,10 +241,7 @@ int main(int argc, char **argv){
     if(showTable){
         printSymbolTableList(list);
     }
-    if(!getTableInListByName("main", list)){
-        raiseError(-1, "No main function in this program\n");
-        check_sem_err = 1;
-    }
+    checkMain(list);
     parseSemError(rootProg, list);
     checkVariable(rootProg);
     if (check_sem_err || !list){
@@ -254,8 +249,8 @@ int main(int argc, char **argv){
     }
 
     
-        
-    DEBUG("=== NO SEM-ERRORS DETECTED : START COMPILING ===\n");
+    
+    DEBUG("=== NO SEM-ERRORS DETECTED ===\n");
     buildNasmFile(rootProg, list);
     DEBUG("Generate executable...\n");
     makeExecutable("out"); // make ./out

@@ -755,6 +755,10 @@ void returnInstr(Node *returnNode, ListTable list, Symbol_table *globalTable, Sy
     Symbol valueSym;
     Node *valueNode = returnNode->firstChild;
     
+    if(!valueNode){
+        return;
+    }
+
     switch (checkNodeContent(valueNode))
     {
     case OPERATOR:

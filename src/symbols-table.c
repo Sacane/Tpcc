@@ -45,10 +45,10 @@ Symbol getSymbolInTableByName(Symbol_table *table, char *symbolName){
     return table->s[hash(symbolName)];
 }
 
-int isSymbolInTable(Symbol_table *table, char *symbol_name){   
+int isSymbolInTable(Symbol_table *table, char *symbol_name){
     return table->size > hash(symbol_name) && 
     table->s[hash(symbol_name)].symbol_name != NULL && 
-    !strcmp(table->s[hash(symbol_name)].symbol_name, symbol_name);
+    strcmp(table->s[hash(symbol_name)].symbol_name, symbol_name) == 0;
 }
 
 static int realloc_table(Symbol_table *table, unsigned long hashkey){

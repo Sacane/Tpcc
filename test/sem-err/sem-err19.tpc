@@ -1,0 +1,46 @@
+int main;
+void foo(void){
+    putint(1);
+}
+
+
+char foochar(void){
+    return;
+}
+
+void tmp(void){
+    int b;
+    b = 2;
+
+    useParam(b);
+    return tmp();
+}
+
+
+
+int main(void){
+    
+    int a;
+    char c;
+    int d;
+    c = 10;
+    a = 'c';
+    c = a;
+    fooint(foo());
+    switch(d){
+        case 1:
+
+            c = d+1;
+            d = 1;
+            d = d + 1;
+            break;
+        case 1:
+            break;
+        default:
+            break;
+        default:
+            break;
+    }
+
+    return 1;
+}

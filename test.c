@@ -12,6 +12,7 @@ void tmp(void){
     b = 2;
 
     useParam(b);
+    return 1;
 }
 
 
@@ -26,7 +27,7 @@ int trinome(int a,int b, int c) {
         return 1;
     
 
-    return 0;
+    return tmp();
 }
 
 int switchret(void){
@@ -39,6 +40,8 @@ int switchret(void){
                         return 2;
                 default:
                         return 2;
+                default:
+                        return 3;
         }
 }
 
