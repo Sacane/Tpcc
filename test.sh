@@ -32,13 +32,13 @@ test(){
 }
 
 echo "=============== Valid tests  ===============" | tee -a output.txt
-test "./test/good/*.tpc" 0 
+test "./fichier_test/good/*.tpc" 0 
 
 echo "============== Syn-invalid tests ===============" | tee -a output.txt
-test "./test/syn-err/*.tpc" 1
+test "./fichier_test/syn-err/*.tpc" 1
 
 echo "============== Sem-invalids tests ===============" | tee -a output.txt
-test "./test/sem-err/*.tpc" 2 
+test "./fichier_test/sem-err/*.tpc" 2 
 
 echo "All tests done."
 

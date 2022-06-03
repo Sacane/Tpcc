@@ -259,6 +259,11 @@ int assignCheck(Node *assign, ListTable tab, char *nameTable){
                     raiseWarning(rValue->lineno, "Return type of function '%s' doesn't match with the assigned variable\n Expected char, got int\n", rValue->u.ident);
                 }
             }
+            if(rValue->label == Variable){
+                if(!variableExistCheck(rValue, tab, rValue->u.ident)){
+                    raiseError(rValue->lineno, "Use undefined reference to variable '%s'\n", rValue->u.ident);
+                }
+            }
         }
         if(!check){
             raiseError(lValue->lineno, "Trying to assign a non-existing value : '%s'.\n", lValue->u.ident);
