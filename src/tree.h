@@ -42,11 +42,7 @@ typedef enum {
   Switch,
   Case,
   Default,
-  Break,
-  Putchar,
-  Putint,
-  Getint,
-  Getchar
+  Break
   
   /* list all other node labels, if any */
   /* The list must coincide with the string array in tree.c */
