@@ -1,5 +1,9 @@
 #include "symbols-table.h"
 
+#define PUTINT 0
+#define PUTCHAR 1
+#define GETINT 2
+#define GETCHAR 3
 
 unsigned long hash(unsigned char *str)
 {
@@ -38,8 +42,6 @@ Symbol_table *newSymbolTable(char *name_table){
     }
     return table;
 }
-
-
 
 Symbol getSymbolInTableByName(Symbol_table *table, char *symbolName){
     return table->s[hash(symbolName)];
@@ -151,3 +153,42 @@ void printSymbolTable(Symbol_table *tab){
     }
 }
 
+Symbol_table *buildPrimaryFunction(int funId){
+    Symbol_table *funTable;
+    char buf[10];
+    Symbol s;
+    switch(funId){
+        case PUTINT:
+            funTable = newSymbolTable("putint");
+            sprintf(s.symbol_name, "putint");
+            s.u.f_type.is_void = 1;
+            s.u.f_type.nb_args = 1;
+            s.u.f_type.args_types[0] = INT;
+            break;
+        case PUTCHAR:
+            funTable = newSymbolTable("putchar");
+            sprintf(s.symbol_name, "putchar");
+            s.u.f_type.is_void = 1;
+            s.u.f_type.nb_args = 1;
+            s.u.f_type.args_types[0] = CHAR;
+            break;
+        case GETCHAR:
+            funTable = newSymbolTable("getchar");
+            s.u.f_type.is_void = 0;
+            s.u.f_type.return_type = CHAR;
+            sprintf(s.symbol_name, "getchar");
+            break;
+        case GETINT:
+            funTable = newSymbolTable("getint");
+            s.u.f_type.is_void = 0;
+            s.u.f_type.return_type = INT;
+            sprintf(s.symbol_name, "getint");
+            break;
+    }
+    s.kind = FUNCTION;
+    s.lineno = 0;
+    s.offset = 0;
+    s.u.f_type.nb_local = 0;
+    insertSymbol(s, funTable);
+    return funTable;
+}

@@ -102,6 +102,11 @@ int isPrimLabelNode(Node *n);
  */
 PrimType labelToPrim(label_t label);
 
-
+/**
+ * @brief 
+ * 
+ * @return Symbol_table* 
+ */
+Symbol_table *buildPrimaryFunction(int funId);
 
 #endif
