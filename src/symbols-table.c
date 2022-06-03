@@ -178,14 +178,14 @@ Symbol_table *buildPrimaryFunction(int funId){
             n_args = 0;
             is_void  = 0;
             returnType = CHAR;
-            s = newFunctionSymbol("getchar", CHAR, args, 1, 0, 0);
+            s = newFunctionSymbol("getchar", CHAR, args, 0, 0, 0);
             break;
         case GETINT:
             funTable = newSymbolTable("getint");
             n_args = 0;
             is_void = 0;
             returnType = INT;
-            s = newFunctionSymbol("getint", INT, args, 1, 0, 0);
+            s = newFunctionSymbol("getint", INT, args, 0, 0, 0);
             break;
         default:
             DEBUG("Unvailable primary function id\n");
