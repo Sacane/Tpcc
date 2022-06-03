@@ -260,7 +260,7 @@ int assignCheck(Node *assign, ListTable tab, char *nameTable){
                 }
             }
             if(rValue->label == Variable){
-                if(!variableExistCheck(rValue, tab, rValue->u.ident)){
+                if(!variableExistCheck(rValue, tab, nameTable)){
                     raiseError(rValue->lineno, "Use undefined reference to variable '%s'\n", rValue->u.ident);
                 }
             }
