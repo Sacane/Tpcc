@@ -46,6 +46,6 @@ int maint(void){
         default:
             break;
     }
-
+    return p;
 }
 void main(void){}

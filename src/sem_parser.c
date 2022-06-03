@@ -512,7 +512,9 @@ static int parseSemErrorAux(Node *n, ListTable table, char *name_table){
             functionCallCheck(n, table, name_table, n->u.ident);
             break;
         case Variable: 
-            variableExistCheck(n, table, name_table);
+            if(!variableExistCheck(n, table, name_table)){
+                raiseError(n->lineno, "Use undefined reference to variable '%s'\n", n->u.ident);
+            }
             parseSemErrorAux(n->nextSibling, table, name_table);
             return 1;
         case Assign:

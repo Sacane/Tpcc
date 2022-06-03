@@ -1,0 +1,17 @@
+int test(int a, int b, int d) {
+    a = b;
+    b = c;
+
+    switch() {
+        case 1 : b = 1;
+        case 2 : b = 2; break;
+        case 'a' : a = 1; b = 3; break;
+        default : b = 10;
+    }
+
+    return b;
+}
+
+int main(void) {
+    return test(1, 2, 3);
+}
