@@ -27,24 +27,26 @@ int trinome(int a,int b, int c) {
         return 1;
     
 
-    return tmp();
+    return 1;
 }
 
 int switchret(void){
-        int a;
+    int a;
+    int switchret;
+    switchret = 1;
         a = getint();
-        switch(a){
-                case 0:
-                        return 1;
-                case 1:
-                        return 2;
-                default:
-                        return 2;
-                default:
-                        return 3;
-        }
+    switch(a){
+        case 0:
+                return 1;
+        case 1:
+                return 2;
+        default:
+                return 2;
+    }
 }
 
 int main(void){
-        return 0;
+
+    
+    return 0;
 }

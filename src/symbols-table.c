@@ -74,7 +74,7 @@ int insertSymbol(Symbol symbol, Symbol_table *table){
     unsigned long hashKey = hash(symbol.symbol_name);
     realloc_table(table, hashKey);
     if(table->s[hash(symbol.symbol_name)].symbol_name && !strcmp(table->s[hash(symbol.symbol_name)].symbol_name, symbol.symbol_name)){
-        raiseError(symbol.lineno, "Symbol '%s' already declared as parameter or local variable\n", symbol.symbol_name);
+        raiseError(-1, "In function '%s', symbol '%s' already declared as parameter or local variable\n", table->name_table, symbol.symbol_name);
         return 0;
     } else {
         table->s[hashKey] = symbol;
