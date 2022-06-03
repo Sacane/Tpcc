@@ -81,10 +81,9 @@ static int functionCallParamCheck(ListTable list, Symbol_table *fun_caller_table
     if (function_table->nb_parameter == 0 && fc_root->firstChild->label == Void){
         return 1;
     }
-
-
+    
     for(Node *n = fc_root->firstChild; n; n = n->nextSibling){
-
+        
         if(n->label == Variable){
             int count = isSymbolInTable(fun_caller_table, n->u.ident) + isSymbolInTable(global_var_table, n->u.ident);
             if(count == 0){
@@ -153,10 +152,6 @@ static int functionCallParamCheck(ListTable list, Symbol_table *fun_caller_table
 
 }
 
-static int isPrimaryFunctions(char *calledFunctionName){
-    return strcmp(calledFunctionName, "getint") == 0 || strcmp(calledFunctionName, "getchar") == 0 ||
-    strcmp(calledFunctionName, "putint") == 0 || strcmp(calledFunctionName, "putchar") == 0;
-}
 
 static int functionCallCheck(Node *fc_node, ListTable table, char *callerFunctionName, char *calledFunctionName){
 
@@ -164,9 +159,6 @@ static int functionCallCheck(Node *fc_node, ListTable table, char *callerFunctio
     Symbol_table *tableCallerFunction = getTableInListByName(callerFunctionName, table);
     Symbol_table *tableCalledFunction = getTableInListByName(calledFunctionName, table);
 
-    if(isPrimaryFunctions(calledFunctionName)){
-        return 1;
-    }
 
     if(!tableCalledFunction){
         raiseError(fc_node->lineno, "implicit declaration of function '%s'\n", calledFunctionName);

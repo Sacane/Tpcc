@@ -170,7 +170,7 @@ int main(int argc, char **argv){
     int opt = 0;
     int option_index = 0;
     int opt_asm = 0;
-    int make_exec = 0;
+    int make_exec = 1;
     int sem_err_res = 0;
     int showTable = 0;
     int hasPath = 0;
@@ -182,9 +182,10 @@ int main(int argc, char **argv){
         {"help", no_argument,0,'h'},
         {"tree", no_argument,0,'t'},
         {"symtabs", no_argument,0,'s'},
+        {"noexec", no_argument,0,'n'},
         {0,0,0,0}
     };
-    while((opt = getopt_long(argc, argv,"t h s", long_option, &option_index)) !=-1 ){
+    while((opt = getopt_long(argc, argv,"t h s n", long_option, &option_index)) !=-1 ){
 
         switch(opt){
 
@@ -193,6 +194,8 @@ int main(int argc, char **argv){
             case 't' : showTree = 1;
                        break;
             case 's' : showTable = 1;
+                       break;
+            case 'n' : make_exec = 0;
                         break;
 
             default : result = 3; break;
@@ -206,7 +209,7 @@ int main(int argc, char **argv){
     if(result == 3){
         return 3;
     }
-    while((option = getopt(argc, argv, ":thsls")) != - 1){
+    while((option = getopt(argc, argv, ":thsln")) != - 1){
         switch(option){
             case 't':
                 showTree = 1;
@@ -214,7 +217,10 @@ int main(int argc, char **argv){
             case 'h':
                 print_help();
                 break;
-            case 's' : showTable = 1;
+            case 's' : showTable = 1; 
+                       break;
+            case 'n' : make_exec = 0;
+                       break;
             case '?':
                 printf("unknown option, exit(3)\n");
                 return 3;
@@ -233,7 +239,9 @@ int main(int argc, char **argv){
         printTree(rootProg);
     }
     ListTable list;
+
     list = buildSymbolListTableFromRoot(rootProg);
+    
     if(showTable){
         printSymbolTableList(list);
     }
@@ -247,9 +255,12 @@ int main(int argc, char **argv){
     
     
     DEBUG("=== NO SEM-ERRORS DETECTED ===\n");
-    buildNasmFile(rootProg, list);
-    DEBUG("Generate executable...\n");
-    makeExecutable("out"); // make ./out
+    if(make_exec){
+        buildNasmFile(rootProg, list);
+        DEBUG("Generate executable...\n");
+        makeExecutable("out"); // make ./out
+    }
+
         
 
 

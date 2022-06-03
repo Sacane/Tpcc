@@ -64,10 +64,10 @@ void print_symbol(Symbol s){
         case FUNCTION:
             fprintf(stderr, "function\n");
             DEBUG("is void : %s\n", (s.u.f_type.is_void) ? "yes" : "no");
-            if(!(s.u.f_type.is_void)){
-                DEBUG("Return Type : %s\n", (s.u.f_type.return_type == CHAR) ? "Char\n" : "Int\n");
-                DEBUG("Number of argument : %d | Number of local variable : %d\n", s.u.f_type.nb_args, s.u.f_type.nb_local);
-            }
+            
+            DEBUG("Return Type : %s\n", (s.u.f_type.return_type == CHAR) ? "Char\n" : "Int\n");
+            DEBUG("Number of argument : %d | Number of local variable : %d\n", s.u.f_type.nb_args, s.u.f_type.nb_local);
+            
             break;
         case VARIABLE:
             fprintf(stderr, "variable | offset : %d\n", s.offset);

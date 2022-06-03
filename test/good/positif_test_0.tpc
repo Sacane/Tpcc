@@ -18,7 +18,7 @@ void foo(void){
     putchar('a');
     putchar('r');
     putchar(c);
-
+    
 }
 
 
@@ -27,10 +27,10 @@ int main(void){
     putchar('P');
     putchar('\n');
     putint('n');
-
     a = bar();
     putint(a);
-    foo();
+    foo(10, 2);
+    putint(10, 2);
     return 1;
 }
 

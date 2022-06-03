@@ -56,8 +56,20 @@ ListTable buildSymbolListTableFromRoot(Node *root){
     int totalLocalVariable = 0;
     int offsetLocalVar = 0, offsetParam = 0;
     Symbol_table *globals_table = buildGlobalVariableSymbolTable(root);
+    Symbol_table * putintTable, *putcharTable, *getcharTable, *getintTable;
+    putintTable = buildPrimaryFunction(PUTINT);
+    putcharTable = buildPrimaryFunction(PUTCHAR);
+    getintTable = buildPrimaryFunction(GETINT);
+    getcharTable = buildPrimaryFunction(GETCHAR);
+
     ListTable = newSymbolTableListTable(NULL);
     insertSymbolTableInListTable(ListTable, globals_table);
+    insertSymbolTableInListTable(ListTable, putintTable);
+    insertSymbolTableInListTable(ListTable, putcharTable);
+    insertSymbolTableInListTable(ListTable, getintTable);
+    insertSymbolTableInListTable(ListTable, getcharTable);
+
+
     functions_root = root->firstChild->nextSibling; //On DeclFoncts
     //parse of the DeclFonct
     for(Node* function_root = functions_root->firstChild; function_root; function_root = function_root->nextSibling){
@@ -124,6 +136,7 @@ ListTable buildSymbolListTableFromRoot(Node *root){
         insertSymbol(params_sym, table);
         insertSymbolTableInListTable(ListTable, table);
     }
+    DEBUG("build list complete\n");
     return ListTable;
 }
 

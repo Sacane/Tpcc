@@ -1,9 +1,6 @@
 #include "symbols-table.h"
 
-#define PUTINT 0
-#define PUTCHAR 1
-#define GETINT 2
-#define GETCHAR 3
+
 
 unsigned long hash(unsigned char *str)
 {
@@ -153,42 +150,49 @@ void printSymbolTable(Symbol_table *tab){
     }
 }
 
+//Symbol newFunctionSymbol(char *name_func, PrimType return_type, PrimType arg_types[], int n_args, int is_void, int number_locals)
+
 Symbol_table *buildPrimaryFunction(int funId){
     Symbol_table *funTable;
-    char buf[10];
     Symbol s;
+    int n_args;
+    int is_void;
+    PrimType args[10];
+    Kind kind = FUNCTION;
+    PrimType returnType;
     switch(funId){
         case PUTINT:
             funTable = newSymbolTable("putint");
-            sprintf(s.symbol_name, "putint");
-            s.u.f_type.is_void = 1;
-            s.u.f_type.nb_args = 1;
-            s.u.f_type.args_types[0] = INT;
+            args[0] = INT;
+            s = newFunctionSymbol("putint", NONE, args, 1, 1, 0);
             break;
         case PUTCHAR:
             funTable = newSymbolTable("putchar");
-            sprintf(s.symbol_name, "putchar");
-            s.u.f_type.is_void = 1;
-            s.u.f_type.nb_args = 1;
-            s.u.f_type.args_types[0] = CHAR;
+            n_args = 1;
+            is_void = 1;
+            args[0] = CHAR;
+            returnType = NONE;
+            s = newFunctionSymbol("putchar", NONE, args, 1, 1, 0);
             break;
         case GETCHAR:
             funTable = newSymbolTable("getchar");
-            s.u.f_type.is_void = 0;
-            s.u.f_type.return_type = CHAR;
-            sprintf(s.symbol_name, "getchar");
+            n_args = 0;
+            is_void  = 0;
+            returnType = CHAR;
+            s = newFunctionSymbol("getchar", CHAR, args, 1, 0, 0);
             break;
         case GETINT:
             funTable = newSymbolTable("getint");
-            s.u.f_type.is_void = 0;
-            s.u.f_type.return_type = INT;
-            sprintf(s.symbol_name, "getint");
+            n_args = 0;
+            is_void = 0;
+            returnType = INT;
+            s = newFunctionSymbol("getint", INT, args, 1, 0, 0);
             break;
+        default:
+            DEBUG("Unvailable primary function id\n");
+            return NULL;
     }
-    s.kind = FUNCTION;
-    s.lineno = 0;
-    s.offset = 0;
-    s.u.f_type.nb_local = 0;
+
     insertSymbol(s, funTable);
     return funTable;
 }

@@ -10,6 +10,11 @@
 #define INIT_TABLE_SIZ 10000
 #define INIT_PARAMETERS_SIZ 10
 
+#define PUTINT 0
+#define PUTCHAR 1
+#define GETINT 2
+#define GETCHAR 3
+
 #define GLOBAL "global_vars"
 
 typedef struct {

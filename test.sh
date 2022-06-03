@@ -11,7 +11,7 @@ test(){
         let n++
         printf "(%02d/%02d) - %s\n" $n ${#files[@]} "Testing $f..." 
 
-        ./bin/tpcc < $f 
+        ./bin/tpcc < $f -n
         feedback=$PIPESTATUS
 
         echo $feedback >> ./test/feedback.txt 
