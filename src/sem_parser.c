@@ -165,16 +165,6 @@ static int functionCallCheck(Node *fc_node, ListTable table, char *callerFunctio
     Symbol_table *tableCalledFunction = getTableInListByName(calledFunctionName, table);
 
     if(isPrimaryFunctions(calledFunctionName)){
-        switch(fc_node->label){
-            case Putint:
-                break;
-            case Putchar:
-                break;
-            case Getint:
-                break;
-            case Getchar:
-                break;
-        }
         return 1;
     }
 
@@ -543,15 +533,6 @@ static int parseSemErrorAux(Node *n, ListTable table, char *name_table){
         case Switch:
             switchCheck(table, name_table, n);
             break;
-        case Getint:
-            
-            break;
-        case Getchar:
-            break;
-        case Putint:
-            break;
-        case Putchar:
-            break;
         default:
             parseSemErrorAux(n->nextSibling, table, name_table);
             parseSemErrorAux(n->firstChild, table, name_table);
@@ -639,9 +620,7 @@ void parseVariableUsage(Node *root, Node *currentNode, char *symbolId, int baseL
                 checkVariableState(child->firstChild, isUsed, isInitialized, symbolId, baseLineno);
                 checkVariableState(SECONDCHILD(child), isUsed, isInitialized, symbolId, baseLineno);
                 break;
-            case FunctionCall:
-            case Putint:
-            case Putchar:   
+            case FunctionCall:  
                 for(Node *param = child->firstChild; param; param = param->nextSibling){
                     checkVariableState(param, isUsed, isInitialized, symbolId, baseLineno);
                 }

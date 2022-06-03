@@ -366,7 +366,7 @@ void assignInstr(ListTable list, Node *assign_node, Symbol_table *globalTable, S
             MOV("rax", "0");
             MOV("rbx", "0");
             break;
-        case Getint:
+        /*case Getint:
             sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
             callGetint(buf2);
             break;
@@ -376,7 +376,7 @@ void assignInstr(ListTable list, Node *assign_node, Symbol_table *globalTable, S
             MOV("rax", "qword [number]");
             MOV(buf2, "rax");
             MOV("rax", "0");
-            break;
+            break;*/
         case FunctionCall:
             COMMENT("[START] Assign to a function call");
             functionCallInstr(rValue, rValue->u.ident,  localTable->name_table, list);
@@ -993,13 +993,13 @@ void nasmTranslateParsing(ListTable list, Node *root, Symbol_table *global_var_t
             COMMENT("End assignement");
             nasmTranslateParsing(list, root->nextSibling, global_var_table, localTable);
             return;
-        case Putchar:
+        /*case Putchar:
             writePutchar(root, list, global_var_table, localTable);
             break;
         case Putint:
             writePutint(root, list, global_var_table, localTable);
             nasmTranslateParsing(list, root->nextSibling, global_var_table, localTable);
-            return;
+            return;*/
         case If:
             labelId += 1;
 

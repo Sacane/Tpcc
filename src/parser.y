@@ -83,8 +83,6 @@ Instr:
     |  SWITCH '(' Exp ')' '{' SuiteInstr BeginSwitchExpr '}' {$$ = makeNode(Switch); addChild($$,$3); Node* instrNode = makeNode(SuiteInstr); addChild(instrNode, $6); addChild($$, instrNode); addChild($$,$7);}
     |  RETURN Exp ';'                       {$$ = makeNode(Return); addChild($$, $2);}
     |  RETURN ';'                            {$$ = makeNode(Return);}
-    |  PUTCHAR '(' Arguments ')' ';'         {$$ = makeNode(Putchar); addChild($$, $3);}
-    |  PUTINT '(' Exp ')' ';'          {$$ = makeNode(Putint); addChild($$, $3);}
     |  '{' SuiteInstr '}'                   {$$ = $2;}
     |  ';'                                   {$$ = makeNode(EmptyInstr);}
     ;
@@ -113,8 +111,6 @@ F   :  ADDSUB F                             {$$ = makeNode(Addsub); $$->u.byte =
     |  CHARACTER                            {$$ = makeNode(Character); $$->u.byte = $1;}
     |  LValue                               {$$ = $1;}
     |  IDENT '(' Arguments  ')'             {$$ = makeNode(FunctionCall); $$->lineno = line_count;strcpy($$->u.ident, $1); addChild($$, $3);}
-    |  GETCHAR '('')'            {$$ = makeNode(Getchar); $$->lineno = line_count;}
-    |  GETINT '('')'                   {$$ = makeNode(Getint); $$->lineno = line_count;}
     ;
 LValue:
        IDENT                { $$ = makeNode(Variable); strcpy($$->u.ident, $1);}
