@@ -15,19 +15,20 @@
 #define GETINT 2
 #define GETCHAR 3
 
-#define GLOBAL "global_vars_102920119289128917"
+#define GLOBAL "global_vars"
 
 
 typedef struct table{
     
     char *name_table;
     unsigned long size;
+    Symbol self;
     Symbol *s;          //Hashtable of symbols
     int nb_symbol;
     Type *parameters;   
     int nb_parameter;   //Its a functions's symbol table
     int total_size;
-    
+
     union {
         int number_globals;
     }u;

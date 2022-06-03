@@ -34,6 +34,7 @@ Symbol_table *newSymbolTable(char *name_table){
     table->size = INIT_TABLE_SIZ;
     table->nb_parameter = 0;
     table->u.number_globals = 0;
+    table->self = calloc_symbol();
     for(i = 0; i < INIT_TABLE_SIZ; i++){
         table->s[i] = calloc_symbol();
     }
@@ -140,8 +141,15 @@ void printSymbolTable(Symbol_table *tab){
         return;
     }
 
-    fprintf(stderr,"TAB NAME : %s\n",tab->name_table);
-    fprintf(stderr,"nb symbol : %d\n",tab->nb_symbol);
+    printf("TAB NAME : %s\n",tab->name_table);
+    
+    if(strcmp(tab->name_table, GLOBAL) != 0){
+        printf("self symbol : \n");
+        print_symbol(tab->self);
+        printf(" -------------------------\n");
+    }
+    
+    printf("number of symbols : %d\n",tab->nb_symbol);
     for(pos = 0; pos < tab->size;pos++){
         if(tab->s[pos].symbol_name == NULL) continue;;
         print_symbol(tab->s[pos]);
@@ -191,7 +199,7 @@ Symbol_table *buildPrimaryFunction(int funId){
             DEBUG("Unvailable primary function id\n");
             return NULL;
     }
-
-    insertSymbol(s, funTable);
+    funTable->self = s;
+    //insertSymbol(s, funTable);
     return funTable;
 }

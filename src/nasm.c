@@ -797,7 +797,7 @@ void returnInstr(Node *returnNode, ListTable list, Symbol_table *globalTable, Sy
         return;
     }
 
-    Symbol funSym = getSymbolInTableByName(localTable, localTable->name_table);
+    Symbol funSym = localTable->self;
     Symbol valueSym;
     Node *valueNode = returnNode->firstChild;
     
@@ -1115,7 +1115,7 @@ static void translateTree(Node *root, ListTable list){
     for(Node *n = FIRSTCHILD(funs); n; n = n->nextSibling){
         char *nameFun = getFuncNameFromDecl(n);
         Symbol_table *funTable = getTableInListByName(nameFun, list);
-        Symbol sTable = getSymbolInTableByName(funTable, nameFun);
+        Symbol sTable = funTable->self;
         LABEL(nameFun);
         PUSH("rbp");
         MOV("rbp", "rsp");

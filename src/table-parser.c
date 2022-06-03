@@ -132,8 +132,10 @@ ListTable buildSymbolListTableFromRoot(Node *root){
             }
         }
         table->total_size = totalLocalVariable;
+        //TODO remove this
         Symbol params_sym = newFunctionSymbol(function_type->firstChild->u.ident, function_t, param_types, nb_args, is_void, totalLocalVariable);
-        insertSymbol(params_sym, table);
+        table->self = params_sym;
+        //insertSymbol(params_sym, table);
         insertSymbolTableInListTable(ListTable, table);
     }
     DEBUG("build list complete\n");

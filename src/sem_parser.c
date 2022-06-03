@@ -75,7 +75,7 @@ static int functionCallParamCheck(ListTable list, Symbol_table *fun_caller_table
 
     int i;
     i = 0;
-    Symbol params = getSymbolInTableByName(function_table, function_table->name_table);
+    Symbol params = function_table->self;
     Symbol s;
 
     if (function_table->nb_parameter == 0 && fc_root->firstChild->label == Void){
@@ -108,7 +108,7 @@ static int functionCallParamCheck(ListTable list, Symbol_table *fun_caller_table
         }   
         if(n->label == FunctionCall){
             Symbol_table *paramFunTable = getTableInListByName(n->u.ident, list);
-            Symbol symParamFun = getSymbolInTableByName(paramFunTable, n->u.ident);
+            Symbol symParamFun = paramFunTable->self;
             if(symParamFun.u.f_type.is_void){
                 raiseError(n->lineno, "Attempt to call a void-function as parameter\n");
                 return 0;
@@ -250,7 +250,7 @@ int assignCheck(Node *assign, ListTable tab, char *nameTable){
                     raiseError(rValue->lineno, "implicit declaration of function '%s'\n", rValue->u.ident);
                     return 0;
                 }
-                Symbol fun = getSymbolInTableByName(calledTable, rValue->u.ident);
+                Symbol fun = calledTable->self;
                 if(fun.u.f_type.is_void){
                     raiseError(rValue->lineno, "Attempt to assign to a variable a void-function\n");
                     
@@ -437,7 +437,7 @@ static int hasReturnContent(ListTable list, Node *n){
     if(n->label == Return){
         if(n->firstChild && n->firstChild->label == FunctionCall){
             Symbol_table *table = getTableInListByName(n->firstChild->u.ident, list);
-            Symbol sfun = getSymbolInTableByName(table, n->firstChild->u.ident);
+            Symbol sfun = table->self;
             if(sfun.u.f_type.is_void){
                 raiseError(n->lineno, "void function not ignored as it ough to be\n");
             }
@@ -468,7 +468,7 @@ void checkReturnsRec(ListTable list, Node *n, PrimType type){
         }
         if(n->firstChild->label == FunctionCall){
             Symbol_table *table = getTableInListByName(n->firstChild->u.ident, list);
-            Symbol sfun = getSymbolInTableByName(table, n->firstChild->u.ident);
+            Symbol sfun = table->self;
             if(sfun.u.f_type.is_void){
                 raiseError(n->lineno, "void function not ignored as it ough to be\n");
             }
@@ -685,7 +685,7 @@ void checkMain(ListTable table){
     if(!mainTable){
         raiseError(-1, "Can't find reference to 'main'\n");
     } else {
-        Symbol s_main = getSymbolInTableByName(mainTable, "main");
+        Symbol s_main = mainTable->self;
         if(s_main.u.f_type.is_void || s_main.u.f_type.return_type != INT){
             raiseError(-1, "Expected main to return an integer\n");
         }
@@ -708,7 +708,7 @@ int parseSemError(Node *node, ListTable table){
                 raiseError(n->lineno, "Invalid symbol id : %s, already referenced as global\n", nameFun);
             }
             Symbol_table *sTable = getTableInListByName(nameFun, table);
-            Symbol funS = getSymbolInTableByName(sTable, nameFun);
+            Symbol funS = sTable->self;
             if(!funS.u.f_type.is_void){
                 if(!isReturnComplete(table, n)){
                     raiseWarning(n->lineno, "control reaches end of non-void function\n");

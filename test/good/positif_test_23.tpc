@@ -1,6 +1,5 @@
 int rec(int a){
   int i;
-  int rec;
   i = getint();
 
   return i+a;
@@ -9,7 +8,6 @@ int main(void){
     int a;
     char c;
     c = '=';
-    
     a = rec(rec(10)) + c;
     if(a > 100){
         putchar('>');

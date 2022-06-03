@@ -57,16 +57,16 @@ int is_symbol_null(Symbol symbol){
 }
 
 void print_symbol(Symbol s){
-    DEBUG("======= SYMBOL : %s========\n", s.symbol_name);
-    DEBUG("==============================\n");
+    printf("======= SYMBOL : %s========\n", s.symbol_name);
+    printf("==============================\n");
     fprintf(stderr, "Kind : ");
     switch(s.kind){
         case FUNCTION:
             fprintf(stderr, "function\n");
-            DEBUG("is void : %s\n", (s.u.f_type.is_void) ? "yes" : "no");
+            printf("is void : %s\n", (s.u.f_type.is_void) ? "yes" : "no");
             
-            DEBUG("Return Type : %s\n", (s.u.f_type.return_type == CHAR) ? "Char\n" : "Int\n");
-            DEBUG("Number of argument : %d | Number of local variable : %d\n", s.u.f_type.nb_args, s.u.f_type.nb_local);
+            printf("Return Type : %s\n", (s.u.f_type.return_type == CHAR) ? "Char\n" : "Int\n");
+            printf("Number of argument : %d | Number of local variable : %d\n", s.u.f_type.nb_args, s.u.f_type.nb_local);
             
             break;
         case VARIABLE:
@@ -79,8 +79,8 @@ void print_symbol(Symbol s){
             fprintf(stderr, "Unknown\n");
             break;
     }
-    DEBUG("==============================\n");
-    DEBUG("==============================\n");
+    printf("==============================\n");
+    printf("==============================\n");
 }
 
 void free_symbol(Symbol *s){
