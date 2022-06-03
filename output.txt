@@ -1,6 +1,0 @@
-=============== Valid tests  ===============
-25 sources out of 25 passed!
-============== Syn-invalid tests ===============
-10 sources out of 10 passed!
-============== Sem-invalids tests ===============
-16 sources out of 16 passed!
