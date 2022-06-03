@@ -1,5 +1,4 @@
 int gob1, gob2;
-
 void foo(void){
     char c;
     c = '\n';
@@ -22,6 +21,7 @@ void foo(void){
 }
 
 
+
 int main(void){
     int a;
     putchar('P');
@@ -29,8 +29,6 @@ int main(void){
     putint('n');
     a = bar();
     putint(a);
-    foo(10, 2);
-    putint(10, 2);
     return 1;
 }
 

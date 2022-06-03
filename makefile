@@ -36,4 +36,4 @@ clean:
 	rm -f src/lex.yy.* src/$(PARSER).tab.* obj/* bin/* ./_anonymous.* ./test/feedback.txt 
 
 mrproper: clean
-	rm -f ./output.txt
+	rm -f ./output.txt ./out

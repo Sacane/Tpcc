@@ -317,6 +317,27 @@ void callGetint(char *buf){
 
 }
 
+int check_primary_function(char *f_name){
+    
+    int ret;
+
+    if(strcmp(f_name, "putint") == 0){
+        ret = PUTINT;
+    } else if(strcmp(f_name, "putchar") == 0)
+    {
+        ret = PUTCHAR;
+    } else if(strcmp(f_name, "getint") == 0) {
+        ret = GETINT;
+    } else if(strcmp(f_name, "getchar") == 0){
+        ret = GETCHAR;
+    } else {
+        ret = -1;
+    }
+    
+    return ret;
+    
+}
+
 /*=====================================================*/
 void assignInstr(ListTable list, Node *assign_node, Symbol_table *globalTable, Symbol_table *localTable){
     int i;
@@ -326,6 +347,7 @@ void assignInstr(ListTable list, Node *assign_node, Symbol_table *globalTable, S
     char buf2[BUFSIZ];
     int priority;
     int isGlobalLayer = 0;
+    int checkPrimaryFun;
     Symbol lVar, rVal;
     Node *lValue = FIRSTCHILD(assign_node);
     Node *rValue = SECONDCHILD(assign_node);
@@ -379,9 +401,33 @@ void assignInstr(ListTable list, Node *assign_node, Symbol_table *globalTable, S
             break;*/
         case FunctionCall:
             COMMENT("[START] Assign to a function call");
-            functionCallInstr(rValue, rValue->u.ident,  localTable->name_table, list);
-            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
-            MOV(buf2, "rax");
+            checkPrimaryFun = check_primary_function(rValue->u.ident);
+            if(checkPrimaryFun >= 0){
+                switch(checkPrimaryFun){
+                    case GETINT:   
+                        sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
+                        callGetint(buf2);
+                        break;
+                    case GETCHAR:
+                            sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
+                            callScanf("number", FMTCHAR);
+                            MOV("rax", "qword [number]");
+                            MOV(buf2, "rax");
+                            MOV("rax", "0");
+                        break;
+                    default:
+
+                        break;
+                }
+                break;
+            } else {
+                functionCallInstr(rValue, rValue->u.ident,  localTable->name_table, list);
+                sprintf(buf2, "qword [%s %s %d]", (isGlobalLayer) ? GLOBAL : "rbp", (lVar.offset >= 0) ? "+" : "", lVar.offset);
+                MOV(buf2, "rax");
+            }
+
+            
+
             COMMENT("[END] Assign to a function call");
             break;
         case Variable:
@@ -979,7 +1025,7 @@ void functionCallInstr(Node *fCallNode, char *calledId, char *callerId, ListTabl
 
 
 void nasmTranslateParsing(ListTable list, Node *root, Symbol_table *global_var_table, Symbol_table *localTable){
-
+    int primaryId;
     if(!root) {
         return;
     }
@@ -1019,13 +1065,35 @@ void nasmTranslateParsing(ListTable list, Node *root, Symbol_table *global_var_t
             break;
         case FunctionCall:
             COMMENT("Function call start");
-            functionCallInstr(root, root->u.ident, localTable->name_table, list);
+            primaryId = check_primary_function(root->u.ident);
+            if(primaryId >= 0){
+                switch(primaryId){
+                    case PUTINT:
+                       
+                        writePutint(root, list, global_var_table, localTable);
+                        break;
+                    case PUTCHAR:
+                        writePutchar(root, list, global_var_table, localTable);
+                        break;
+                    case GETINT:
+                        break;
+                    case GETCHAR:
+                        break;
+                    default:
+                        raiseError(-1, "Invalid primary funId\n");
+                        break;
+                }
+            } else {
+                functionCallInstr(root, root->u.ident, localTable->name_table, list);
+            }
+            
             COMMENT("End function call");
             break;
         case Switch:
             COMMENT("Switch start");
             switchInstr(root, global_var_table, localTable, list);
             COMMENT("Switch end");
+
             nasmTranslateParsing(list, root->nextSibling, global_var_table, localTable);
             return;
         default:

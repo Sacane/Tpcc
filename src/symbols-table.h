@@ -15,13 +15,8 @@
 #define GETINT 2
 #define GETCHAR 3
 
-#define GLOBAL "global_vars"
+#define GLOBAL "global_vars_102920119289128917"
 
-typedef struct {
-
-    int number_global;
-
-}Global_table;
 
 typedef struct table{
     
