@@ -281,8 +281,6 @@ void checkDuplicatedCaseContentAux(ListTable listTable, char *tableName, Node *n
     if(!node){
         return;
     }
-    
-    
     if(node->label == Case){
         Node *inCase = FIRSTCHILD(node);
         switch(inCase->label){
@@ -574,7 +572,7 @@ int checkUsedVar(Node *root, Node *body, char *symbolId, int lineno){
 }
 
 void checkVariableState(Node *curNode, int *isUsed, int *isInitialized, char *symbolId, int baseLineno){
-    if(curNode && curNode->label == Variable && strcmp(curNode->u.ident, symbolId) == 0){
+    if(curNode && (curNode->label == Variable) && strcmp(curNode->u.ident, symbolId) == 0){
         (*isUsed) = 1;
         if(!(*isInitialized)){
             raiseWarning(baseLineno, "'%s' is used uninitialized in this function near line %d\n", symbolId, curNode->lineno);
@@ -659,24 +657,50 @@ void parseVariableUsage(Node *root, Node *currentNode, char *symbolId, int baseL
 }
 
 int checkVariable(Node *prog){
+    int isInitialized = 0, isUsed = 0;
+    Node *vars;
     Node *declFoncts = SECONDCHILD(prog);
     for(Node *fonct = declFoncts->firstChild; fonct; fonct = fonct->nextSibling){
-        Node *vars = FIRSTCHILD(SECONDCHILD(fonct));
-        if(vars != NULL && vars->label == DeclVars){
-            for(Node *types = vars->firstChild; types; types = types->nextSibling){
-                for(Node *var = types->firstChild; var; var = var->nextSibling){
-                    int isInitialized = 0, isUsed = 0;
-                    parseVariableUsage(prog, SECONDCHILD(fonct), var->u.ident, var->lineno, &isInitialized, &isUsed);
-                    if(isInitialized && !isUsed){
-                        raiseWarning(var->lineno, "variable '%s' set but not used\n", var->u.ident);
-                    }
-                    if(!isInitialized && !isUsed){
-                        raiseWarning(var->lineno, "unused variable '%s'\n", var->u.ident);
-                    }
+        /*Node *params = SECONDCHILD(FIRSTCHILD(fonct));
+        for(Node *param = params->firstChild; param; param = param->nextSibling){
+            if(param->label != Void){
+                isInitialized = 0;
+                isUsed = 0;
+                parseVariableUsage(prog, SECONDCHILD(fonct), param->firstChild->u.ident, param->lineno, &isInitialized, &isUsed);
+
+                if(!isUsed){
+                    raiseWarning(param->lineno, "unused parameter '%s' in function '%s'\n", param->firstChild->u.ident, fonct->firstChild->firstChild->firstChild->u.ident);
                 }
             }
         }
+        var:*/
+        vars = FIRSTCHILD(SECONDCHILD(fonct));
+        if(vars != NULL && vars->label == DeclVars){
+            
+            for(Node *types = vars->firstChild; types; types = types->nextSibling){
+                
+                for(Node *var = types->firstChild; var; var = var->nextSibling){
+                    
+                    isInitialized = 0;
+                    isUsed = 0;
+                    parseVariableUsage(prog, SECONDCHILD(fonct), var->u.ident, var->lineno, &isInitialized, &isUsed);
+                    
+                    if(isInitialized && !isUsed){
+                        
+                        raiseWarning(var->lineno, "variable '%s' set but not used\n", var->u.ident);
+                    }
+                    
+                    if(!isInitialized && !isUsed){
+                        
+                        raiseWarning(var->lineno, "unused variable '%s'\n", var->u.ident);
+                    }
+                    
+                }
+            }
+        }
+        
     }
+    
 }
 
 void checkMain(ListTable table){

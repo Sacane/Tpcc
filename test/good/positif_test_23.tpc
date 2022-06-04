@@ -2,7 +2,7 @@ int rec(int a){
   int i;
   i = getint();
 
-  return i+a;
+  return i+1;
 }
 int main(void){
     int a;
