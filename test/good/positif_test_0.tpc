@@ -1,35 +1,19 @@
 int gob1, gob2;
-void foo(void){
-    char c;
-    c = '\n';
-    putchar('W');
-    putchar('e');
-    putchar(' ');
-    putchar('g');
-    putchar('o');
-    putchar('t');
-    putchar(' ');
-    putchar('p');
-    putchar('u');
-    putchar('t');
-    putchar('c');
-    putchar('h');
-    putchar('a');
-    putchar('r');
-    putchar(c);
-    
-}
+
 int main(void){
     int a;
+    gob1 = 3;
+    putint(gob1);
     putchar('P');
     putchar('\n');
     putint('n');
-    a = bar();
+    a = 3;
     putint(a);
     return 1;
 }
-int bar(void){
+
+/*int bar(void){
     putchar('b');
     putchar('\n');
     return 1;
-}
+}*/

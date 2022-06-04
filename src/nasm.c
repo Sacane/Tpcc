@@ -1151,11 +1151,16 @@ void makeExecutable(char *fname){
     char *src;
     char buf[BUFSIZ];
     sprintf(buf, "nasm -f elf64 %s", (fname) ? fname : "_anonymous.asm");
+    printf("%s\n", buf);
     system(buf);
     if(fname){
         src = strtok(fname, ".");
     }
     
     sprintf(buf, "gcc -o %s my_putchar.o %s.o -nostartfiles -no-pie", (fname) ? src : "out", (fname) ? src : "_anonymous");
+    printf("%s\n", buf);
+    system(buf);
+    sprintf(buf, "rm -f %s.o", (fname) ? src : "_anonymous");
+    printf("%s\n", buf);
     system(buf);
 }

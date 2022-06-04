@@ -246,7 +246,7 @@ int main(int argc, char **argv){
         if(checkDup == -1){
             perror("dup2");
         }
-
+        fclose(file);
 
     }
 
