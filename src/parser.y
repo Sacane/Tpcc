@@ -19,6 +19,8 @@ extern int check_warn;
 #include "nasm.h"
 #include "sem_parser.h"
 #include <signal.h>
+#include <unistd.h>
+#include <stdio.h>
 Node* root;
 }
 %expect 1
@@ -163,7 +165,7 @@ void handler(int sig){
 }
 
 int main(int argc, char **argv){
-    char fileName[256];
+
     int option, hasArgument;
     int showTree = 0;
     int result;
@@ -175,7 +177,9 @@ int main(int argc, char **argv){
     int showTable = 0;
     int hasPath = 0;
     int hasFile = 0;
-    
+    char *fileName = NULL;
+    char path[100];
+    FILE *file;
 
     static struct option long_option[] = {
 
@@ -201,11 +205,7 @@ int main(int argc, char **argv){
             default : result = 3; break;
         }
     }
-    if(argc == 2 && optind == 1){
-        hasFile = 1;
-        DEBUG("Unimplemented functionnality: exit(3)\n");
-        return 3;
-    }
+
     if(result == 3){
         return 3;
     }
@@ -226,8 +226,29 @@ int main(int argc, char **argv){
                 return 3;
         }
     }
+    if(optind == (argc-1)){
+        hasFile = 1;
+        strcpy(path, argv[optind]);
+        file = fopen(path, "r");
+        char *token = strtok(argv[optind], "/");
+        while(token){
+            if(strstr(token, ".tpc") != NULL){
+                break;
+            }
+            token = strtok(NULL, "/");
+        }
+        fileName = strtok(token, ".");
+    }
+    if(hasFile){
+        
+
+        int checkDup = dup2(fileno(file), STDIN_FILENO);
+        if(checkDup == -1){
+            perror("dup2");
+        }
 
 
+    }
 
     result = yyparse();
     if(result){
@@ -256,9 +277,9 @@ int main(int argc, char **argv){
     
     DEBUG("=== NO SEM-ERRORS DETECTED ===\n");
     if(make_exec){
-        buildNasmFile(rootProg, list);
+        buildNasmFile(rootProg, list, fileName);
         DEBUG("Generate executable...\n");
-        makeExecutable("out"); // make ./out
+        makeExecutable(fileName); // make ./out
     }
 
         

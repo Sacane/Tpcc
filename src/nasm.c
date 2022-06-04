@@ -1133,8 +1133,11 @@ static void translateTree(Node *root, ListTable list){
 }
 
 
-void buildNasmFile(Node *root, ListTable list){
-    f = fopen("_anonymous.asm", "wr");
+void buildNasmFile(Node *root, ListTable list, char *fname){
+    if(fname){
+        strcat(fname, ".asm");
+    }
+    f = fopen((fname) ? fname : "_anonymous.asm", "wr+");
     Symbol_table *table, *mainTable;
     table = getTableInListByName(GLOBAL, list);
     mainTable = getTableInListByName("main", list);
@@ -1145,9 +1148,14 @@ void buildNasmFile(Node *root, ListTable list){
 
 
 void makeExecutable(char *fname){
+    char *src;
     char buf[BUFSIZ];
-    sprintf(buf, "nasm -f elf64 _anonymous.asm");
+    sprintf(buf, "nasm -f elf64 %s", (fname) ? fname : "_anonymous.asm");
     system(buf);
-    sprintf(buf, "gcc -o %s my_putchar.o _anonymous.o -nostartfiles -no-pie", fname);
+    if(fname){
+        src = strtok(fname, ".");
+    }
+    
+    sprintf(buf, "gcc -o %s my_putchar.o %s.o -nostartfiles -no-pie", (fname) ? src : "out", (fname) ? src : "_anonymous");
     system(buf);
 }

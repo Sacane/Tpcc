@@ -14,7 +14,7 @@
  * @param root root of the tree which begin the parsing to translate
  * @param list 
  */
-void buildNasmFile(Node *root, ListTable list);
+void buildNasmFile(Node *root, ListTable list, char *fname);
 
 /**
  * @brief compile the asm file to an executor file

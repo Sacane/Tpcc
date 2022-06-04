@@ -19,9 +19,6 @@ void foo(void){
     putchar(c);
     
 }
-
-
-
 int main(void){
     int a;
     putchar('P');
@@ -31,7 +28,6 @@ int main(void){
     putint(a);
     return 1;
 }
-
 int bar(void){
     putchar('b');
     putchar('\n');
