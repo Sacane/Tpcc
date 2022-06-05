@@ -4,7 +4,7 @@ int choose(int a){
     putint(a);
     switch(a){
         c = 'M';
-        putint(c);
+        putchar(c);
         case 10:
             c = 'T';
             putchar(c);
@@ -14,9 +14,6 @@ int choose(int a){
                 while(a < 100){
                     a = a+20;
                     putint(a);
-                    c = 'M';
-                    putchar(c);
-                    putchar('\n');
                 }
             }
             break;

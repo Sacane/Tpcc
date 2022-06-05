@@ -138,7 +138,6 @@ ListTable buildSymbolListTableFromRoot(Node *root){
         //insertSymbol(params_sym, table);
         insertSymbolTableInListTable(ListTable, table);
     }
-    DEBUG("build list complete\n");
     return ListTable;
 }
 

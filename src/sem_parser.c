@@ -460,6 +460,9 @@ void checkReturnsRec(ListTable list, Node *n, PrimType type){
             
             goto end;
         }
+        if(n->firstChild->label == Variable){
+            
+        }
         if(n->firstChild->label == Int && type == CHAR){
             raiseWarning(n->lineno, "Return an int in a function returning a char\n");
             check_warn = 1;
@@ -661,19 +664,6 @@ int checkVariable(Node *prog){
     Node *vars;
     Node *declFoncts = SECONDCHILD(prog);
     for(Node *fonct = declFoncts->firstChild; fonct; fonct = fonct->nextSibling){
-        /*Node *params = SECONDCHILD(FIRSTCHILD(fonct));
-        for(Node *param = params->firstChild; param; param = param->nextSibling){
-            if(param->label != Void){
-                isInitialized = 0;
-                isUsed = 0;
-                parseVariableUsage(prog, SECONDCHILD(fonct), param->firstChild->u.ident, param->lineno, &isInitialized, &isUsed);
-
-                if(!isUsed){
-                    raiseWarning(param->lineno, "unused parameter '%s' in function '%s'\n", param->firstChild->u.ident, fonct->firstChild->firstChild->firstChild->u.ident);
-                }
-            }
-        }
-        var:*/
         vars = FIRSTCHILD(SECONDCHILD(fonct));
         if(vars != NULL && vars->label == DeclVars){
             

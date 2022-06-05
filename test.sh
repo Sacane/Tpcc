@@ -40,6 +40,9 @@ test "./test/syn-err/*.tpc" 1
 echo "============== Sem-invalids tests ===============" | tee -a output.txt
 test "./test/sem-err/*.tpc" 2 
 
+echo "============== Warn tests ===============" | tee -a output.txt
+test "./test/warn/*.tpc" 0
+
 echo "All tests done."
 
 make clean

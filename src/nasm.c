@@ -905,8 +905,9 @@ void switchInstr(Node *switchNode, Symbol_table *globalTable, Symbol_table *loca
             check_sem_err = 1;
             break;
     }
-    
-    nasmTranslateParsing(list, FIRSTCHILD(SECONDCHILD(switchNode)), globalTable, localTable);
+    COMMENT("before parsing suite instr");
+    nasmTranslateParsing(list, SECONDCHILD(switchNode), globalTable, localTable);
+    COMMENT("after parsing suite instr");
     int whichSwitch[BUFSIZ];
     i = 0;
     //premier parsing
@@ -1149,18 +1150,15 @@ void buildNasmFile(Node *root, ListTable list, char *fname){
 
 void makeExecutable(char *fname){
     char *src;
-    char buf[BUFSIZ];
+    char buf[100];
     sprintf(buf, "nasm -f elf64 %s", (fname) ? fname : "_anonymous.asm");
-    printf("%s\n", buf);
     system(buf);
     if(fname){
         src = strtok(fname, ".");
     }
-    
     sprintf(buf, "gcc -o %s my_putchar.o %s.o -nostartfiles -no-pie", (fname) ? src : "out", (fname) ? src : "_anonymous");
-    printf("%s\n", buf);
     system(buf);
     sprintf(buf, "rm -f %s.o", (fname) ? src : "_anonymous");
-    printf("%s\n", buf);
     system(buf);
+    printf("Compilation succeed.\nExecutable file : %s\n", (fname) ? fname : "out");
 }
