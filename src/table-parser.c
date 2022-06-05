@@ -141,6 +141,7 @@ ListTable buildSymbolListTableFromRoot(Node *root){
     return ListTable;
 }
 
+
 Node * hasChildLabel(Node *root, label_t label){
     for(Node *child = root->firstChild; child; child = child->nextSibling){
         if(label == child->label){
@@ -175,4 +176,18 @@ Symbol_table *getTableInListByName(char *name_table, ListTable SymbolTableListTa
     }
     
     return (tmp) ? tmp->table : NULL;
+}
+int symbolPriority(ListTable list, Symbol_table *functionTable, char *nameSymbol){
+    Symbol_table *global;
+    int isGlobalLayer = 0;
+    global = getTableInListByName(GLOBAL, list);
+    
+    if(isSymbolInTable(global, nameSymbol)){
+        isGlobalLayer = 1;
+    }
+    if (isSymbolInTable(functionTable, nameSymbol)){
+        isGlobalLayer = 0;
+    }
+    return (isGlobalLayer) ? IN_GLOBAL : IN_FUNCTION;
+
 }

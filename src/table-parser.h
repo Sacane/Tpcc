@@ -15,6 +15,9 @@
 #define OPEN  0
 #define CLOSE 1
 
+#define IN_GLOBAL 0
+#define IN_FUNCTION 1
+
 int check_sem_err;
 int check_warn;
 int hasMain;
@@ -76,5 +79,6 @@ Symbol_table *getTableInListByName(char *nameTable, ListTable symbolTableList);
  */
 void free_table(Symbol_table *symbolTable);
 
+int symbolPriority(ListTable list, Symbol_table *functionTable, char *nameSymbol);
 
 #endif

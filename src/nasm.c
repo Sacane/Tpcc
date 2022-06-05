@@ -21,8 +21,7 @@
 #define CONST 2
 #define FUNCTION 3
 
-#define IN_GLOBAL 0
-#define IN_FUNCTION 1
+
 
 
 FILE *f;
@@ -102,20 +101,7 @@ void write_global_eval(Symbol_table *global_table, Node *assign_node){
 
 }   
 
-int symbolPriority(ListTable list, Symbol_table *functionTable, char *nameSymbol){
-    Symbol_table *global;
-    int isGlobalLayer = 0;
-    global = getTableInListByName(GLOBAL, list);
-    
-    if(isSymbolInTable(global, nameSymbol)){
-        isGlobalLayer = 1;
-    }
-    if (isSymbolInTable(functionTable, nameSymbol)){
-        isGlobalLayer = 0;
-    }
-    return (isGlobalLayer) ? IN_GLOBAL : IN_FUNCTION;
 
-}
 
 /**
  * @brief 

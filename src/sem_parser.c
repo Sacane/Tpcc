@@ -449,7 +449,7 @@ static int hasReturnContent(ListTable list, Node *n){
     return hasReturnContent(list, n->firstChild) || hasReturnContent(list, n->nextSibling);
 }
 
-void checkReturnsRec(ListTable list, Node *n, PrimType type){
+void checkReturnsRec(ListTable list, Node *n, PrimType type, Symbol_table *localTable, Symbol_table *globalTable){
     if(!n){
         return;
     }
@@ -461,11 +461,16 @@ void checkReturnsRec(ListTable list, Node *n, PrimType type){
             goto end;
         }
         if(n->firstChild->label == Variable){
-            
+            if(type == CHAR){
+                int priority = symbolPriority(list, localTable, n->firstChild->u.ident);
+                Symbol s = getSymbolInTableByName((priority == IN_FUNCTION) ? localTable : globalTable, n->firstChild->u.ident);
+                if(s.u.p_type == INT){
+                    raiseWarning(n->lineno, "Return an int in a function returning a char\n");
+                }
+            }
         }
         if(n->firstChild->label == Int && type == CHAR){
             raiseWarning(n->lineno, "Return an int in a function returning a char\n");
-            check_warn = 1;
         }
         if(n->firstChild->label == FunctionCall){
             Symbol_table *table = getTableInListByName(n->firstChild->u.ident, list);
@@ -476,8 +481,8 @@ void checkReturnsRec(ListTable list, Node *n, PrimType type){
         }
     }
     end:
-    checkReturnsRec(list, n->firstChild, type);
-    checkReturnsRec(list, n->nextSibling, type);
+    checkReturnsRec(list, n->firstChild, type, localTable, globalTable);
+    checkReturnsRec(list, n->nextSibling, type, localTable, globalTable);
 }
 
 /**
@@ -496,7 +501,8 @@ void checkReturnsValue(ListTable list, Node *n, Symbol_table* table, Symbol sym)
 
     } else {
         PrimType type = sym.u.f_type.return_type;
-        checkReturnsRec(list, n, type);
+        Symbol_table *globalTable = getTableInListByName(GLOBAL, list);
+        checkReturnsRec(list, n, type, table, globalTable);
     }
 }
 

@@ -3,6 +3,7 @@ int gob1, gob2;
 int main(void){
     int a;
     gob1 = 3;
+    a = getint();
     putint(gob1);
     putchar('P');
     putchar('\n');

@@ -1,7 +1,7 @@
 #ifndef __PROVIDER__
 #define __PROVIDER__
 
-#include "tree.h"
+
 #include "table-parser.h"
 
 typedef enum {

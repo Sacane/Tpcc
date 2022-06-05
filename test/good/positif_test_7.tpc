@@ -6,7 +6,7 @@ char called(int c){
     a = 8;
     a = a + 7 - b;
     putint(a);
-    return c;
+    return 'O';
 }
 
 
