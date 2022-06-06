@@ -891,9 +891,9 @@ void switchInstr(Node *switchNode, Symbol_table *globalTable, Symbol_table *loca
             check_sem_err = 1;
             break;
     }
-    COMMENT("before parsing suite instr");
-    nasmTranslateParsing(list, SECONDCHILD(switchNode), globalTable, localTable);
-    COMMENT("after parsing suite instr");
+
+    nasmTranslateParsing(list, FIRSTCHILD(SECONDCHILD(switchNode)), globalTable, localTable);
+
     int whichSwitch[BUFSIZ];
     i = 0;
     //premier parsing

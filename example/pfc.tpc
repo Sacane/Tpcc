@@ -8,6 +8,41 @@ void putNewLine(void){
     putchar(newLine);
 }
 
+void rules(void){
+    putchar('L');
+    putchar('e');
+    putchar('a');
+    putchar('f');
+    putchar(':');
+    putchar('(');
+    putchar('f');
+    putchar(')');
+    putNewLine();
+    putchar('R');
+    putchar('o');
+    putchar('c');
+    putchar('k');
+    putchar(':');
+    putchar('(');
+    putchar('p');
+    putchar(')');
+    putNewLine();
+    putchar('S');
+    putchar('c');
+    putchar('i');
+    putchar('s');
+    putchar('s');
+    putchar('o');
+    putchar('r');
+    putchar('s');
+    putchar(':');
+    putchar('(');
+    putchar('c');
+    putchar(')');
+    putchar(' ');
+    putNewLine();
+}
+
 void askSeed(void){
         putchar('S');
         putchar('E');
@@ -72,9 +107,7 @@ void sayYouWin(void){
     putchar('W');
     putchar('I');
     putchar('N');
-    putchar(' ');
-    putchar('!');
-    putNewLine();
+
 }
 
 void sayYouLost(void){
@@ -86,9 +119,6 @@ void sayYouLost(void){
     putchar('O');
     putchar('S');
     putchar('T');
-    putchar(' ');
-    putchar('!');
-    putNewLine();
     
 }
 
@@ -98,12 +128,11 @@ void sayEqual(void){
     putchar('U');
     putchar('A');
     putchar('L');
-    putNewLine();
 }
 
 
 int iaRandomShot(int seed){
-    return (seed * 150 + 2 + 8 + (seed *5 + 1) * 1000) % 3;
+    return (seed * 160 + (seed *5 + 4) * 1000) % 3;
 }
 
 
@@ -122,8 +151,11 @@ int main(void)
     seed = getint();
 
     while(curRound < maxRound){
+        rules();
         generatedNumber = iaRandomShot(seed);
         switch(generatedNumber){
+            putint(1020);
+            putint(1020);
             case 0:
                 iaShot = 'P';
                 break;
@@ -142,14 +174,17 @@ int main(void)
                 switch(iaShot){
                     default:
                         sayEqual();
+                        for_round();
                         break;
                     case 'F':
                         sayYouLost();
                         scoreIA = scoreIA + 1;
+                        for_round();
                         break;
                     case 'C':
                         sayYouWin();
                         scorePlayer = scorePlayer + 1;
+                        for_round();
                         break;
                     
                 }
@@ -159,13 +194,16 @@ int main(void)
                 switch(iaShot){
                     default:
                         sayEqual();
+                        for_round();
                         break;
                     case 'P':
                         sayYouWin();
+                        for_round();
                         scorePlayer = scorePlayer + 1;
                         break;
                     case 'C':
                         sayYouLost();
+                        for_round();
                         scoreIA = scoreIA + 1;
                         break;
                 }
@@ -175,17 +213,23 @@ int main(void)
                 switch(iaShot){
                     default:
                         sayEqual();
+                        for_round();
                         break;
                     case 'P':
-                    case 'p':
                         sayYouLost();
+                        for_round();
                         scoreIA = scoreIA + 1;
                         break;
                     case 'F':
                         sayYouWin();
+                        for_round();
                         scorePlayer = scorePlayer + 1;
                         break;
                 }
+                break;
+            default:
+                sayYouLost();
+                scoreIA = scoreIA + 1;
                 break;
         }
         curRound = curRound + 1;
@@ -193,21 +237,16 @@ int main(void)
     }   
     if(scorePlayer == scoreIA){
         sayEqual();
-        sayEqual();
-        sayEqual();
-        sayEqual();
+        putNewLine();
         return 1;
     }
     if(scorePlayer > scoreIA){
         sayCongrat();
-        sayCongrat();
+        putNewLine();
     } else {
         sayYouLost();
-        sayYouLost();
-        sayYouLost();
-        sayYouLost();
-        sayYouLost();
-        sayYouLost();
+        putNewLine();
+
     }
 
     return 0;
