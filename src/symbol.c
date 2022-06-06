@@ -58,7 +58,7 @@ int is_symbol_null(Symbol symbol){
 
 void print_symbol(Symbol s){
     printf("======= SYMBOL : %s========\n", s.symbol_name);
-    printf("==============================\n");
+    
     fprintf(stderr, "Kind : ");
     switch(s.kind){
         case FUNCTION:
@@ -80,7 +80,7 @@ void print_symbol(Symbol s){
             break;
     }
     printf("==============================\n");
-    printf("==============================\n");
+
 }
 
 void free_symbol(Symbol *s){
