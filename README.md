@@ -16,11 +16,11 @@ make
 The tpcc file will be generated in the bin folder. 
 To compile a tpc project, use the following command : 
 ```shell
-./bin/tpcc <your_source.tpc>
+./bin/tpcc <your_source.tpc> [OPTIONS] [--]
 ```
 or 
 ```shell
-./bin/tpcc < votre_source.tpc
+./bin/tpcc < your_source.tpc [OPTIONS] [--]
 ```
 Here is some additional options that you can use with the tpcc compiler :
 
